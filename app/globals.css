@@ -1123,13 +1123,13 @@ html.shell-lock, html.shell-lock body { height: auto; overflow: visible; }
 
   /* ── Escala tipográfica. Mínimo 12 px; el cuerpo, 15-16 px. ───────────────
      Con clamp() acompaña al ancho de la ventana sin llegar a descolocar nada. */
-  --t-micro:  12px;                        /* insignias, contadores */
-  --t-meta:   13px;                        /* metadatos, pies */
-  --t-base:   clamp(14px, 0.95rem, 15px);  /* interfaz general */
-  --t-cuerpo: clamp(15px, 1rem, 16.5px);   /* texto que se lee de verdad */
-  --t-boton:  14px;
-  --t-titulo: clamp(18px, 1.35rem, 22px);
-  --t-display: clamp(24px, 2.2rem, 34px);
+  --t-micro:  13px;                          /* insignias, contadores */
+  --t-meta:   14px;                          /* metadatos, pies */
+  --t-base:   clamp(15px, 1rem, 16px);       /* interfaz general */
+  --t-cuerpo: clamp(16px, 1.08rem, 17.5px);  /* texto que se lee de verdad */
+  --t-boton:  15px;
+  --t-titulo: clamp(19px, 1.45rem, 24px);
+  --t-display: clamp(26px, 2.4rem, 38px);
 }
 
 /* Cuerpo por defecto: antes heredaba el 16 px del navegador pero casi todo el
@@ -1167,8 +1167,10 @@ body { font-size: var(--t-base); line-height: 1.5; }
    arriba, en el juego base y en las tres expansiones. */
 .text-\[7px\], .text-\[8px\], .text-\[9px\],
 .text-\[9\.5px\], .text-\[10px\], .text-\[10\.5px\],
-.text-\[11px\], .text-\[11\.5px\] { font-size: var(--t-micro) !important; }
-.text-\[12px\], .text-\[13px\] { font-size: var(--t-meta) !important; }
+.text-\[11px\], .text-\[11\.5px\], .text-\[12px\] { font-size: var(--t-micro) !important; }
+.text-\[13px\], .text-\[13\.5px\] { font-size: var(--t-meta) !important; }
+/* text-xs de Tailwind son 12px: también sube al mínimo de lectura. */
+.shell-main .text-xs, .modal-scrim .text-xs, .cinematica .text-xs { font-size: var(--t-meta); }
 
 /* Suelo de contraste: las opacidades más bajas sobre texto se elevan al mínimo
    legible. No afecta a bordes ni a fondos, sólo al color del texto. */
@@ -1214,8 +1216,8 @@ body { font-size: var(--t-base); line-height: 1.5; }
 /* Ritmo vertical comprimido: la mitad, aproximadamente. */
 .shell-main .py-16 { padding-block: 1.25rem; }
 .shell-main .py-10 { padding-block: 1rem; }
-.shell-main .py-8  { padding-block: 0.85rem; }
-.shell-main .py-6  { padding-block: 0.75rem; }
+.shell-main .py-8  { padding-block: 0.7rem; }
+.shell-main .py-6  { padding-block: 0.55rem; }
 .shell-main .mb-10 { margin-bottom: 1rem; }
 .shell-main .mb-8  { margin-bottom: 0.85rem; }
 .shell-main .mb-6  { margin-bottom: 0.75rem; }
@@ -1326,4 +1328,54 @@ body { font-size: var(--t-base); line-height: 1.5; }
   max-height: min(88dvh, 46rem);
   overflow-y: auto;
   overscroll-behavior: contain;
+}
+
+/* ============================================================================
+   CINEMÁTICA A PANTALLA COMPLETA (entrada de jefe)
+   ----------------------------------------------------------------------------
+   Era `fixed inset-0 … overflow-hidden` con todo centrado. En un teléfono de
+   390×844 los botones «Combatir» y «Huir» caían en el píxel 859 y el contenedor
+   los recortaba, sin nada que desplazar y sin barra de navegación: no se podía
+   ni empezar el combate ni salir.
+
+   Ahora es un grid de dos filas: el cuerpo se desplaza si hace falta y las
+   acciones ocupan una fila fija, siempre a la vista y respetando el área segura.
+   ============================================================================ */
+.cinematica {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-modal);
+  display: grid;
+  grid-template-rows: minmax(0, 1fr) auto;
+  grid-template-columns: minmax(0, 1fr);
+  height: 100dvh;
+  overflow: hidden; /* el recorte es del armazón; el cuerpo tiene su scroll */
+}
+
+.cinematica-cuerpo {
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.cinematica-acciones {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  padding: 0.9rem var(--shell-gutter);
+  padding-bottom: calc(0.9rem + env(safe-area-inset-bottom, 0px));
+  border-top: 1px solid rgba(255, 255, 255, 0.16);
+  /* Opaca: el contenido se desplaza POR DEBAJO de esta barra, y con alfa se
+     transparentaba a través de los botones. */
+  background: #05070C;
+}
+
+/* En pantallas bajas el retrato del jefe no puede comerse la pantalla. */
+@media (max-height: 720px) {
+  .cinematica-cuerpo .boss-entrance { font-size: 3.5rem !important; }
 }

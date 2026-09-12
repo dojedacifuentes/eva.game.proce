@@ -42,7 +42,7 @@
 .civ-panel {
   position: relative;
   background:
-    linear-gradient(180deg, rgba(18,16,12,0.94), rgba(10,9,7,0.97));
+    linear-gradient(180deg, rgba(18,16,12,0.985), rgba(10,9,7,0.995));
   border: 1.5px solid color-mix(in srgb, var(--civ-primary) 55%, #2a2418);
   border-radius: 6px;
   box-shadow:

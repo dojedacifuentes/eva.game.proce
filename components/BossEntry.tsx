@@ -34,14 +34,18 @@ export default function BossEntry({ boss, onStart, onCancel }: BossEntryProps) {
   const pct = (vidaActual / boss.vidaMax) * 100;
 
   return (
-    <AnimatePresence>
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        exit={{ opacity: 0 }}
-        className="fixed inset-0 z-50 flex items-center justify-center overflow-hidden"
-        style={{ background: "rgba(0,0,0,.95)" }}
-      >
+    // Sin AnimatePresence: envolvía un hijo sin `key` y dejaba copias montadas
+    // del overlay (gotcha documentado en el repositorio). El padre monta esta
+    // cinemática condicionalmente; aquí sólo se anima la entrada.
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      className="cinematica"
+      style={{ background: "rgba(0,0,0,.95)" }}
+      role="dialog"
+      aria-modal="true"
+      aria-label={`Presentación de ${boss.nombre}`}
+    >
         {/* FONDO ANIMADO */}
         <div
           className="absolute inset-0 pointer-events-none"
@@ -71,8 +75,9 @@ export default function BossEntry({ boss, onStart, onCancel }: BossEntryProps) {
           </>
         )}
 
-        {/* CONTENIDO CENTRAL */}
-        <div className="relative z-10 flex flex-col items-center text-center px-6 max-w-2xl w-full">
+        {/* CONTENIDO — se desplaza si no cabe, en vez de recortarse */}
+        <div className="cinematica-cuerpo shell-scroll" tabIndex={0}>
+        <div className="relative z-10 flex flex-col items-center text-center px-6 max-w-2xl w-full mx-auto py-5">
 
           {/* ICONO DEL BOSS */}
           <AnimatePresence>
@@ -181,51 +186,51 @@ export default function BossEntry({ boss, onStart, onCancel }: BossEntryProps) {
             </motion.div>
           )}
 
-          {/* BOTONES */}
-          {phase === "ready" && (
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.8 }}
-              className="flex gap-4"
-            >
-              <button
-                onClick={onStart}
-                onMouseEnter={() => sfx.hover?.()}
-                className="px-8 py-3 font-display-grave tracking-widest text-sm border transition-all hover:scale-105"
-                style={{
-                  borderColor: boss.color,
-                  color: boss.color,
-                  background: `${boss.color}15`,
-                  boxShadow: `0 0 30px ${boss.color}40`,
-                }}
-              >
-                ⚔ COMBATIR
-              </button>
-              <button
-                onClick={onCancel}
-                onMouseEnter={() => sfx.hover?.()}
-                className="btn px-6 py-3 text-sm"
-              >
-                ← HUIR
-              </button>
-            </motion.div>
-          )}
+        </div>
         </div>
 
-        {/* ARTÍCULO CLAVE */}
+        {/*
+          ACCIONES — fila propia, siempre a la vista.
+
+          Antes vivían dentro del bloque centrado de un contenedor
+          `fixed inset-0 overflow-hidden`: en un teléfono de 390×844 caían en
+          el píxel 859, quince por debajo del borde, y como el contenedor
+          recortaba y nada se desplazaba, era imposible empezar el combate ni
+          salir. Aquí ocupan una fila fija del grid y respetan el área segura.
+        */}
         {phase === "ready" && (
           <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 1 }}
-            className="absolute bottom-6 left-6 font-mono-terminal text-[9px]"
-            style={{ color: `${boss.color}60` }}
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.6 }}
+            className="cinematica-acciones"
           >
-            {boss.articulo}
+            <span className="t-meta font-mono-terminal mr-auto self-center" style={{ color: `${boss.color}` }}>
+              {boss.articulo}
+            </span>
+            <button
+              onClick={onCancel}
+              onMouseEnter={() => sfx.hover?.()}
+              className="btn px-5"
+            >
+              ← Huir
+            </button>
+            <button
+              onClick={onStart}
+              onMouseEnter={() => sfx.hover?.()}
+              className="px-7 py-3 font-display-grave tracking-widest t-titulo border-2 rounded transition-all hover:brightness-125"
+              style={{
+                borderColor: boss.color,
+                color: boss.color,
+                background: `${boss.color}1c`,
+                boxShadow: `0 0 30px ${boss.color}40`,
+                minHeight: 48,
+              }}
+            >
+              ⚔ Combatir
+            </button>
           </motion.div>
         )}
-      </motion.div>
-    </AnimatePresence>
+    </motion.div>
   );
 }

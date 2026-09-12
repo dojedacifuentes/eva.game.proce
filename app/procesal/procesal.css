@@ -37,7 +37,7 @@
 /* ── Panel tipo legajo (con lomo de carpeta a la izquierda) ───────────────── */
 .proc-panel {
   position: relative;
-  background: linear-gradient(180deg, rgba(16,18,26,0.95), rgba(9,11,18,0.97));
+  background: linear-gradient(180deg, rgba(16,18,26,0.985), rgba(9,11,18,0.995));
   border: 1.5px solid color-mix(in srgb, var(--proc-primary) 50%, #20242f);
   border-radius: 6px;
   box-shadow:
