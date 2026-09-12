@@ -2,6 +2,7 @@
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import { ARTICULOS_DESTACADOS, TABLA_RECURSOS, EXCEPCIONES_DILATORIAS, MEDIOS_PRUEBA, TITULOS_EJECUTIVOS, CLASIFICACION_RESOLUCIONES } from "@/lib/reglas";
+import GameShell from "@/components/shell/GameShell";
 
 const TEMAS: { titulo: string; cuerpo: string; tags: string[] }[] = [
   { titulo: "Jurisdicción (art. 76 CPR / 1 COT)", cuerpo: "Facultad pública de conocer las causas civiles y criminales, juzgarlas y hacer ejecutar lo juzgado. Es función estatal, exclusiva, indelegable, inavocable, improrrogable en lo absoluto, una en su esencia y territorial.", tags: ["jurisdiccion", "76 CPR", "1 COT"] },
@@ -52,7 +53,8 @@ export default function Codex() {
   );
 
   return (
-    <main className="min-h-screen px-6 py-10 max-w-4xl mx-auto">
+    <GameShell variant="reader" eyebrow="Referencia" title="Codex" back={{ href: "/mundos", label: "Mundos" }} scrollLabel="Artículos y cuadros del Codex">
+      <div className="min-h-screen px-6 py-10 max-w-4xl mx-auto">
       <div className="flex justify-between items-center mb-6 flex-wrap gap-3">
         <div>
           <div className="tag mb-2">CODEX PROCESAL</div>
@@ -61,7 +63,19 @@ export default function Codex() {
         <Link href="/" className="btn">◂ Inicio</Link>
       </div>
 
-      <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Buscar: artículo, recurso, etapa..." className="w-full bg-ink-700 border border-neon-blue/30 p-3 mb-4 focus:outline-none focus:border-neon-blue" />
+      {/* El marcador de posición no es una etiqueta: desaparece al escribir y
+          los lectores de pantalla no lo anuncian de forma fiable. */}
+      <label htmlFor="buscador-codex" className="sr-only">
+        Buscar en el Codex por artículo, recurso o etapa
+      </label>
+      <input
+        id="buscador-codex"
+        type="search"
+        value={q}
+        onChange={(e) => setQ(e.target.value)}
+        placeholder="Buscar: artículo, recurso, etapa..."
+        className="w-full bg-ink-700 border border-neon-blue/30 p-3 mb-4 focus:outline-none focus:border-neon-blue"
+      />
 
       <div className="terminal p-4 mb-6">
         <div className="label-art text-neon-violet mb-2 text-sm">Artículos destacados ({ARTICULOS_DESTACADOS.length})</div>
@@ -135,6 +149,7 @@ export default function Codex() {
         ))}
         {filtrados.length === 0 && <p className="text-doc-aged/40 italic">Sin resultados para "{q}".</p>}
       </div>
-    </main>
+    </div>
+    </GameShell>
   );
 }

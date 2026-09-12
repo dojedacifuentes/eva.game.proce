@@ -4,6 +4,8 @@
 // Formato: pregunta abierta + respuesta académica completa + fundamento normativo
 // ============================================================================
 
+import type { Procedencia } from "@/types/procedencia";
+
 export type PreguntaExamen = {
   id: string;
   tema: string;
@@ -13,6 +15,8 @@ export type PreguntaExamen = {
   dificultad: "media" | "alta" | "extrema";
   trampa?: string; // el error común que comete la mayoría
   zona: "competencia" | "recursos" | "nulidad" | "ejecutivo" | "prueba" | "oralidad" | "cautelares" | "cosajuzgada" | "notificaciones" | "incidentes";
+  /** Fuente y fecha de revisión. Sólo se muestra si está rellena. */
+  procedencia?: Procedencia;
 };
 
 export type AlternativaDificil = {
@@ -24,6 +28,8 @@ export type AlternativaDificil = {
   explicacion: string;
   normas: string[];
   zona: string;
+  /** Fuente y fecha de revisión. Sólo se muestra si está rellena. */
+  procedencia?: Procedencia;
 };
 
 // ============================================================================

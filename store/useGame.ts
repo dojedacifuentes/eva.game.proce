@@ -9,6 +9,18 @@ import type {
 import { getRelicById, MAX_RELICS_EQUIPADAS } from "@/data/relics";
 
 type Store = SaveState & {
+  /** true en cuanto `persist` terminó de leer localStorage. NO se persiste. */
+  _hydrated: boolean;
+  /** Marca el fin de la rehidratación. La llama `persist`, no la UI. */
+  _marcarHidratado: () => void;
+  /** ¿Hay una partida guardada con personaje constituido? */
+  hayPartida: () => boolean;
+  /** Crea una partida nueva reemplazando la anterior. Punto único de borrado. */
+  iniciarPartida: (p: Personaje) => void;
+  /** Serializa la partida a JSON para respaldo/traslado entre dominios. */
+  exportarPartida: () => string;
+  /** Restaura una partida exportada. Devuelve false si el JSON no es válido. */
+  importarPartida: (json: string) => boolean;
   setPersonaje: (p: Personaje) => void;
   setMundo: (m: Mundo) => void;
   gainXp: (amount: number) => void;
@@ -50,51 +62,153 @@ type Store = SaveState & {
   nuevoCicloProcesal: () => void;
 };
 
-const INIT: SaveState = {
-  version: 1,
-  creado: Date.now(),
-  ultimoGuardado: Date.now(),
-  personaje: {
-    nombre: "",
-    sexo: "femenino",
-    origen: "litigante_freelancer",
-    rol: "abogado_demandante",
-    nivelEconomico: 50,
-    atributos: {
-      conocimiento_procesal: 5, persuasion_forense: 5, diligencia: 5,
-      rigor_formal: 5, estrategia: 5, resistencia_psicologica: 5,
+export function crearEstadoInicial(): SaveState {
+  return {
+    version: 1,
+    creado: Date.now(),
+    ultimoGuardado: Date.now(),
+    personaje: {
+      nombre: "",
+      sexo: "femenino",
+      origen: "litigante_freelancer",
+      rol: "abogado_demandante",
+      nivelEconomico: 50,
+      atributos: {
+        conocimiento_procesal: 5, persuasion_forense: 5, diligencia: 5,
+        rigor_formal: 5, estrategia: 5, resistencia_psicologica: 5,
+      },
+      reputacion: 0,
+      trauma: 0,
+      expedientesGanados: 0,
+      expedientesPerdidos: 0,
+      cicloProcesal: 1,
     },
-    reputacion: 0,
-    trauma: 0,
-    expedientesGanados: 0,
-    expedientesPerdidos: 0,
-    cicloProcesal: 1,
-  },
-  expedientesArchivados: [],
-  cautelares: [],
-  incidentes: [],
-  flags: [],
-  mundoActual: "jurisdiccion",
-  log: [],
-  logros: [],
-  casosResueltos: [],
-  npcesEnProgreso: new Map<string, ProgresionNpc>(),
-  npcesCompletados: [],
-  npcesDesbloqueados: [],
-  xp: 0,
-  nivel: 1,
-  monedas: 0,
-  mundoVisual: "cybervalpo",
-  misionActiva: undefined,
-  misionesCompletadas: [],
-  relicsEquipadas: [],
-  relicsCompradas: [],
-};
+    expedientesArchivados: [],
+    cautelares: [],
+    incidentes: [],
+    flags: [],
+    mundoActual: "jurisdiccion",
+    log: [],
+    logros: [],
+    casosResueltos: [],
+    npcesEnProgreso: new Map<string, ProgresionNpc>(),
+    npcesCompletados: [],
+    npcesDesbloqueados: [],
+    xp: 0,
+    nivel: 1,
+    monedas: 0,
+    mundoVisual: "cybervalpo",
+    misionActiva: undefined,
+    misionesCompletadas: [],
+    relicsEquipadas: [],
+    relicsCompradas: [],
+  };
+}
+
+/** Claves que se persisten: exactamente las del estado guardado, ni una más. */
+const CLAVES_PERSISTIDAS = Object.keys(crearEstadoInicial()) as (keyof SaveState)[];
+
+/**
+ * Convierte a `Map` cualquiera de las formas en que `npcesEnProgreso` puede
+ * haber quedado guardado: Map ya revivido, `{__type:"Map",entries}`, array de
+ * pares, u objeto plano de saves antiguos.
+ */
+export function aMapa(valor: unknown): Map<string, ProgresionNpc> {
+  if (valor instanceof Map) return new Map(valor);
+  if (Array.isArray(valor)) return new Map(valor as [string, ProgresionNpc][]);
+  if (valor && typeof valor === "object") {
+    const v = valor as Record<string, unknown>;
+    if (Array.isArray(v.entries)) return new Map(v.entries as [string, ProgresionNpc][]);
+    return new Map(Object.entries(v) as [string, ProgresionNpc][]);
+  }
+  return new Map();
+}
+
+/**
+ * Normaliza un estado persistido de CUALQUIER versión anterior sin destruirlo.
+ *
+ * Contrato: todo dato guardado que siga siendo válido se conserva tal cual; sólo
+ * se rellenan las claves ausentes con el valor por defecto. Es lo contrario de
+ * lo que hacía la migración anterior, que devolvía el estado inicial y borraba
+ * la partida en cada cambio de versión.
+ */
+export function sanearEstado(bruto: Record<string, unknown> | null | undefined): SaveState {
+  const base = crearEstadoInicial();
+  if (!bruto || typeof bruto !== "object") return base;
+
+  const fusionado: SaveState = { ...base };
+
+  // Escalares y colecciones: se respeta lo guardado cuando el tipo cuadra.
+  for (const clave of CLAVES_PERSISTIDAS) {
+    const guardado = (bruto as Record<string, unknown>)[clave];
+    if (guardado === undefined || guardado === null) continue;
+    const porDefecto = base[clave];
+    if (Array.isArray(porDefecto)) {
+      if (Array.isArray(guardado)) (fusionado as any)[clave] = guardado;
+    } else if (porDefecto instanceof Map) {
+      (fusionado as any)[clave] = aMapa(guardado);
+    } else if (typeof porDefecto === typeof guardado) {
+      (fusionado as any)[clave] = guardado;
+    }
+  }
+
+  // `personaje` y sus atributos se fusionan en profundidad: un save antiguo al
+  // que le falte un atributo nuevo conserva los que sí tiene.
+  const personajeGuardado = (bruto.personaje ?? {}) as Partial<Personaje>;
+  fusionado.personaje = {
+    ...base.personaje,
+    ...personajeGuardado,
+    nombre: typeof personajeGuardado.nombre === "string" ? personajeGuardado.nombre : base.personaje.nombre,
+    atributos: { ...base.personaje.atributos, ...(personajeGuardado.atributos ?? {}) },
+  };
+
+  // Campos opcionales que no viven en el estado inicial.
+  if (typeof bruto.finalizado === "boolean") fusionado.finalizado = bruto.finalizado;
+  if (typeof bruto.epilogo === "string") fusionado.epilogo = bruto.epilogo;
+  if (bruto.expedienteActivo) fusionado.expedienteActivo = bruto.expedienteActivo as Expediente;
+  if (bruto.casosEnProgreso) fusionado.casosEnProgreso = bruto.casosEnProgreso as CasoEnProgreso;
+
+  // El nivel se deriva del XP: así un save viejo con XP pero sin nivel no
+  // aparece en Nv.1 con 1.400 XP.
+  fusionado.nivel = Math.min(20, Math.floor(fusionado.xp / 100) + 1);
+  fusionado.npcesEnProgreso = aMapa(fusionado.npcesEnProgreso);
+  return fusionado;
+}
 
 export const useGame = create<Store>()(
   persist(
     (set, get) => ({
-      ...INIT,
+      ...crearEstadoInicial(),
+      _hydrated: false,
+      _marcarHidratado: () =>
+        set((s) => ({ _hydrated: true, npcesEnProgreso: aMapa(s.npcesEnProgreso) })),
+      hayPartida: () => !!get().personaje.nombre.trim(),
+      // Único camino que destruye una partida. La UI DEBE confirmar antes de
+      // llamarlo cuando ya existe un personaje (ver app/creacion).
+      iniciarPartida: (p) =>
+        set({ ...crearEstadoInicial(), creado: Date.now(), personaje: p, finalizado: false, epilogo: undefined }),
+      exportarPartida: () => {
+        const s = get();
+        const plano: Record<string, unknown> = {};
+        for (const k of CLAVES_PERSISTIDAS) {
+          const v = s[k];
+          plano[k] = v instanceof Map ? { __type: "Map", entries: Array.from(v.entries()) } : v;
+        }
+        return JSON.stringify({ __save: "foro-invisible", exportado: Date.now(), estado: plano }, null, 2);
+      },
+      importarPartida: (json) => {
+        try {
+          const parsed = JSON.parse(json);
+          const bruto = parsed?.estado ?? parsed?.state ?? parsed;
+          if (!bruto || typeof bruto !== "object") return false;
+          const sano = sanearEstado(bruto as Record<string, unknown>);
+          if (!sano.personaje.nombre.trim()) return false;
+          set({ ...sano, ultimoGuardado: Date.now() });
+          return true;
+        } catch {
+          return false;
+        }
+      },
       setPersonaje: (p) => set({ personaje: p, ultimoGuardado: Date.now() }),
       setMundo: (m) => set({ mundoActual: m, ultimoGuardado: Date.now() }),
       iniciarExpediente: (e) => set({ expedienteActivo: e }),
@@ -379,17 +493,26 @@ export const useGame = create<Store>()(
           epilogo: undefined,
         })),
       reset: () =>
-        set({
-          ...INIT,
-          creado: Date.now(),
-          finalizado: false,
-          epilogo: undefined,
-        }),
+        set({ ...crearEstadoInicial(), creado: Date.now(), finalizado: false, epilogo: undefined }),
     }),
     {
       name: "derecho-procesal-rpg-save",
-      version: 2,
-      migrate: () => ({ ...INIT, creado: Date.now() }) as any,
+      version: 3,
+      // No se persisten las funciones, la bandera de hidratación ni las acciones:
+      // sólo las claves que existen en el estado inicial (SaveState).
+      partialize: (s) => {
+        const { _hydrated, ...resto } = s as Store;
+        const plano: Record<string, unknown> = {};
+        for (const k of CLAVES_PERSISTIDAS) plano[k] = (resto as any)[k];
+        return plano as any;
+      },
+      // La versión anterior devolvía el estado inicial, borrando la partida en
+      // cada cambio de versión. Ahora se CONSERVA lo guardado y sólo se rellenan
+      // los campos que falten (ver tests en lib/__tests__/migracion.test.ts).
+      migrate: (persistido: unknown) => sanearEstado(persistido as Record<string, unknown>) as any,
+      // Se marca hidratado aunque no hubiera nada guardado: la UI necesita saber
+      // que ya puede decidir entre "continuar" y "empezar".
+      onRehydrateStorage: () => (estado) => estado?._marcarHidratado(),
       // Serializador custom: Map<string, ProgresionNpc> → array y viceversa
       storage: createJSONStorage(
         () => (typeof window !== "undefined"

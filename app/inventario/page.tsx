@@ -2,6 +2,8 @@
 import Link from "next/link";
 import { useGame } from "@/store/useGame";
 import { CAMPAÑA } from "@/data/campaign";
+import GameShell from "@/components/shell/GameShell";
+import GestorPartida from "@/components/shell/GestorPartida";
 
 // ============================================================================
 // INVENTARIO — Estado completo del litigante
@@ -15,7 +17,8 @@ export default function Inventario() {
   const progresoCampaña = Math.round((misionesCompletadas.length / totalMisiones) * 100);
 
   return (
-    <main className="min-h-screen px-4 md:px-8 py-6 max-w-5xl mx-auto pb-20">
+    <GameShell variant="focus" eyebrow="Perfil" title="Expediente del litigante" back={{ href: "/juego", label: "Hub" }} scrollLabel="Expediente, logros y reliquias">
+      <div className="min-h-screen px-4 md:px-8 py-6 max-w-5xl mx-auto pb-20">
       {/* HEADER */}
       <header className="flex items-center justify-between mb-8 flex-wrap gap-2">
         <div>
@@ -26,10 +29,10 @@ export default function Inventario() {
             {personaje.nombre || "—"}
           </h1>
         </div>
-        <Link href="/juego" className="btn text-xs">◂ Ciudad Judicial</Link>
       </header>
 
       <div className="grid md:grid-cols-2 gap-4">
+        <GestorPartida />
 
         {/* ─── PERFIL ─── */}
         <div className="terminal p-4 space-y-3">
@@ -281,6 +284,7 @@ export default function Inventario() {
         )}
 
       </div>
-    </main>
+    </div>
+    </GameShell>
   );
 }

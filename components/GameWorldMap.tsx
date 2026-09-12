@@ -107,6 +107,8 @@ function MapNode({
   locked: boolean;
   onClick: (e: React.MouseEvent<SVGGElement>) => void;
 }) {
+  // El mapa era sólo para ratón: los <g> con onClick no recibían foco ni
+  // respondían al teclado. Ahora cada nodo es un botón con nombre accesible.
   const isBoss = node.tipo === "boss";
   const size = node.tipo === "boss" ? 30 : node.tipo === "start" ? 24 : 26;
   const r = size / 2;
@@ -117,7 +119,21 @@ function MapNode({
   return (
     <motion.g
       onClick={onClick}
-      style={{ cursor: locked ? "not-allowed" : "pointer" }}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          (onClick as unknown as (ev: unknown) => void)({
+            stopPropagation: () => {},
+          });
+        }
+      }}
+      role="button"
+      tabIndex={locked ? -1 : 0}
+      aria-disabled={locked || undefined}
+      aria-label={`${node.label}${node.sublabel ? `. ${node.sublabel}` : ""}${
+        completado ? ". Completado" : ""
+      }${locked ? ". Bloqueado" : ""}`}
+      style={{ cursor: locked ? "not-allowed" : "pointer", outlineOffset: 4 }}
       whileHover={!locked ? { scale: 1.16 } : {}}
       whileTap={!locked ? { scale: 0.95 } : {}}
     >
@@ -397,7 +413,7 @@ function LockedPanel({
 // ============================================================================
 // Componente principal
 // ============================================================================
-export default function GameWorldMap() {
+export default function GameWorldMap({ compacto = false }: { compacto?: boolean } = {}) {
   const [selectedNode, setSelectedNode] = useState<ZoneNode | null>(null);
   const [lockedNode, setLockedNode] = useState<ZoneNode | null>(null);
   const misionesCompletadas = useGame((s) => s.misionesCompletadas);
@@ -474,15 +490,29 @@ export default function GameWorldMap() {
   };
 
   return (
-    <div className="relative w-full" onClick={(e) => e.stopPropagation()}>
+    // En modo compacto el mapa llena el alto que le deja el shell y el panel de
+    // detalle se dibuja en capa sobre él, en vez de empujar el documento hacia
+    // abajo como hacía antes (`mt-4` debajo del SVG).
+    <div
+      className={compacto ? "relative w-full flex-1 min-h-0 flex flex-col" : "relative w-full"}
+      onClick={(e) => e.stopPropagation()}
+    >
       {/* MAPA — Ciudad Judicial cyberpunk */}
       <div
-        className="relative w-full rounded-lg overflow-hidden"
+        className={`relative w-full rounded-lg overflow-hidden ${compacto ? "flex-1 min-h-0" : ""}`}
         onMouseMove={onMapMove}
         onMouseLeave={onMapLeave}
         style={{ border: "1px solid rgba(75,231,255,0.14)", boxShadow: "inset 0 0 70px rgba(4,7,14,0.9), 0 0 26px rgba(75,231,255,0.06)" }}
       >
-        <svg ref={svgRef} viewBox="30 100 780 380" className="w-full block" style={{ minHeight: 320, maxHeight: 500 }}>
+        <svg
+          ref={svgRef}
+          viewBox="30 100 780 380"
+          className="w-full block"
+          preserveAspectRatio="xMidYMid meet"
+          role="group"
+          aria-label="Mapa de la Ciudad Judicial. Cada distrito abre sus misiones."
+          style={compacto ? { height: "100%", minHeight: 180 } : { minHeight: 320, maxHeight: 500 }}
+        >
           <MapDefs />
 
           {/* Capa lejana: skyline + megaestructura (parallax lento) */}
@@ -533,6 +563,13 @@ export default function GameWorldMap() {
       </div>
 
       {/* Detail / Locked panels */}
+      <div
+        className={
+          compacto
+            ? "absolute inset-x-0 bottom-0 z-20 max-h-[70%] shell-scroll rounded-b-lg"
+            : ""
+        }
+      >
       <AnimatePresence mode="wait">
         {selectedNode && (
           <NodeDetailPanel
@@ -550,6 +587,7 @@ export default function GameWorldMap() {
           />
         )}
       </AnimatePresence>
+      </div>
     </div>
   );
 }

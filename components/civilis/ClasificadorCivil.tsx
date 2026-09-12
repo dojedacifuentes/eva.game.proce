@@ -5,6 +5,7 @@ import { sfx } from "@/lib/audio";
 import { useCivilis } from "@/store/useCivilis";
 import type { CasoCivil } from "@/types/civilis";
 import { getEntradaCodex } from "@/data/civilis/codex";
+import { useMezclaEstable } from "@/lib/useMezclaEstable";
 
 // ============================================================================
 // CLASIFICADOR CIVIL — minijuego nuclear: caso concreto → opciones de
@@ -39,7 +40,7 @@ export default function ClasificadorCivil({
   const yaEnCodex = useCivilis((s) => (caso.codexId ? s.codexDesbloqueado.includes(caso.codexId) : true));
 
   const [elegida, setElegida] = useState<string | null>(null);
-  const categorias = useMemo(() => seededShuffle(caso.categorias, hashId(caso.id)), [caso.id]);
+  const categorias = useMezclaEstable(caso.id, () => seededShuffle(caso.categorias, hashId(caso.id)));
   const revelado = elegida !== null;
   const acerto = elegida === caso.correcta;
   const entradaNueva = caso.codexId && acerto && !yaEnCodex ? getEntradaCodex(caso.codexId) : undefined;

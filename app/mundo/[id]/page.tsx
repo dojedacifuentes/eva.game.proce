@@ -17,6 +17,7 @@ import JuicioEjecutivoCompleto from "@/components/JuicioEjecutivoCompleto";
 import CautelaresPanel from "@/components/CautelaresPanel";
 import ZonaExplorador from "@/components/ZonaExplorador";
 import { useGame } from "@/store/useGame";
+import GameShell from "@/components/shell/GameShell";
 
 export default function MundoPage() {
   const { id } = useParams<{ id: string }>();
@@ -70,7 +71,8 @@ export default function MundoPage() {
   const zonaMundo = mundoAZona[mundo];
 
   return (
-    <main className="min-h-screen px-6 py-8 max-w-5xl mx-auto">
+    <GameShell variant="focus" eyebrow="Mundo" title="Zona procesal" back={{ href: "/mundo", label: "Zonas" }} scrollLabel="Contenido de la zona">
+      <div className="min-h-screen px-6 py-8 max-w-5xl mx-auto">
       <header className="flex justify-between items-center mb-6">
         <Link href="/juego" className="btn">◂ Volver al mapa</Link>
         <div className="tag">{mundo.toUpperCase().replace(/_/g, " ")}</div>
@@ -101,7 +103,8 @@ export default function MundoPage() {
           </div>
         </ZonaExplorador>
       )}
-    </main>
+    </div>
+    </GameShell>
   );
 }
 

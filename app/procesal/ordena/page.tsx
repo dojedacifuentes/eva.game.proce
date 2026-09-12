@@ -31,7 +31,7 @@ export default function OrdenaPage() {
   const premio = useProcesal((s) => s.premio);
   useEffect(() => setMounted(true), []);
 
-  const correct = sel ? etapasDe(sel) : [];
+  const correct = useMemo(() => (sel ? etapasDe(sel) : []), [sel]);
   const correctOrder = useMemo(() => correct.map((e) => e.id), [correct]);
   const byId = useMemo(() => Object.fromEntries(correct.map((e) => [e.id, e])), [correct]);
   const shuffled = useMemo(() => (sel ? seededShuffle(correctOrder, seed + correctOrder.length) : []), [sel, seed, correctOrder]);

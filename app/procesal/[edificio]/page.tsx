@@ -23,7 +23,13 @@ export default function EdificioPage(props: { params: Promise<{ edificio: string
 
   useEffect(() => setMounted(true), []);
 
-  const etapas = edificio ? etapasDe(edificio.id as EdificioId) : [];
+  // Antes se recreaba en cada render, así que los `useMemo` y el `useEffect`
+  // que dependen de ella se re-ejecutaban siempre: el efecto que llama a
+  // `completarEdificio` corría en cada pintado.
+  const etapas = useMemo(
+    () => (edificio ? etapasDe(edificio.id as EdificioId) : []),
+    [edificio],
+  );
 
   // Agrupa etapas consecutivas por su "grupo" para el rail.
   const grupos = useMemo(() => {

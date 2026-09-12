@@ -7,26 +7,40 @@ import BootSequence from "./BootSequence";
 import { useGame } from "@/store/useGame";
 
 // ============================================================================
-// GLOBAL CANVAS — orquesta los elementos de fondo del juego:
-// - Boot sequence en la primera carga (solo una vez)
-// - Ambiente animado en TODO momento
-// - HUD persistente con estado del litigante
+// GLOBAL CANVAS — fondo animado, realimentación efímera e intro.
 // ============================================================================
+
+/** Clave en localStorage (no sessionStorage): así la intro no se repite al
+ *  abrir una pestaña nueva. */
+const CLAVE_INTRO = "foro-invisible:intro-vista";
 
 export default function GlobalCanvas() {
   const pathname = usePathname();
   const personaje = useGame((s) => s.personaje);
   const trauma = personaje.trauma || 0;
-  const [bootDone, setBootDone] = useState(false);
+  const [introHecha, setIntroHecha] = useState(true); // por defecto, no molestar
   const [hydrated, setHydrated] = useState(false);
 
   useEffect(() => {
     setHydrated(true);
-    const seen = sessionStorage.getItem("boot-seen");
-    if (seen) setBootDone(true);
+    let reduce = false;
+    try {
+      reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    } catch {
+      /* navegadores sin matchMedia: se trata como "sin preferencia" */
+    }
+    if (reduce) {
+      // Con movimiento reducido la intro no se muestra en absoluto.
+      setIntroHecha(true);
+      return;
+    }
+    try {
+      setIntroHecha(localStorage.getItem(CLAVE_INTRO) === "1");
+    } catch {
+      setIntroHecha(true); // almacenamiento bloqueado: no bloquear el acceso
+    }
   }, []);
 
-  // Determinar modo según ruta
   const modoZona: "ambiente" | "oral" | "ejecutivo" | "nulidad" = (() => {
     if (!pathname) return "ambiente";
     if (pathname.includes("/oral")) return "oral";
@@ -35,22 +49,21 @@ export default function GlobalCanvas() {
     return "ambiente";
   })();
 
-  // Intensidad según trauma
   const intensidad = Math.min(100, 40 + trauma);
-  const corrupcion = trauma;
 
-  function finBoot() {
-    sessionStorage.setItem("boot-seen", "1");
-    setBootDone(true);
+  function finIntro() {
+    try { localStorage.setItem(CLAVE_INTRO, "1"); } catch { /* sin persistencia */ }
+    setIntroHecha(true);
   }
 
   if (!hydrated) return null;
 
   return (
     <>
-      <AmbienteVivo intensidad={intensidad} corrupcion={corrupcion} modo={modoZona} />
+      <AmbienteVivo intensidad={intensidad} corrupcion={trauma} modo={modoZona} />
       <HUDPersistente />
-      {!bootDone && <BootSequence onFin={finBoot} />}
+      {/* Montaje condicional del padre: ver el gotcha del overlay fantasma. */}
+      {!introHecha && <BootSequence onFin={finIntro} />}
     </>
   );
 }

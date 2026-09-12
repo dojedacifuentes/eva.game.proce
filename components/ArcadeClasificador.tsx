@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useGame } from "@/store/useGame";
 import { shuffleOptions } from "@/lib/shuffleOptions";
 import { fx } from "@/lib/fx";
+import { useCallbackRef } from "@/lib/useCallbackRef";
 
 // ============================================================================
 // CLASIFICADOR ARCADE — minijuego rápido con combo/multiplicador/streak
@@ -275,21 +276,24 @@ export default function ArcadeClasificador() {
     setActivo(true);
   }
 
-  // Timer
+  // Timer. `fallarEstable` tiene identidad fija pero ejecuta siempre el
+  // `fallar` del render actual: se puede declarar como dependencia sin que el
+  // intervalo se reinicie, y sin quedarse con un combo caducado.
+  const fallarEstable = useCallbackRef(() => fallar());
   useEffect(() => {
     if (!activo || finalizado || respuestaIdx !== null || !cuestionActual) return;
     const t = setInterval(() => {
       setTiempo((s) => {
         if (s <= 0.1) {
           // tiempo agotado = fallo
-          fallar();
+          fallarEstable();
           return 0;
         }
         return s - 0.1;
       });
     }, 100);
     return () => clearInterval(t);
-  }, [activo, finalizado, respuestaIdx, cuestionActual]);
+  }, [activo, finalizado, respuestaIdx, cuestionActual, fallarEstable]);
 
   function fallar() {
     setRespuestaIdx(-1);

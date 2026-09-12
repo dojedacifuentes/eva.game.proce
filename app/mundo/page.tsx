@@ -3,6 +3,7 @@ import Link from "next/link";
 import { getAllNpcs } from "@/data/npcs";
 import { EVENTOS_MUNDO } from "@/data/eventos-mundo";
 import ZonaCard from "@/components/ZonaCard";
+import GameShell from "@/components/shell/GameShell";
 
 // ============================================================================
 // MUNDO HUB — v3 visual system
@@ -95,7 +96,8 @@ export default function MundoHub() {
   ];
 
   return (
-    <main className="min-h-screen px-4 md:px-8 py-8 max-w-6xl mx-auto">
+    <GameShell variant="focus" eyebrow="Mundos" title="Zonas procesales" back={{ href: "/mundos", label: "Mundos" }} scrollLabel="Zonas del juego base">
+      <div className="min-h-screen px-4 md:px-8 py-8 max-w-6xl mx-auto">
       {/* Header */}
       <header className="mb-8">
         <Link href="/juego" className="btn mb-4 inline-block">◂ Volver al mapa principal</Link>
@@ -149,6 +151,7 @@ export default function MundoHub() {
           <div>⚡ = Los eventos pueden cambiar el clima jurídico y crear oportunidades o peligros</div>
         </div>
       </div>
-    </main>
+    </div>
+    </GameShell>
   );
 }

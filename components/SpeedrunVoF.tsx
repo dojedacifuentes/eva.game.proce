@@ -5,6 +5,7 @@ import { useGame } from "@/store/useGame";
 import { sfx } from "@/lib/audio";
 import { fx } from "@/lib/fx";
 import { casosAleatoriosVoF, type PreguntaVoF } from "@/data/preguntas-vof";
+import { useCallbackRef } from "@/lib/useCallbackRef";
 
 // ============================================================================
 // SPEEDRUN VERDADERO/FALSO — modo arcade con presión temporal extrema
@@ -33,16 +34,18 @@ export default function SpeedrunVoF() {
 
   const actual = activo && !terminado ? preguntas[idx] : null;
 
+  // Ver la nota de useCallbackRef: identidad estable, cuerpo siempre al día.
+  const fallarEstable = useCallbackRef(() => fallar());
   useEffect(() => {
     if (!activo || terminado || respuesta !== null || !actual) return;
     const t = setInterval(() => {
       setTiempo((s) => {
-        if (s <= 0.1) { fallar(); return 0; }
+        if (s <= 0.1) { fallarEstable(); return 0; }
         return s - 0.1;
       });
     }, 100);
     return () => clearInterval(t);
-  }, [activo, terminado, respuesta, actual]);
+  }, [activo, terminado, respuesta, actual, fallarEstable]);
 
   function iniciar() {
     sfx.confirm();

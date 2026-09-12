@@ -24,9 +24,11 @@
   --bg-oil: #0A1220;
   --bg-file: #131720;
   /* tipografía */
-  --font-serif: "Cormorant Garamond", "IM Fell English", Georgia, serif;
-  --font-display: "Cinzel", serif;
-  --font-mono: "JetBrains Mono", ui-monospace, monospace;
+  /* Las variables --fuente-* las inyecta next/font en <html>; estos tokens las
+     consumen y conservan una pila de respaldo real para el primer pintado. */
+  --font-serif: var(--fuente-serif), Georgia, "Times New Roman", serif;
+  --font-display: var(--fuente-display), Georgia, serif;
+  --font-mono: var(--fuente-mono), ui-monospace, "SFMono-Regular", Menlo, monospace;
 }
 
 html, body { background: var(--bg-deep); color: #E8DFC5; }
@@ -401,12 +403,30 @@ input, textarea { caret-color: var(--zona-competencia); }
 /* Anchor cards: contenido siempre encima del overlay */
 .zona-card > * { position: relative; z-index: 2; }
 
-/* Reactividad emocional global — la página cambia su pulso de fondo */
+/* Reactividad emocional global — la página cambia su pulso de fondo.
+   ----------------------------------------------------------------------------
+   ANTES: `body { animation: uiBreathe }` con fotogramas que aplicaban `filter`.
+   Un `filter` convierte al elemento en BLOQUE CONTENEDOR de todos sus
+   descendientes `position: fixed`. Con el filtro puesto en el <body>, la barra
+   de navegación inferior, los diálogos modales y los avisos flotantes dejaban de
+   anclarse a la ventana y se anclaban al documento: en una página larga
+   aparecían a 2.000 px del borde, fuera de la vista.
+   AHORA: el pulso lo hace una capa fija propia, sin hijos, que no es ancestro de
+   nada. El efecto se consigue con opacidad en vez de con `filter`. */
 @keyframes uiBreathe {
-  0%, 100% { filter: brightness(1) saturate(1); }
-  50% { filter: brightness(1.04) saturate(1.05); }
+  0%, 100% { opacity: 0; }
+  50% { opacity: 0.05; }
 }
-body { animation: uiBreathe 12s ease-in-out infinite; }
+.ui-breathe {
+  position: fixed;
+  inset: 0;
+  z-index: 20;
+  pointer-events: none;
+  background: #fff;
+  mix-blend-mode: soft-light;
+  opacity: 0;
+  animation: uiBreathe 12s ease-in-out infinite;
+}
 
 /* Estado "presión" — cuando hay timer crítico */
 .presion-alta {
@@ -921,3 +941,155 @@ body { animation: uiBreathe 12s ease-in-out infinite; }
 .hud-clearance {
   padding-bottom: 5rem; /* 80px */
 }
+
+/* ============================================================================
+   GAME SHELL — armazón único de cabecera, contenido y navegación
+   ----------------------------------------------------------------------------
+   Regla de una pantalla: en escritorio el documento NO se desplaza; el espacio
+   se reparte con grid y los paneles largos llevan su propio scroll accesible.
+
+   El bloqueo se activa SOLO donde sobra sitio. En móvil, en ventanas bajas y
+   con el texto ampliado (el zoom reduce el viewport en px CSS, así que estas
+   mismas consultas lo cubren) el documento vuelve a desplazarse con normalidad,
+   para que ningún control quede fuera de alcance.
+   ============================================================================ */
+:root {
+  /* Acento de EVA. Vive aquí para que lib/brand.ts sea el único sitio donde
+     se decide la identidad y el CSS sólo la consuma. */
+  --eva-accent: #7AD4E6;
+  --shell-gutter: 0.75rem;
+  --shell-nav-h: 58px;
+}
+@media (min-width: 768px) { :root { --shell-gutter: 1.25rem; } }
+
+/* Punto de corte del modo "una pantalla": 1024px de ancho y 620px de alto. */
+html.shell-lock, html.shell-lock body { height: auto; overflow: visible; }
+@media (min-width: 1024px) and (min-height: 620px) {
+  html.shell-lock, html.shell-lock body { height: 100%; overflow: hidden; }
+}
+
+.shell {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  /* Sin esto, la columna implícita se dimensiona a max-content y cualquier hijo
+     ancho ensancha toda la pantalla: era la causa del desborde horizontal. */
+  grid-template-columns: minmax(0, 1fr);
+  min-height: 100vh;          /* respaldo para navegadores sin dvh */
+  min-height: 100dvh;
+  overflow-x: clip;           /* ninguna pantalla desborda a lo ancho */
+}
+@media (min-width: 1024px) and (min-height: 620px) {
+  .shell[data-lock="true"] {
+    height: 100dvh;
+    min-height: 0;
+  }
+}
+
+/* Región de contenido: min-height:0 es lo que permite que los hijos con scroll
+   propio se encojan en vez de empujar el documento. */
+.shell-main {
+  min-width: 0;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  padding-inline: var(--shell-gutter);
+  padding-block: 0.5rem;
+}
+
+/* Panel con desplazamiento interno. Lleva tabindex en el componente para que
+   se pueda recorrer con teclado, como exige la pauta de accesibilidad. */
+.shell-scroll {
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(75, 231, 255, 0.35) transparent;
+}
+.shell-scroll::-webkit-scrollbar { width: 8px; }
+.shell-scroll::-webkit-scrollbar-thumb {
+  background: rgba(75, 231, 255, 0.28);
+  border-radius: 4px;
+}
+.shell-scroll::-webkit-scrollbar-thumb:hover { background: rgba(75, 231, 255, 0.5); }
+
+/* Cabecera y navegación del shell: compactas y sin position:fixed, para que no
+   se superpongan al contenido (el HUD flotante antiguo ya no dibuja paneles). */
+.shell-header {
+  min-width: 0;
+  padding-inline: var(--shell-gutter);
+  border-bottom: 1px solid rgba(75, 231, 255, 0.12);
+  background: linear-gradient(180deg, rgba(8, 10, 17, 0.92), rgba(8, 10, 17, 0.72));
+  backdrop-filter: blur(8px);
+}
+
+.shell-nav {
+  /* Fija al borde inferior de la ventana mientras el documento se desplaza
+     (móvil y ventanas bajas). En el modo "una pantalla" pasa a ser una fila más
+     del grid; ver la consulta de más abajo. */
+  position: fixed;
+  left: 0; right: 0; bottom: 0;
+  z-index: 45;
+  border-top: 1px solid rgba(75, 231, 255, 0.16);
+  background: linear-gradient(180deg, rgba(6, 7, 11, 0.9), rgba(6, 7, 11, 0.985));
+  backdrop-filter: blur(10px);
+  /* Área segura de los teléfonos con gesto inferior. */
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+/* Reserva el hueco de la barra fija para que nada quede tapado por ella. */
+.shell-navspace { height: calc(var(--shell-nav-h) + env(safe-area-inset-bottom, 0px)); }
+
+@media (min-width: 1024px) and (min-height: 620px) {
+  .shell[data-lock="true"] .shell-nav { position: static; }
+  .shell[data-lock="true"] .shell-navspace { display: none; }
+}
+
+.shell-nav a,
+.shell-nav button {
+  /* Objetivo táctil cómodo. */
+  min-height: 44px;
+  min-width: 44px;
+}
+
+/* ── Accesibilidad transversal ─────────────────────────────────────────────── */
+
+/* Foco visible en todo lo enfocable. Antes no existía ninguna regla :focus-visible. */
+:where(a, button, input, select, textarea, summary, [tabindex]):focus-visible {
+  outline: 2px solid var(--zona-competencia);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
+/* Salto al contenido: visible sólo al tabular. */
+.skip-link {
+  position: absolute;
+  left: -9999px;
+  z-index: 100;
+  padding: 0.6rem 1rem;
+  background: var(--bg-deep);
+  border: 1px solid var(--zona-competencia);
+  color: var(--zona-competencia);
+  font-family: var(--font-mono);
+  font-size: 12px;
+}
+.skip-link:focus {
+  left: var(--shell-gutter);
+  top: 0.5rem;
+}
+
+/* Texto sólo para lectores de pantalla. */
+.sr-only {
+  position: absolute;
+  width: 1px; height: 1px;
+  padding: 0; margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* Las pantallas anteriores al shell usaban `min-h-screen` para llenar la
+   ventana. Dentro del shell la ventana ya la llena el propio armazón, así que
+   aquí la regla pasa a significar "llena tu contenedor": de otro modo cada una
+   sumaría 100vh dentro de una región que ya está acotada, y reaparecería el
+   scroll del documento que este trabajo elimina. */
+.shell-main .min-h-screen { min-height: 100%; }

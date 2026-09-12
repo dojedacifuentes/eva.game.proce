@@ -1,32 +1,75 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
+import { Cinzel, Cormorant_Garamond, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 import GlobalCanvas from "@/components/GlobalCanvas";
 import WorldThemeProvider from "@/components/WorldThemeProvider";
+import { JUEGO, PROYECTO, AUTOR } from "@/lib/brand";
+
+// ============================================================================
+// Fuentes vía next/font: se descargan en la compilación y se sirven desde el
+// propio dominio.
+//
+// Antes eran un <link> a fonts.googleapis.com en el <head>. Una hoja de estilo
+// externa BLOQUEA el primer render: si Google tarda o el usuario está tras una
+// red que lo filtra, la pantalla se queda en negro hasta que responda. Además
+// enviaba una petición con la IP del usuario a un tercero en cada visita.
+// `display: "swap"` completa el arreglo: el texto se ve con la tipografía de
+// respaldo mientras llega la definitiva.
+// ============================================================================
+
+const cinzel = Cinzel({
+  subsets: ["latin"],
+  weight: ["500", "700"],
+  display: "swap",
+  variable: "--fuente-display",
+});
+
+const cormorant = Cormorant_Garamond({
+  subsets: ["latin"],
+  weight: ["400", "600"],
+  style: ["normal", "italic"],
+  display: "swap",
+  variable: "--fuente-serif",
+});
+
+const jetbrains = JetBrains_Mono({
+  subsets: ["latin"],
+  weight: ["400", "500", "700"],
+  display: "swap",
+  variable: "--fuente-mono",
+});
 
 export const metadata: Metadata = {
-  title: "FORO [in]VISIBLE — Simulador Procesal Chileno",
-  description: "Cyberpunk jurídico chileno. CPC + COT + CPR. Examen de grado.",
+  title: `${JUEGO.nombre} — ${JUEGO.subtitulo}`,
+  description: `${JUEGO.descripcion} ${PROYECTO.presenta}. ${AUTOR.credito}.`,
+  applicationName: JUEGO.nombre,
+  authors: [{ name: AUTOR.nombre }],
+};
+
+// `viewport-fit=cover` es lo que permite que env(safe-area-inset-*) tenga
+// valores reales en teléfonos con gesto inferior o muesca.
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  viewportFit: "cover",
+  themeColor: "#06070B",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="es">
-      <head>
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
-        <link
-          href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700&family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400;1,600&family=IM+Fell+English:ital@0;1&family=JetBrains+Mono:wght@400;500;700&display=swap"
-          rel="stylesheet"
-        />
-      </head>
+    <html
+      lang="es"
+      className={`${cinzel.variable} ${cormorant.variable} ${jetbrains.variable}`}
+    >
       <body className="crt">
+        {/* Pulso de fondo. Capa aparte para no aplicar `filter` al <body>, que
+            rompería el `position: fixed` de la navegación y los diálogos. */}
+        <div className="ui-breathe" aria-hidden="true" />
         {/* Aplica data-world al body para activar los 5 temas visuales */}
         <WorldThemeProvider />
-        {/* GlobalCanvas incluye HUDPersistente internamente */}
+        {/* GlobalCanvas incluye el HUD de realimentación y la intro */}
         <GlobalCanvas />
-        <div className="relative z-10">
-          {children}
-        </div>
+        <div className="relative z-10">{children}</div>
       </body>
     </html>
   );

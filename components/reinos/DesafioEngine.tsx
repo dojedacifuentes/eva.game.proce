@@ -7,6 +7,7 @@ import type { Desafio } from "@/types/reinos";
 import { TIPO_DESAFIO_META } from "@/data/reinos/desafios";
 import { getArticulo, RAREZA_META } from "@/data/reinos/articulos";
 import { useReinos } from "@/store/useReinos";
+import { useMezclaEstable } from "@/lib/useMezclaEstable";
 
 // ============================================================================
 // REINOS — Motor de Desafío (encuentro individual)
@@ -34,9 +35,9 @@ export default function DesafioEngine({ desafio, yaResuelto, onCorrect, onWrong,
   const gastarCristales = useReinos((s) => s.gastarCristales);
 
   // Mezcla las opciones una vez por encuentro: mata el sesgo posicional.
-  const opciones = useMemo(
+  const opciones = useMezclaEstable(
+    desafio.id,
     () => shuffleOptions(desafio.opciones as any[]).options as Desafio["opciones"],
-    [desafio.id],
   );
 
   const review = yaResuelto; // ya resuelto antes: modo repaso

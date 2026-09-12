@@ -6,6 +6,8 @@ import { sfx } from "@/lib/audio";
 import { useGame } from "@/store/useGame";
 import { shuffleOptions, type ShuffleResult } from "@/lib/shuffleOptions";
 import AlternativaButton from "./AlternativaButton";
+import { useMezclaEstable } from "@/lib/useMezclaEstable";
+import FichaProcedencia from "@/components/shell/FichaProcedencia";
 
 // ============================================================================
 // EXAMEN DE GRADO — Simulador de cédula oral con respuesta modelo
@@ -226,12 +228,12 @@ function ModoAlternativas({ onVolver }: { onVolver: () => void }) {
   // FIX: las opciones traen {letra, texto} pero la correcta vive en pregunta.correcta.
   // Antes se pasaba "letra" a shuffleOptions y correctIndex quedaba en -1 (nunca acertaba).
   // Ahora se marca un flag booleano `correcta` por opción y se re-letran A-D en orden visual.
-  const shuffled = useMemo(() => {
+  const shuffled = useMezclaEstable(pregunta.id, () => {
     const conFlag = pregunta.opciones.map((o) => ({ ...o, correcta: o.letra === pregunta.correcta }));
     const r = shuffleOptions(conFlag, "correcta");
     const relettered = r.options.map((o, i) => ({ ...o, letra: String.fromCharCode(65 + i) }));
     return { ...r, options: relettered };
-  }, [pregunta.id]);
+  });
 
   const respondida = seleccion !== null;
   const esCorrecta = seleccion === shuffled.correctIndex;
@@ -326,6 +328,8 @@ function ModoAlternativas({ onVolver }: { onVolver: () => void }) {
                   {esCorrecta ? "✓ CORRECTO" : "✗ INCORRECTO — ANÁLISIS"}
                 </div>
                 <p className="font-serif-juridica italic text-doc-aged/80 leading-relaxed">{pregunta.explicacion}</p>
+                {/* Sólo aparece si la pregunta tiene procedencia registrada. */}
+                <FichaProcedencia procedencia={pregunta.procedencia} />
               </div>
 
               <div className="flex gap-2 flex-wrap text-[9px] font-mono-terminal text-doc-aged/40">

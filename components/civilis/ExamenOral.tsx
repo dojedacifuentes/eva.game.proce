@@ -8,6 +8,7 @@ import { CASOS_CIVIL } from "@/data/civilis/casos";
 import { construirPool, veredicto, type Profesor } from "@/data/civilis/examen";
 import { getRegionCivil } from "@/data/civilis/regiones";
 import type { CasoCivil } from "@/types/civilis";
+import { useMezclaEstable } from "@/lib/useMezclaEstable";
 
 function seededShuffle<T>(arr: T[], seed: number): T[] {
   const a = [...arr];
@@ -30,7 +31,7 @@ export default function ExamenOral({ profesor }: { profesor: Profesor }) {
   const [premiado, setPremiado] = useState(false);
 
   const caso = pool[idx];
-  const opciones = useMemo(() => (caso ? seededShuffle(caso.categorias, hashId(caso.id)) : []), [caso?.id]);
+  const opciones = useMezclaEstable(caso?.id ?? "", () => (caso ? seededShuffle(caso.categorias, hashId(caso.id)) : []));
   const region = caso ? getRegionCivil(caso.region) : undefined;
 
   const comenzar = () => {

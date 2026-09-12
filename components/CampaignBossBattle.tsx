@@ -7,6 +7,7 @@ import { CAMPAÑA, getBoss } from "@/data/campaign";
 import { getWorldDefinition } from "@/data/worlds";
 import { useGame } from "@/store/useGame";
 import { sfx } from "@/lib/audio";
+import GameShell from "@/components/shell/GameShell";
 
 type BossQuestion = {
   prompt: string;
@@ -128,10 +129,12 @@ export default function CampaignBossBattle({ bossId }: { bossId: string }) {
 
   if (!boss) {
     return (
-      <main className="min-h-screen px-4 md:px-8 py-8 max-w-4xl mx-auto">
+      <GameShell variant="focus" eyebrow="Campaña" title="Jefe de facción" back={{ href: "/juego", label: "Hub" }} scrollLabel="Combate contra el jefe">
+      <div className="min-h-screen px-4 md:px-8 py-8 max-w-4xl mx-auto">
         <Link href="/juego" className="btn text-xs">Volver al mapa</Link>
         <div className="terminal p-6 mt-6">Boss no encontrado.</div>
-      </main>
+      </div>
+    </GameShell>
     );
   }
 
@@ -183,7 +186,8 @@ export default function CampaignBossBattle({ bossId }: { bossId: string }) {
   };
 
   return (
-    <main
+    <GameShell variant="focus" eyebrow="Campaña" title="Jefe de facción" back={{ href: "/juego", label: "Hub" }} scrollLabel="Combate contra el jefe">
+      <div
       className="min-h-screen px-4 md:px-8 py-6 pb-24"
       style={{
         background: `radial-gradient(900px 520px at 50% 0%, ${boss.color}22, transparent 60%), var(--bg-deep)`,
@@ -293,7 +297,8 @@ export default function CampaignBossBattle({ bossId }: { bossId: string }) {
           <p className="text-xs text-doc-aged/60 font-mono-terminal">{world.mechanic}</p>
         </div>
       </div>
-    </main>
+    </div>
+    </GameShell>
   );
 }
 function HealthBar({ label, value, max, color }: { label: string; value: number; max: number; color: string }) {

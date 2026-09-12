@@ -7,6 +7,7 @@ import type { BossReino, AtaqueBoss } from "@/types/reinos";
 import { useReinos } from "@/store/useReinos";
 import { getArticulo, RAREZA_META } from "@/data/reinos/articulos";
 import ReinoSprite from "@/components/reinos/ReinoSprite";
+import { useMezclaEstable } from "@/lib/useMezclaEstable";
 
 // ============================================================================
 // REINOS — Duelo de Boss · arena estilo Pokémon / arcade SNES
@@ -61,9 +62,9 @@ export default function BossBattle({ boss, onClose }: Props) {
   const vidaPct = Math.max(0, Math.round((vida / boss.vidaJugador) * 100));
   const comboBonus = comboMax * 3;
 
-  const opciones = useMemo(
+  const opciones = useMezclaEstable(
+    `${boss.id}:${idx}:${rondaKey}`,
     () => shuffleOptions(ataque.opciones as any[]).options as typeof ataque.opciones,
-    [boss.id, idx, rondaKey],
   );
 
   const hp = (pct: number) => (pct > 55 ? "high" : pct > 25 ? "mid" : "low");

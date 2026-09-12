@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { sfx } from "@/lib/audio";
 import { fx } from "@/lib/fx";
 import { useGame } from "@/store/useGame";
+import { useMezclaEstable } from "@/lib/useMezclaEstable";
 
 // Fisher-Yates shuffle
 function shuffleArray<T>(arr: T[]): { shuffled: T[]; originalIndices: number[] } {
@@ -190,12 +191,12 @@ export default function AtaqueRepreguntas() {
   const pregunta_actual = PREGUNTAS[indice_pregunta];
 
   // Shuffle opciones para cada pregunta
-  const shuffled = useMemo(() => {
+  const shuffled = useMezclaEstable(pregunta_actual.id, () => {
     const { shuffled: opciones_shuffled, originalIndices } = shuffleArray(pregunta_actual.opciones);
     // Encontrar el nuevo índice de la respuesta correcta
     const nuevo_idx_correcto = originalIndices.indexOf(pregunta_actual.correcta);
     return { opciones: opciones_shuffled, correcta: nuevo_idx_correcto };
-  }, [pregunta_actual.id]);
+  });
 
   useEffect(() => {
     if (respondida || timeout) return;

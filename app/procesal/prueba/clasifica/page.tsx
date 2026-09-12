@@ -28,7 +28,7 @@ export default function ClasificaPage() {
   const premio = useProcesal((s) => s.premio);
 
   const deck = DECKS_CLASIFICA.find((d) => d.id === selId) ?? null;
-  const items = deck?.items ?? [];
+  const items = useMemo(() => deck?.items ?? [], [deck]);
   const byId = useMemo(() => Object.fromEntries(items.map((i) => [i.id, i])), [items]);
   const order = useMemo(() => (deck ? seededShuffle(items.map((i) => i.id), seed + items.length) : []), [deck, seed, items]);
 

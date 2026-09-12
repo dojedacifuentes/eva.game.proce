@@ -1,13 +1,24 @@
-# EVA Game Proce · Derecho Procesal Civil RPG
+# FORO [in]VISIBLE
 
-Juego creado por **Diego Ojeda** durante su preparación del examen de grado. Este repositorio es la base independiente para desarrollar la experiencia **EVA / Proyecto01**.
+> Una experiencia EVA de Proyecto01 · Creada por **Diego Ojeda**
+
+Juego creado por Diego Ojeda durante su preparación del examen de grado. Este
+repositorio es la base independiente de la experiencia **EVA / Proyecto01**.
+
+El nombre, los créditos, los colores y las rutas de assets de marca viven en un
+único archivo: **`lib/brand.ts`**. Para cambiar cualquiera de esas cosas en toda
+la interfaz, se edita ahí y en ningún sitio más.
 
 - Repositorio de trabajo: [dojedacifuentes/eva.game.proce](https://github.com/dojedacifuentes/eva.game.proce).
 - Origen: [dojedacifuentes/rpgproce](https://github.com/dojedacifuentes/rpgproce), commit `76f58dad250664e9f171353a87b4f668cc0df56f`. Se conserva su historial.
 - Juego original: [rpgproce.vercel.app](https://rpgproce.vercel.app). La nueva copia tendrá su propia URL al desplegarse.
 - [Guía de despliegue en Vercel](docs/DEPLOYMENT.md).
 
-Esta importación conserva el juego y prepara su ejecución en Vercel. El rediseño responsive, el asistente de creación de personaje y la identidad visual de EVA quedan para la siguiente etapa.
+**Estado:** el rediseño responsive, el asistente de creación de personaje y la
+identidad visual provisional de EVA ya están implementados. Ver
+[`docs/ENTREGA-UX-EVA.md`](docs/ENTREGA-UX-EVA.md) para qué cambió y cómo
+revisarlo, y [`docs/REVISION_JURIDICA_PENDIENTE.md`](docs/REVISION_JURIDICA_PENDIENTE.md)
+para los puntos de contenido jurídico que quedan a revisión de Diego.
 
 **Disco Elysium + Código de Procedimiento Civil chileno.** RPG narrativo web sobre jurisdicción, competencia, juicio ordinario y sus etapas, recursos, juicio ejecutivo y disposiciones comunes. Pensado para **estudio del examen de grado**.
 
@@ -22,7 +33,31 @@ Estética: minimalismo cyberpunk-notarial, CRT, glitch jurídico, neon azul/viol
 - **TailwindCSS** + CSS personalizado
 - **Framer Motion**
 - **Zustand + persist** (estado y guardado en `localStorage` con guarda SSR)
-- **Vercel-ready** (sin backend)
+- **Vitest** para la lógica delicada (migración de partidas, creación de
+  personaje, protección del guardado, recomendación de EVA)
+- **Vercel-ready** (sin backend, sin claves, sin llamadas a modelos de IA)
+
+### Armazón de pantalla: `GameShell`
+
+Todas las rutas se dibujan dentro de `components/shell/GameShell.tsx`, que
+controla cabecera, contenido y navegación. Tres variantes:
+
+| Variante | Para qué | Comportamiento |
+|---|---|---|
+| `app` | Hub y pantallas de una sola vista | En escritorio el documento **no** se desplaza; el hijo reparte el alto |
+| `focus` | Actividades e interacciones breves | Igual, con el contenido en una región desplazable accesible |
+| `reader` | Codex, biblioteca, textos largos | El documento se desplaza con normalidad |
+
+El bloqueo del scroll sólo se activa a partir de **1024×620**. En móvil, en
+ventanas bajas y con el texto ampliado se suelta solo, para que ningún control
+quede fuera de alcance.
+
+### EVA
+
+`lib/eva.ts` es un motor **determinista**: reglas legibles sobre el progreso
+guardado. No hay llamadas a modelos, ni claves, ni backend, ni costo por uso.
+Cada recomendación va acompañada de su `razon`, derivada del dato concreto que la
+motivó. Si faltan datos, EVA no inventa diagnósticos.
 
 ---
 
@@ -117,7 +152,29 @@ npm run dev   # http://localhost:3000
 
 Node **24.x** y npm. En PowerShell, si la política de scripts bloquea `npm`, usa `npm.cmd`.
 
-Para comprobar producción: `npm run lint`, `npm run build`, `npm run typecheck` y `npm start`.
+Comprobaciones:
+
+```bash
+npm run lint       # eslint — debe salir sin errores NI advertencias
+npm run typecheck  # tsc --noEmit
+npm test           # vitest: 37 pruebas
+npm run build      # compilación de producción
+npm start          # servidor de producción
+```
+
+### Flujos que conviene revisar a mano
+
+1. **Empezar de cero:** portada → «Comenzar» → nombre → «Partida rápida» → «Comenzar».
+2. **Personalizar:** en creación, «Siguiente» por los cuatro pasos y volver atrás;
+   los datos se conservan y los atributos se recalculan sin acumular bonificaciones.
+3. **Protección del guardado:** con una partida en curso, abrir `/creacion` y
+   cancelar; nada se borra. Intentar reemplazar exige confirmación explícita.
+4. **Una sola pantalla:** `/juego` a 1366×768 no debe tener barra de desplazamiento.
+5. **Móvil:** `/juego` a 390×844; sin desbordamiento horizontal, barra inferior visible.
+6. **Respaldo:** Perfil → «Exportar partida» / «Importar partida».
+
+Para probar sin tocar tu partida real, usa una ventana privada del navegador o
+exporta primero.
 
 ## Cómo desplegar en Vercel
 

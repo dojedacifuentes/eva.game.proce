@@ -1,10 +1,11 @@
 import type { Metadata } from "next";
 import "./reinos.css";
+import GameShell from "@/components/shell/GameShell";
 
 // ============================================================================
 // REINOS DEL DERECHO — Layout del DLC
 // Aporta SOLO el wrapper temático y el CSS aislado. Hereda <html>/<body>,
-// fuentes, .crt y HUD del layout raíz: misma carcasa, sin duplicar nada.
+// fuentes, .crt y el armazón del layout raíz: misma carcasa, sin duplicar nada.
 // ============================================================================
 
 export const metadata: Metadata = {
@@ -14,7 +15,11 @@ export const metadata: Metadata = {
 };
 
 export default function ReinosLayout({ children }: { children: React.ReactNode }) {
-  // pt en móvil: deja libre el HUD fijo del juego base (nivel/vida/reloj) para
-  // que no tape los botones de las cabeceras. En PC no hace falta.
-  return <div className="reinos-scope reino-parchment pt-12 md:pt-0">{children}</div>;
+  // El `pt-12 md:pt-0` que compensaba el HUD fijo del juego base ya no hace
+  // falta: el HUD no dibuja paneles fijos y la cabecera vive en el grid.
+  return (
+    <GameShell variant="focus" eyebrow="Expansión" title="Reinos del Derecho" back={{ href: "/mundos", label: "Mundos" }} scrollLabel="Contenido de Reinos del Derecho">
+      <div className="reinos-scope reino-parchment">{children}</div>
+    </GameShell>
+  );
 }

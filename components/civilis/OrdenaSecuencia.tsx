@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { sfx } from "@/lib/audio";
 import type { Secuencia } from "@/data/civilis/secuencias";
 import { getRegionCivil } from "@/data/civilis/regiones";
+import { useMezclaEstable } from "@/lib/useMezclaEstable";
 
 function shuffle<T>(arr: T[]): T[] {
   const a = [...arr];
@@ -13,7 +14,7 @@ function shuffle<T>(arr: T[]): T[] {
 
 export default function OrdenaSecuencia({ secuencia, onSalir }: { secuencia: Secuencia; onSalir: () => void }) {
   // mezclado estable (el componente se monta tras selección en cliente → sin SSR)
-  const barajados = useMemo(() => shuffle(secuencia.items.map((t, i) => ({ t, idx: i }))), [secuencia.id]);
+  const barajados = useMezclaEstable(secuencia.id, () => shuffle(secuencia.items.map((t, i) => ({ t, idx: i }))));
   const [colocados, setColocados] = useState(0);
   const [wrong, setWrong] = useState<number | null>(null);
   const [errores, setErrores] = useState(0);

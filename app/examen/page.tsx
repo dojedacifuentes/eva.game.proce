@@ -2,6 +2,7 @@
 import Link from "next/link";
 import { useState } from "react";
 import { useGame } from "@/store/useGame";
+import GameShell from "@/components/shell/GameShell";
 
 type Q = { q: string; opciones: string[]; correcta: number; explicacion: string; art: string };
 
@@ -60,7 +61,8 @@ export default function ExamenPage() {
   if (terminado) {
     const nota = (aciertos / PREGUNTAS.length) * 7;
     return (
-      <main className="min-h-screen px-6 py-16 max-w-2xl mx-auto">
+      <GameShell variant="focus" eyebrow="Evaluación" title="Examen de grado" back={{ href: "/juego", label: "Hub" }} scrollLabel="Preguntas del examen">
+      <div className="min-h-screen px-6 py-16 max-w-2xl mx-auto">
         <div className="terminal p-8 text-center">
           <div className="tag mb-3">CÉDULA FINAL</div>
           <h1 className="label-art text-3xl text-zona-notificaciones mb-4">Nota: {nota.toFixed(1)}</h1>
@@ -68,12 +70,14 @@ export default function ExamenPage() {
           <p className="text-doc-aged/60 text-sm mt-4">{nota >= 4.0 ? "Aprobado. La comisión hace una mueca de respeto procesal." : "Reprobado. Vuelve al Codex: arts. 158, 187, 766, 767."}</p>
           <Link href="/juego" className="btn mt-6 inline-block">◂ Volver al mapa</Link>
         </div>
-      </main>
+      </div>
+    </GameShell>
     );
   }
 
   return (
-    <main className="min-h-screen px-6 py-10 max-w-3xl mx-auto">
+    <GameShell variant="focus" eyebrow="Evaluación" title="Examen de grado" back={{ href: "/juego", label: "Hub" }} scrollLabel="Preguntas del examen">
+      <div className="min-h-screen px-6 py-10 max-w-3xl mx-auto">
       <div className="flex justify-between mb-4">
         <Link href="/juego" className="btn">◂ Mapa</Link>
         <div className="tag">PREGUNTA {i + 1} / {PREGUNTAS.length} · Aciertos: {aciertos}</div>
@@ -105,6 +109,7 @@ export default function ExamenPage() {
           </div>
         )}
       </div>
-    </main>
+    </div>
+    </GameShell>
   );
 }

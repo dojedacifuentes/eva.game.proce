@@ -12,6 +12,13 @@ import { useReinos } from "@/store/useReinos";
 
 export const AVATARES = ["🧑‍⚖️", "👩‍⚖️", "⚖️", "🦉", "📜", "🎓", "🗡️", "🛡️", "👑", "🐉", "🔮", "🦅"];
 
+/** Nombre accesible de cada avatar: un emoji no da nombre a un botón. */
+export const NOMBRE_AVATAR: Record<string, string> = {
+  "🧑‍⚖️": "Juez", "👩‍⚖️": "Jueza", "⚖️": "Balanza", "🦉": "Búho",
+  "📜": "Pergamino", "🎓": "Birrete", "🗡️": "Espada", "🛡️": "Escudo",
+  "👑": "Corona", "🐉": "Dragón", "🔮": "Orbe", "🦅": "Águila",
+};
+
 export default function PerfilJurista({
   onClose,
   forzado,
@@ -49,12 +56,15 @@ export default function PerfilJurista({
         <h2 className="font-display-grave text-2xl text-doc-aged mb-1">{forzado ? "Crea tu jurista" : "Editar perfil"}</h2>
         <p className="reino-explain text-doc-aged/65 text-[13px] mb-4">Elige tu avatar y tu nombre. Te acompañarán por todos los Reinos.</p>
 
-        <div className="font-mono-terminal text-[9px] uppercase tracking-widest text-doc-aged/50 mb-2">Avatar</div>
-        <div className="grid grid-cols-6 gap-2 mb-4">
+        <div id="etiqueta-avatar" className="font-mono-terminal text-[9px] uppercase tracking-widest text-doc-aged/50 mb-2">Avatar</div>
+        <div className="grid grid-cols-6 gap-2 mb-4" role="group" aria-labelledby="etiqueta-avatar">
           {AVATARES.map((a) => (
             <button
               key={a}
               onClick={() => { setAvatar(a); sfx.select?.(); }}
+              type="button"
+              aria-label={NOMBRE_AVATAR[a] ?? "Avatar"}
+              aria-pressed={avatar === a}
               className="aspect-square flex items-center justify-center text-2xl border rounded-lg transition-all"
               style={{
                 borderColor: avatar === a ? "var(--reino-primary)" : "rgba(232,223,197,.12)",
@@ -63,13 +73,16 @@ export default function PerfilJurista({
                 boxShadow: avatar === a ? "0 0 12px color-mix(in srgb, var(--reino-primary) 35%, transparent)" : "none",
               }}
             >
-              {a}
+              <span aria-hidden="true">{a}</span>
             </button>
           ))}
         </div>
 
-        <div className="font-mono-terminal text-[9px] uppercase tracking-widest text-doc-aged/50 mb-2">Nombre</div>
+        <label htmlFor="nombre-jurista" className="block font-mono-terminal text-[9px] uppercase tracking-widest text-doc-aged/50 mb-2">
+          Nombre
+        </label>
         <input
+          id="nombre-jurista"
           value={nombre}
           onChange={(e) => setNombre(e.target.value)}
           onKeyDown={(e) => { if (e.key === "Enter") confirmar(); }}

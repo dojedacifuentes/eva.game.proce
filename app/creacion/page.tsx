@@ -1,134 +1,542 @@
 "use client";
-import { useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { useGame } from "@/store/useGame";
-import type { Atributos, Origen, Rol } from "@/types/game";
-import { motion } from "framer-motion";
+import { useHydrated } from "@/lib/useHydrated";
+import type { Atributos, Origen, Personaje, Rol } from "@/types/game";
+import { sfx } from "@/lib/audio";
+import GameShell from "@/components/shell/GameShell";
+import EvaMark from "@/components/shell/EvaMark";
+import Dialogo from "@/components/shell/Dialogo";
+import { EVA } from "@/lib/brand";
+import {
+  ORIGENES as ORIGEN,
+  ROLES as ROL,
+  PARTIDA_RAPIDA as RAPIDA,
+  calcularAtributos,
+  nivelEconomicoDe,
+} from "@/lib/personaje";
 
-const ORIGEN: { id: Origen; nombre: string; desc: string; mod: Partial<Atributos>; nivel: number }[] = [
-  { id: "litigante_freelancer", nombre: "Litigante freelance", desc: "Estudio unipersonal, café reusado, plazos vividos al filo.", mod: { diligencia: 2, resistencia_psicologica: 1 }, nivel: 35 },
-  { id: "estudio_grande", nombre: "Estudio grande", desc: "Pasillos alfombrados. Costo-hora alto. Pleitos serios.", mod: { rigor_formal: 2, estrategia: 1 }, nivel: 90 },
-  { id: "defensoria_publica", nombre: "Defensoría / clínica jurídica", desc: "Causas sociales, recursos limitados, vocación.", mod: { persuasion_forense: 1, resistencia_psicologica: 2 }, nivel: 25 },
-  { id: "academia", nombre: "Académico forense", desc: "Couture en una mano, Cassarino en la otra.", mod: { conocimiento_procesal: 3 }, nivel: 45 },
-  { id: "litigante_propia_causa", nombre: "Litigante en causa propia", desc: "El que más sufre. El que menos sabe.", mod: { resistencia_psicologica: -1, conocimiento_procesal: -1, persuasion_forense: 1 }, nivel: 30 },
+// ============================================================================
+// CREACIÓN DE PERSONAJE — asistente compacto + partida rápida.
+//
+// Reemplaza el formulario de una sola columna larga (nombre, sexo, 5 orígenes,
+// 5 roles, 6 atributos y el botón al final, sobre el píxel 1184 en escritorio).
+//
+// Reglas de seguridad de la partida, explícitas:
+//  · Abrir esta pantalla NO borra nada.
+//  · Cancelar o volver atrás NO borra nada.
+//  · Sólo `iniciarPartida` destruye la anterior, y sólo tras confirmarlo en un
+//    diálogo dentro del producto.
+// ============================================================================
+
+type PasoId = "nombre" | "origen" | "rol" | "confirmar";
+const PASOS: { id: PasoId; titulo: string }[] = [
+  { id: "nombre", titulo: "Nombre" },
+  { id: "origen", titulo: "Origen" },
+  { id: "rol", titulo: "Rol" },
+  { id: "confirmar", titulo: "Confirmar" },
 ];
 
-const ROL: { id: Rol; nombre: string; mod: Partial<Atributos> }[] = [
-  { id: "abogado_demandante", nombre: "Abogado/a demandante", mod: { estrategia: 2, persuasion_forense: 1 } },
-  { id: "abogado_demandado", nombre: "Abogado/a demandado/a", mod: { rigor_formal: 2, diligencia: 1 } },
-  { id: "juez", nombre: "Juez/a (rol pedagógico)", mod: { conocimiento_procesal: 2, rigor_formal: 1 } },
-  { id: "secretario", nombre: "Secretario/a del tribunal", mod: { rigor_formal: 3 } },
-  { id: "litigante_propio", nombre: "Litigante por sí mismo (art. 2 Ley 18.120)", mod: { resistencia_psicologica: -1 } },
-];
+const CLAVE_BORRADOR = "foro-invisible:borrador-creacion";
 
 export default function Creacion() {
   const router = useRouter();
-  const setPersonaje = useGame((s) => s.setPersonaje);
-  const reset = useGame((s) => s.reset);
+  const hydrated = useHydrated();
+  const personajeActual = useGame((s) => s.personaje);
+  const nivelActual = useGame((s) => s.nivel);
+  const iniciarPartida = useGame((s) => s.iniciarPartida);
 
+  const [paso, setPaso] = useState<PasoId>("nombre");
   const [nombre, setNombre] = useState("");
-  const [sexo, setSexo] = useState<"femenino" | "masculino">("femenino");
-  const [origen, setOrigen] = useState<Origen>("litigante_freelancer");
-  const [rol, setRol] = useState<Rol>("abogado_demandante");
+  const [sexo, setSexo] = useState<"femenino" | "masculino">(RAPIDA.sexo);
+  const [origen, setOrigen] = useState<Origen>(RAPIDA.origen);
+  const [rol, setRol] = useState<Rol>(RAPIDA.rol);
+  const [esRapida, setEsRapida] = useState(false);
+  const [confirmando, setConfirmando] = useState(false);
+  const borradorLeido = useRef(false);
 
-  function aplicarMods(): Atributos {
-    const base: Atributos = {
-      conocimiento_procesal: 5, persuasion_forense: 5, diligencia: 5,
-      rigor_formal: 5, estrategia: 5, resistencia_psicologica: 5,
-    };
-    const o = ORIGEN.find((x) => x.id === origen)!.mod;
-    const r = ROL.find((x) => x.id === rol)!.mod;
-    (Object.keys(base) as (keyof Atributos)[]).forEach((k) => {
-      base[k] = Math.max(0, Math.min(10, base[k] + (o[k] ?? 0) + (r[k] ?? 0)));
-    });
-    return base;
+  const hayPartidaPrevia = hydrated && !!personajeActual.nombre;
+
+  // ── Borrador: se conserva al volver entre pasos y se limpia al terminar ────
+  useEffect(() => {
+    if (borradorLeido.current) return;
+    borradorLeido.current = true;
+    try {
+      const crudo = localStorage.getItem(CLAVE_BORRADOR);
+      if (!crudo) return;
+      const b = JSON.parse(crudo);
+      if (typeof b.nombre === "string") setNombre(b.nombre);
+      if (b.sexo === "femenino" || b.sexo === "masculino") setSexo(b.sexo);
+      if (ORIGEN.some((o) => o.id === b.origen)) setOrigen(b.origen);
+      if (ROL.some((r) => r.id === b.rol)) setRol(b.rol);
+      if (PASOS.some((p) => p.id === b.paso)) setPaso(b.paso);
+    } catch { /* borrador ilegible: se ignora */ }
+  }, []);
+
+  useEffect(() => {
+    if (!borradorLeido.current) return;
+    try {
+      localStorage.setItem(CLAVE_BORRADOR, JSON.stringify({ nombre, sexo, origen, rol, paso }));
+    } catch { /* sin persistencia: el asistente sigue funcionando */ }
+  }, [nombre, sexo, origen, rol, paso]);
+
+  const atributos = useMemo(() => calcularAtributos(origen, rol), [origen, rol]);
+  const nombreValido = nombre.trim().length > 0;
+  const idxPaso = PASOS.findIndex((p) => p.id === paso);
+
+  function avanzar() {
+    sfx.click?.();
+    if (paso === "nombre" && nombreValido) setPaso("origen");
+    else if (paso === "origen") setPaso("rol");
+    else if (paso === "rol") setPaso("confirmar");
+  }
+  function retroceder() {
+    sfx.click?.();
+    if (idxPaso > 0) setPaso(PASOS[idxPaso - 1].id);
   }
 
-  function comenzar() {
-    if (!nombre.trim()) return;
-    reset();
-    setPersonaje({
+  /** Partida rápida: sólo el nombre; el resto queda en la recomendada. */
+  function irARapida() {
+    if (!nombreValido) return;
+    sfx.confirm?.();
+    setEsRapida(true);
+    setOrigen(RAPIDA.origen);
+    setRol(RAPIDA.rol);
+    setSexo(RAPIDA.sexo);
+    setPaso("confirmar");
+  }
+
+  /** Punto único de creación. Si ya hay partida, primero pregunta. */
+  function intentarComenzar() {
+    if (!nombreValido) return;
+    if (hayPartidaPrevia) { setConfirmando(true); return; }
+    comenzarDeVerdad();
+  }
+
+  function comenzarDeVerdad() {
+    const p: Personaje = {
       nombre: nombre.trim(),
       sexo,
       origen,
       rol,
-      nivelEconomico: ORIGEN.find((x) => x.id === origen)!.nivel,
-      atributos: aplicarMods(),
+      nivelEconomico: nivelEconomicoDe(origen),
+      atributos: calcularAtributos(origen, rol),
       reputacion: 0,
       trauma: 0,
       expedientesGanados: 0,
       expedientesPerdidos: 0,
       cicloProcesal: 1,
-    });
+    };
+    iniciarPartida(p);
+    try { localStorage.removeItem(CLAVE_BORRADOR); } catch { /* nada que limpiar */ }
+    sfx.confirm?.();
     router.push("/juego");
   }
 
-  const atributos = aplicarMods();
+  return (
+    <GameShell
+      variant="app"
+      eyebrow="Registro de litigantes"
+      title="Crear personaje"
+      back={{ href: "/", label: "Portada" }}
+      headerCompacto
+    >
+      <div className="flex-1 min-h-0 flex flex-col max-w-3xl w-full mx-auto">
+        {/* ── Aviso de partida en curso. Abrir esta pantalla no la ha tocado. ── */}
+        {hayPartidaPrevia && (
+          <div
+            className="shrink-0 flex flex-wrap items-center gap-x-3 gap-y-1 px-3 py-2 mb-2 border text-[11px]"
+            style={{ borderColor: "rgba(215,180,106,0.35)", background: "rgba(215,180,106,0.07)" }}
+          >
+            <span className="font-mono-terminal text-zona-prueba">
+              Tienes una partida: {personajeActual.nombre} · Nv.{nivelActual}
+            </span>
+            <span className="font-mono-terminal text-doc-aged/45">
+              Nada se borra hasta que lo confirmes.
+            </span>
+            <Link
+              href="/juego"
+              onClick={() => sfx.click?.()}
+              className="ml-auto font-mono-terminal uppercase tracking-widest text-zona-cautelares hover:underline"
+            >
+              Continuar la actual →
+            </Link>
+          </div>
+        )}
+
+        {/* ── Indicador de pasos ── */}
+        <ol className="shrink-0 flex items-center gap-1 mb-3 list-none p-0 m-0">
+          {PASOS.map((p, i) => {
+            const hecho = i < idxPaso;
+            const activo = i === idxPaso;
+            return (
+              <li key={p.id} className="flex-1">
+                <div
+                  className="h-0.5 rounded-full mb-1"
+                  style={{ background: hecho || activo ? "var(--zona-competencia)" : "rgba(232,223,197,0.12)" }}
+                />
+                <span
+                  className="font-mono-terminal text-[8px] uppercase tracking-widest"
+                  style={{ color: activo ? "var(--zona-competencia)" : "rgba(232,223,197,0.35)" }}
+                >
+                  {i + 1}. {p.titulo}
+                </span>
+              </li>
+            );
+          })}
+        </ol>
+
+        {/* ── Contenido del paso, con scroll propio ── */}
+        <div className="shell-scroll flex-1 pr-1" tabIndex={0} role="region" aria-label={`Paso ${idxPaso + 1}: ${PASOS[idxPaso].titulo}`}>
+          {paso === "nombre" && (
+            <PasoNombre
+              nombre={nombre}
+              setNombre={setNombre}
+              onEnter={avanzar}
+              onRapida={irARapida}
+              puedeSeguir={nombreValido}
+            />
+          )}
+
+          {paso === "origen" && (
+            <PasoElección
+              leyenda="Origen profesional"
+              ayuda="De dónde vienes. Ajusta tus atributos de partida."
+              opciones={ORIGEN.map((o) => ({ id: o.id, nombre: o.nombre, desc: o.desc, eva: o.eva }))}
+              valor={origen}
+              onElegir={(id) => { setOrigen(id as Origen); setEsRapida(false); sfx.click?.(); }}
+            />
+          )}
+
+          {paso === "rol" && (
+            <PasoElección
+              leyenda="Rol procesal"
+              ayuda="Desde qué asiento litigas. Cambia el enfoque de las misiones."
+              opciones={ROL.map((r) => ({ id: r.id, nombre: r.nombre, desc: "", eva: r.eva }))}
+              valor={rol}
+              onElegir={(id) => { setRol(id as Rol); setEsRapida(false); sfx.click?.(); }}
+            />
+          )}
+
+          {paso === "confirmar" && (
+            <PasoConfirmar
+              nombre={nombre.trim()}
+              origen={origen}
+              rol={rol}
+              sexo={sexo}
+              setSexo={(s) => { setSexo(s); setEsRapida(false); }}
+              atributos={atributos}
+              esRapida={esRapida}
+              onPersonalizar={() => { setEsRapida(false); setPaso("origen"); sfx.click?.(); }}
+            />
+          )}
+        </div>
+
+        {/* ── Controles de avance: siempre visibles, nunca dentro del scroll ── */}
+        <div className="shrink-0 flex items-center gap-2 pt-3 mt-1 border-t border-zona-competencia/10">
+          {idxPaso > 0 ? (
+            <button type="button" onClick={retroceder} className="btn text-[11px] px-4 py-2.5">
+              ← Atrás
+            </button>
+          ) : (
+            <Link href="/" onClick={() => sfx.click?.()} className="btn text-[11px] px-4 py-2.5">
+              Cancelar
+            </Link>
+          )}
+
+          <div className="flex-1" />
+
+          {paso !== "confirmar" ? (
+            <button
+              type="button"
+              onClick={avanzar}
+              disabled={paso === "nombre" && !nombreValido}
+              className="btn btn-recurso text-[11px] px-5 py-2.5 disabled:opacity-30 disabled:cursor-not-allowed"
+            >
+              Siguiente →
+            </button>
+          ) : (
+            <button
+              type="button"
+              onClick={intentarComenzar}
+              disabled={!nombreValido}
+              className="btn btn-recurso text-[11px] px-5 py-2.5 disabled:opacity-30 disabled:cursor-not-allowed"
+            >
+              {hayPartidaPrevia ? "Reemplazar y comenzar" : "Comenzar"}
+            </button>
+          )}
+        </div>
+      </div>
+
+      {/* Confirmación de reemplazo. Sólo después de un "sí" se toca lo guardado. */}
+      {confirmando && (
+        <Dialogo
+          titulo="Vas a reemplazar tu partida"
+          descripcion={`Se perderá el progreso de ${personajeActual.nombre} (nivel ${nivelActual}): misiones, logros, reliquias y monedas. Esta acción no se puede deshacer.`}
+          onCerrar={() => setConfirmando(false)}
+        >
+          <div className="flex flex-col sm:flex-row gap-2">
+            <button
+              type="button"
+              onClick={() => { setConfirmando(false); sfx.click?.(); }}
+              className="btn text-[11px] px-4 py-2.5 flex-1"
+            >
+              Conservar la actual
+            </button>
+            <button
+              type="button"
+              onClick={comenzarDeVerdad}
+              className="btn btn-danger text-[11px] px-4 py-2.5 flex-1"
+            >
+              Sí, reemplazar
+            </button>
+          </div>
+          <Link
+            href="/inventario"
+            className="block text-center font-mono-terminal text-[9px] uppercase tracking-widest text-doc-aged/40 hover:text-zona-competencia mt-3"
+          >
+            Antes quiero exportar mi partida
+          </Link>
+        </Dialogo>
+      )}
+    </GameShell>
+  );
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+
+function DiceEva({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="flex items-start gap-2 p-2.5 border" style={{ borderColor: "rgba(122,212,230,0.25)", background: "rgba(122,212,230,0.05)" }}>
+      <EvaMark size={18} />
+      <p className="font-serif-juridica not-italic text-doc-aged/75 text-xs leading-snug">
+        <span className="sr-only">{EVA.nombre} explica: </span>
+        {children}
+      </p>
+    </div>
+  );
+}
+
+function PasoNombre({
+  nombre, setNombre, onEnter, onRapida, puedeSeguir,
+}: {
+  nombre: string; setNombre: (v: string) => void; onEnter: () => void; onRapida: () => void; puedeSeguir: boolean;
+}) {
+  return (
+    <div className="space-y-4">
+      <div>
+        <label htmlFor="campo-nombre" className="block font-mono-terminal text-[10px] uppercase tracking-widest text-zona-competencia mb-2">
+          Nombre del comparecente
+        </label>
+        <input
+          id="campo-nombre"
+          autoFocus
+          value={nombre}
+          onChange={(e) => setNombre(e.target.value)}
+          onKeyDown={(e) => { if (e.key === "Enter" && puedeSeguir) onEnter(); }}
+          placeholder="Apellido, Nombre"
+          autoComplete="off"
+          className="w-full bg-ink-700 border border-neon-blue/30 text-doc-aged p-3 text-base focus:outline-none focus:border-neon-blue"
+        />
+        <p id="ayuda-nombre" className="font-mono-terminal text-[9px] text-doc-aged/35 mt-1.5">
+          Es lo único imprescindible. Aparecerá en tu expediente.
+        </p>
+      </div>
+
+      <DiceEva>
+        Con el nombre basta para empezar. Si quieres jugar ya, usa la partida rápida: te pongo una
+        configuración válida y equilibrada, y puedes personalizarla cuando quieras.
+      </DiceEva>
+
+      <button
+        type="button"
+        onClick={onRapida}
+        disabled={!puedeSeguir}
+        className="w-full p-3.5 border text-left transition-all disabled:opacity-30 disabled:cursor-not-allowed hover:brightness-125"
+        style={{ borderColor: "var(--zona-cautelares)", background: "rgba(88,245,176,0.08)" }}
+      >
+        <div className="font-display-grave text-sm" style={{ color: "var(--zona-cautelares)" }}>
+          ▶ PARTIDA RÁPIDA
+        </div>
+        <div className="font-mono-terminal text-[9px] text-doc-aged/50 mt-0.5">
+          Litigante freelance · Abogada demandante · Atributos equilibrados
+        </div>
+      </button>
+    </div>
+  );
+}
+
+function PasoElección({
+  leyenda, ayuda, opciones, valor, onElegir,
+}: {
+  leyenda: string;
+  ayuda: string;
+  opciones: { id: string; nombre: string; desc: string; eva: string }[];
+  valor: string;
+  onElegir: (id: string) => void;
+}) {
+  const elegida = opciones.find((o) => o.id === valor);
+  return (
+    <fieldset className="border-0 p-0 m-0 space-y-3">
+      <legend className="font-mono-terminal text-[10px] uppercase tracking-widest text-zona-competencia mb-1">
+        {leyenda}
+      </legend>
+      <p className="font-mono-terminal text-[9px] text-doc-aged/40 -mt-2">{ayuda}</p>
+
+      <div className="grid sm:grid-cols-2 gap-2">
+        {opciones.map((o) => {
+          const activa = o.id === valor;
+          return (
+            <label
+              key={o.id}
+              className="flex gap-2 items-start p-3 border cursor-pointer transition-all"
+              style={{
+                borderColor: activa ? "var(--zona-competencia)" : "rgba(232,223,197,0.14)",
+                background: activa ? "rgba(75,231,255,0.08)" : "transparent",
+              }}
+            >
+              <input
+                type="radio"
+                name={leyenda}
+                value={o.id}
+                checked={activa}
+                onChange={() => onElegir(o.id)}
+                className="mt-1 accent-[var(--zona-competencia)]"
+              />
+              <span className="min-w-0">
+                <span className="block text-zona-notificaciones text-sm leading-tight">{o.nombre}</span>
+                {o.desc && (
+                  <span className="block text-doc-aged/55 text-xs leading-snug mt-0.5">{o.desc}</span>
+                )}
+              </span>
+            </label>
+          );
+        })}
+      </div>
+
+      {elegida && <DiceEva>{elegida.eva}</DiceEva>}
+    </fieldset>
+  );
+}
+
+function PasoConfirmar({
+  nombre, origen, rol, sexo, setSexo, atributos, esRapida, onPersonalizar,
+}: {
+  nombre: string;
+  origen: Origen;
+  rol: Rol;
+  sexo: "femenino" | "masculino";
+  setSexo: (s: "femenino" | "masculino") => void;
+  atributos: Atributos;
+  esRapida: boolean;
+  onPersonalizar: () => void;
+}) {
+  const o = ORIGEN.find((x) => x.id === origen)!;
+  const r = ROL.find((x) => x.id === rol)!;
 
   return (
-    <main className="min-h-screen px-6 py-10 max-w-5xl mx-auto">
-      <div className="font-mono-terminal text-[10px] uppercase tracking-[.4em] text-zona-recursos mb-3">FOLIO 01 · INSCRIPCIÓN EN EL REGISTRO DE LITIGANTES</div>
-      <h1 className="font-display-grave text-4xl text-doc-aged mb-2">Constituye tu personaje procesal</h1>
-      <p className="text-doc-aged/50 text-xs font-serif-juridica italic mb-6">«Toda comparecencia exige patrocinio, poder y voluntad de sufrir.»</p>
+    <div className="space-y-3">
+      {esRapida && (
+        <div className="p-2.5 border" style={{ borderColor: "rgba(88,245,176,0.3)", background: "rgba(88,245,176,0.06)" }}>
+          <div className="font-mono-terminal text-[9px] uppercase tracking-widest text-zona-cautelares mb-1">
+            Configuración recomendada
+          </div>
+          <p className="font-serif-juridica not-italic text-doc-aged/70 text-xs leading-snug">
+            Estás usando la configuración recomendada: no la elegiste tú, la puse yo para que puedas
+            empezar de inmediato. Es una combinación válida y equilibrada.
+          </p>
+          <button
+            type="button"
+            onClick={onPersonalizar}
+            className="font-mono-terminal text-[10px] uppercase tracking-widest text-zona-competencia hover:underline mt-1.5"
+          >
+            Personalizar en su lugar →
+          </button>
+        </div>
+      )}
 
-      <section className="terminal p-6 mb-6">
-        <label className="text-xs uppercase tracking-widest text-zona-competencia">Nombre del comparecente</label>
-        <input autoFocus value={nombre} onChange={(e) => setNombre(e.target.value)} placeholder="Apellido, Nombre"
-          className="mt-2 w-full bg-ink-700 border border-neon-blue/30 text-doc-aged p-3 focus:outline-none focus:border-neon-blue" />
-      </section>
+      <dl className="grid sm:grid-cols-3 gap-2 m-0">
+        <Resumen etiqueta="Nombre" valor={nombre || "—"} />
+        <Resumen etiqueta="Origen" valor={o.nombre} />
+        <Resumen etiqueta="Rol" valor={r.nombre} />
+      </dl>
 
-      <section className="terminal p-5 mb-6">
-        <label className="text-xs uppercase tracking-widest text-zona-competencia block mb-3">Sexo</label>
-        <div className="grid grid-cols-2 gap-3">
+      {/* Se conserva la opción de sexo que ya existía, agrupada aquí. */}
+      <fieldset className="border-0 p-0 m-0">
+        <legend className="font-mono-terminal text-[9px] uppercase tracking-widest text-doc-aged/45 mb-1.5">
+          Sexo del personaje
+        </legend>
+        <div className="flex gap-2">
           {(["femenino", "masculino"] as const).map((s) => (
-            <button key={s} onClick={() => setSexo(s)} className={`p-3 border ${sexo === s ? "border-neon-blue bg-neon-blue/10 text-zona-notificaciones" : "border-ink-400"} uppercase tracking-widest text-sm`}>{s}</button>
+            <label
+              key={s}
+              className="flex items-center gap-2 px-3 py-2 border cursor-pointer text-xs uppercase tracking-widest"
+              style={{
+                borderColor: sexo === s ? "var(--zona-competencia)" : "rgba(232,223,197,0.14)",
+                background: sexo === s ? "rgba(75,231,255,0.08)" : "transparent",
+                color: sexo === s ? "var(--zona-notificaciones)" : "rgba(232,223,197,0.6)",
+              }}
+            >
+              <input
+                type="radio"
+                name="sexo"
+                value={s}
+                checked={sexo === s}
+                onChange={() => setSexo(s)}
+                className="accent-[var(--zona-competencia)]"
+              />
+              {s}
+            </label>
           ))}
         </div>
-      </section>
+      </fieldset>
 
-      <section className="grid md:grid-cols-2 gap-6">
-        <div className="terminal p-5">
-          <h2 className="label-art text-neon-violet mb-3">Origen profesional</h2>
-          <div className="space-y-2">
-            {ORIGEN.map((o) => (
-              <button key={o.id} onClick={() => setOrigen(o.id)} className={`w-full text-left p-3 border ${origen === o.id ? "border-neon-blue bg-neon-blue/10" : "border-ink-400"}`}>
-                <div className="text-zona-notificaciones text-sm">{o.nombre}</div>
-                <div className="text-doc-aged/60 text-xs">{o.desc}</div>
-              </button>
-            ))}
-          </div>
+      {/* Atributos compactos: una fila por atributo, sin tarjetas gigantes. */}
+      <div>
+        <div className="font-mono-terminal text-[9px] uppercase tracking-widest text-doc-aged/45 mb-1.5">
+          Atributos resultantes
         </div>
-
-        <div className="terminal p-5">
-          <h2 className="label-art text-neon-violet mb-3">Rol procesal</h2>
-          <div className="space-y-2">
-            {ROL.map((r) => (
-              <button key={r.id} onClick={() => setRol(r.id)} className={`w-full text-left p-3 border ${rol === r.id ? "border-neon-blue bg-neon-blue/10" : "border-ink-400"}`}>
-                <div className="text-zona-notificaciones text-sm">{r.nombre}</div>
-              </button>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      <section className="terminal p-5 mt-6">
-        <h2 className="label-art text-zona-competencia mb-3">Atributos resultantes</h2>
-        <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-3">
-          {(Object.entries(atributos) as [keyof Atributos, number][]).map(([k, v]) => (
-            <div key={k} className="border border-ink-400 p-3">
-              <div className="text-xs uppercase tracking-widest text-doc-aged/70">{k.replace(/_/g, " ")}</div>
-              <div className="h-2 bg-ink-700 mt-2">
-                <motion.div initial={{ width: 0 }} animate={{ width: `${v * 10}%` }} transition={{ duration: .8 }} className="h-full barfill" />
+        <div className="grid sm:grid-cols-2 gap-x-4 gap-y-1">
+          {(Object.entries(atributos) as [keyof Atributos, number][]).map(([k, v]) => {
+            const delta = v - 5;
+            return (
+              <div key={k} className="flex items-center gap-2">
+                <span className="font-mono-terminal text-[10px] text-doc-aged/60 w-[9.5rem] shrink-0 capitalize">
+                  {k.replace(/_/g, " ")}
+                </span>
+                <span className="flex-1 h-1 bg-ink-700 rounded-full overflow-hidden">
+                  <span className="block h-full barfill" style={{ width: `${v * 10}%` }} />
+                </span>
+                <span className="font-mono-terminal text-[10px] text-zona-notificaciones w-11 text-right shrink-0">
+                  {v}/10
+                  {delta !== 0 && (
+                    <span style={{ color: delta > 0 ? "var(--zona-cautelares)" : "var(--zona-nulidad)" }}>
+                      {" "}{delta > 0 ? "+" : ""}{delta}
+                    </span>
+                  )}
+                </span>
               </div>
-              <div className="text-zona-notificaciones text-right text-xs mt-1">{v}/10</div>
-            </div>
-          ))}
+            );
+          })}
         </div>
-      </section>
-
-      <div className="mt-8 flex gap-3">
-        <button onClick={comenzar} disabled={!nombre.trim()} className="btn disabled:opacity-30">▶ Firmar y comenzar</button>
       </div>
-    </main>
+
+      <DiceEva>
+        Tus atributos salen de 5 en cada uno, más lo que aportan origen y rol. Se recalculan desde
+        cero cada vez que cambias algo, así que puedes volver atrás sin acumular bonificaciones.
+        Origen y rol quedan fijos al comenzar: cambiarlos después rompería ese cálculo.
+      </DiceEva>
+    </div>
+  );
+}
+
+function Resumen({ etiqueta, valor }: { etiqueta: string; valor: string }) {
+  return (
+    <div className="p-2 border border-doc-aged/12">
+      <dt className="font-mono-terminal text-[8px] uppercase tracking-widest text-doc-aged/40">{etiqueta}</dt>
+      <dd className="font-display-grave text-doc-aged text-xs leading-tight mt-0.5 m-0">{valor}</dd>
+    </div>
   );
 }

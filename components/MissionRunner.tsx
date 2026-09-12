@@ -9,6 +9,7 @@ import { getMissionPlaybook, type MissionOption } from "@/data/mission-playbooks
 import { getWorldDefinition } from "@/data/worlds";
 import { useGame } from "@/store/useGame";
 import { sfx } from "@/lib/audio";
+import GameShell from "@/components/shell/GameShell";
 
 type Phase = "briefing" | "dossier" | "challenge" | "result";
 
@@ -35,7 +36,8 @@ export default function MissionRunner({ missionId }: { missionId: string }) {
 
   if (!missionEntry || !playbook) {
     return (
-      <main className="min-h-screen px-4 md:px-8 py-8 max-w-4xl mx-auto">
+      <GameShell variant="focus" eyebrow="Campaña" title="Misión" back={{ href: "/juego", label: "Hub" }} scrollLabel="Contenido de la misión">
+      <div className="min-h-screen px-4 md:px-8 py-8 max-w-4xl mx-auto">
         <Link href="/juego" className="btn text-xs">Volver al mapa</Link>
         <div className="terminal p-6 mt-6">
           <h1 className="font-display-grave text-2xl text-doc-aged">Mision no encontrada</h1>
@@ -43,7 +45,8 @@ export default function MissionRunner({ missionId }: { missionId: string }) {
             La ruta existe, pero no hay playbook jugable para esta mision.
           </p>
         </div>
-      </main>
+      </div>
+    </GameShell>
     );
   }
 
@@ -93,7 +96,8 @@ export default function MissionRunner({ missionId }: { missionId: string }) {
   };
 
   return (
-    <main
+    <GameShell variant="focus" eyebrow="Campaña" title="Misión" back={{ href: "/juego", label: "Hub" }} scrollLabel="Contenido de la misión">
+      <div
       className="min-h-screen px-4 md:px-8 py-6 pb-24"
       style={{
         background: `
@@ -308,7 +312,8 @@ export default function MissionRunner({ missionId }: { missionId: string }) {
           </aside>
         </section>
       </div>
-    </main>
+    </div>
+    </GameShell>
   );
 }
 function MotionPanel({ color, children }: { color: string; children: React.ReactNode }) {

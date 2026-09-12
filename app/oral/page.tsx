@@ -12,6 +12,7 @@ import { isBossUnlocked, getBossGate } from "@/lib/unlock-gates";
 import { motion } from "framer-motion";
 import BossEntry from "@/components/BossEntry";
 import type { Boss as CampaignBoss } from "@/data/campaign";
+import GameShell from "@/components/shell/GameShell";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Adaptador: convierte un OralBoss al formato esperado por BossEntry
@@ -87,7 +88,8 @@ export default function OralPage() {
   // ── Estado 2: Combate activo ──
   if (bossActivo) {
     return (
-      <main className="min-h-screen px-4 md:px-8 py-6 max-w-5xl mx-auto">
+      <GameShell variant="focus" eyebrow="Combate" title="Interrogatorio oral" back={{ href: "/juego", label: "Hub" }} scrollLabel="Interrogatorio">
+      <div className="min-h-screen px-4 md:px-8 py-6 max-w-5xl mx-auto">
         <div className="flex justify-between mb-4">
           <button className="btn btn-danger" onClick={() => setBossActivo(null)}>
             ◂ Retirarse
@@ -97,13 +99,15 @@ export default function OralPage() {
           </div>
         </div>
         <InterrogacionOral bossId={bossActivo} onFin={() => setBossActivo(null)} />
-      </main>
+      </div>
+    </GameShell>
     );
   }
 
   // ── Estado 3: Menú de bosses ──
   return (
-    <main className="min-h-screen px-4 md:px-8 py-6 max-w-7xl mx-auto">
+    <GameShell variant="focus" eyebrow="Combate" title="Interrogatorio oral" back={{ href: "/juego", label: "Hub" }} scrollLabel="Interrogatorio">
+      <div className="min-h-screen px-4 md:px-8 py-6 max-w-7xl mx-auto">
       <header className="flex justify-between items-center mb-8">
         <Link href="/juego" className="btn">◂ Ciudad Judicial</Link>
         <div className="font-mono-terminal text-[10px] uppercase tracking-[.3em] text-zona-oralidad">
@@ -234,6 +238,7 @@ export default function OralPage() {
           />
         </div>
       </div>
-    </main>
+    </div>
+    </GameShell>
   );
 }

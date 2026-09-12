@@ -5,28 +5,46 @@ import { motion } from "framer-motion";
 import { sfx } from "@/lib/audio";
 import { useGame } from "@/store/useGame";
 import { isModuloUnlocked, getModuloGate, type UnlockGate } from "@/lib/unlock-gates";
-import SeleccionBuild from "@/components/SeleccionBuild";
-import ExpedienteVivo from "@/components/ExpedienteVivo";
-import PreclusionTimer from "@/components/PreclusionTimer";
-import InhibitoriaDeclinatoria from "@/components/InhibitoriaDeclinatoria";
-import ArcadeClasificador from "@/components/ArcadeClasificador";
-import AbandonoProcedimiento from "@/components/AbandonoProcedimiento";
-import ComparecenciaPanel from "@/components/ComparecenciaPanel";
-import SpeedrunVoF from "@/components/SpeedrunVoF";
-import SalaSentencia from "@/components/SalaSentencia";
-import JuicioEjecutivoCompleto from "@/components/JuicioEjecutivoCompleto";
-import GrimorioSkills from "@/components/GrimorioSkills";
-import ExamenGrado from "@/components/ExamenGrado";
-import SistemaCartas from "@/components/SistemaCartas";
-import TimelineOrdenamiento from "@/components/TimelineOrdenamiento";
-import DueloMediosPrueba from "@/components/DueloMediosPrueba";
-import AtaqueRepreguntas from "@/components/AtaqueRepreguntas";
-import CasoInvestigativo from "@/components/CasoInvestigativo";
-import SubmundosPanel from "@/components/SubmundosPanel";
-import NPCInteractionPanel from "@/components/NPCInteractionPanel";
-import WorldSelector from "@/components/WorldSelector";
-import InventarioPanel from "@/components/InventarioPanel";
 import { CASOS_INVESTIGATIVOS } from "@/data/casos-investigativos";
+import GameShell from "@/components/shell/GameShell";
+import dynamic from "next/dynamic";
+
+// ============================================================================
+// Carga diferida de los módulos de entrenamiento.
+//
+// Antes los 21 módulos se importaban de forma estática: entrar a /expansion
+// descargaba el código de TODOS aunque el jugador abriera uno solo, y era con
+// diferencia la ruta más pesada del proyecto. Ahora cada módulo llega cuando se
+// abre. `ssr: false` porque todos dependen de estado de cliente (audio,
+// temporizadores, localStorage).
+// ============================================================================
+const Cargando = () => (
+  <div className="py-16 text-center font-mono-terminal text-[11px] uppercase tracking-[.3em] text-doc-aged/35" aria-live="polite">
+    Cargando módulo…
+  </div>
+);
+
+const SeleccionBuild = dynamic(() => import("@/components/SeleccionBuild"), { ssr: false, loading: Cargando });
+const ExpedienteVivo = dynamic(() => import("@/components/ExpedienteVivo"), { ssr: false, loading: Cargando });
+const PreclusionTimer = dynamic(() => import("@/components/PreclusionTimer"), { ssr: false, loading: Cargando });
+const InhibitoriaDeclinatoria = dynamic(() => import("@/components/InhibitoriaDeclinatoria"), { ssr: false, loading: Cargando });
+const ArcadeClasificador = dynamic(() => import("@/components/ArcadeClasificador"), { ssr: false, loading: Cargando });
+const AbandonoProcedimiento = dynamic(() => import("@/components/AbandonoProcedimiento"), { ssr: false, loading: Cargando });
+const ComparecenciaPanel = dynamic(() => import("@/components/ComparecenciaPanel"), { ssr: false, loading: Cargando });
+const SpeedrunVoF = dynamic(() => import("@/components/SpeedrunVoF"), { ssr: false, loading: Cargando });
+const SalaSentencia = dynamic(() => import("@/components/SalaSentencia"), { ssr: false, loading: Cargando });
+const JuicioEjecutivoCompleto = dynamic(() => import("@/components/JuicioEjecutivoCompleto"), { ssr: false, loading: Cargando });
+const GrimorioSkills = dynamic(() => import("@/components/GrimorioSkills"), { ssr: false, loading: Cargando });
+const ExamenGrado = dynamic(() => import("@/components/ExamenGrado"), { ssr: false, loading: Cargando });
+const SistemaCartas = dynamic(() => import("@/components/SistemaCartas"), { ssr: false, loading: Cargando });
+const TimelineOrdenamiento = dynamic(() => import("@/components/TimelineOrdenamiento"), { ssr: false, loading: Cargando });
+const DueloMediosPrueba = dynamic(() => import("@/components/DueloMediosPrueba"), { ssr: false, loading: Cargando });
+const AtaqueRepreguntas = dynamic(() => import("@/components/AtaqueRepreguntas"), { ssr: false, loading: Cargando });
+const CasoInvestigativo = dynamic(() => import("@/components/CasoInvestigativo"), { ssr: false, loading: Cargando });
+const SubmundosPanel = dynamic(() => import("@/components/SubmundosPanel"), { ssr: false, loading: Cargando });
+const NPCInteractionPanel = dynamic(() => import("@/components/NPCInteractionPanel"), { ssr: false, loading: Cargando });
+const WorldSelector = dynamic(() => import("@/components/WorldSelector"), { ssr: false, loading: Cargando });
+const InventarioPanel = dynamic(() => import("@/components/InventarioPanel"), { ssr: false, loading: Cargando });
 
 // ============================================================================
 // HUB EXPANSIÓN — v6.0
@@ -427,7 +445,8 @@ export default function ExpansionHub() {
   if (m === "investigacion") {
     if (!casoSeleccionado) {
       return (
-        <main className="min-h-screen px-4 md:px-8 py-6 max-w-6xl mx-auto">
+        <GameShell variant="focus" eyebrow="Entrenar" title="Módulos de práctica" back={{ href: "/juego", label: "Hub" }} scrollLabel="Módulos de entrenamiento">
+      <div className="min-h-screen px-4 md:px-8 py-6 max-w-6xl mx-auto">
           <div className="flex justify-between mb-6 flex-wrap gap-2">
             <button className="btn text-xs" onClick={() => { sfx.click(); setM("menu"); }}>◂ Volver</button>
             <Link href="/juego" className="btn text-xs">◂ Ciudad Judicial</Link>
@@ -472,7 +491,8 @@ export default function ExpansionHub() {
               ))}
             </div>
           </div>
-        </main>
+        </div>
+    </GameShell>
       );
     }
 
@@ -480,7 +500,8 @@ export default function ExpansionHub() {
     if (!casoActual) return null;
 
     return (
-      <main className="min-h-screen px-4 md:px-8 py-6 max-w-6xl mx-auto">
+      <GameShell variant="focus" eyebrow="Entrenar" title="Módulos de práctica" back={{ href: "/juego", label: "Hub" }} scrollLabel="Módulos de entrenamiento">
+      <div className="min-h-screen px-4 md:px-8 py-6 max-w-6xl mx-auto">
         <div className="flex justify-between mb-6 flex-wrap gap-2">
           <button className="btn text-xs" onClick={() => { sfx.click(); setCasoSeleccionado(null); }}>◂ Casos</button>
           <Link href="/juego" className="btn text-xs">◂ Ciudad Judicial</Link>
@@ -492,14 +513,16 @@ export default function ExpansionHub() {
             // Recompensas ya aplicadas dentro de CasoInvestigativo.handleVerificar
           }}
         />
-      </main>
+      </div>
+    </GameShell>
     );
   }
 
   // ─── Módulo específico activo ─────────────────────────────────────────────
   if (m !== "menu") {
     return (
-      <main className="min-h-screen px-4 md:px-8 py-6 max-w-6xl mx-auto">
+      <GameShell variant="focus" eyebrow="Entrenar" title="Módulos de práctica" back={{ href: "/juego", label: "Hub" }} scrollLabel="Módulos de entrenamiento">
+      <div className="min-h-screen px-4 md:px-8 py-6 max-w-6xl mx-auto">
         <div className="flex justify-between mb-6 flex-wrap gap-2">
           <button className="btn text-xs" onClick={() => { sfx.click(); setM("menu"); }}>◂ Volver</button>
           <Link href="/juego" className="btn text-xs">◂ Ciudad Judicial</Link>
@@ -524,7 +547,8 @@ export default function ExpansionHub() {
         {m === "abandono" && <AbandonoProcedimiento />}
         {m === "comparecencia" && <ComparecenciaPanel />}
         {m === "build" && <SeleccionBuild onElegir={() => setM("menu")} />}
-      </main>
+      </div>
+    </GameShell>
     );
   }
 
@@ -536,7 +560,8 @@ export default function ExpansionHub() {
   };
 
   return (
-    <main className="min-h-screen px-4 md:px-8 py-6 max-w-6xl mx-auto">
+    <GameShell variant="focus" eyebrow="Entrenar" title="Módulos de práctica" back={{ href: "/juego", label: "Hub" }} scrollLabel="Módulos de entrenamiento">
+      <div className="min-h-screen px-4 md:px-8 py-6 max-w-6xl mx-auto">
 
       {/* HEADER */}
       <header className="flex items-center justify-between mb-8 flex-wrap gap-2">
@@ -667,6 +692,7 @@ export default function ExpansionHub() {
         </motion.div>
       </section>
 
-    </main>
+    </div>
+    </GameShell>
   );
 }
