@@ -13,7 +13,12 @@
     "lint": "eslint app components data lib store types --ext .ts,.tsx",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "verificar": "node scripts/verificacion/avanzar.js && node scripts/verificacion/overlays.js",
+    "verificar:medidas": "node scripts/verificacion/medir.js /juego /creacion /mundos /codex /inventario /expansion /oral",
+    "verificar:contraste": "node scripts/verificacion/contraste2.js /juego /creacion /mundos /codex /inventario /expansion /oral /civilis /reinos /procesal",
+    "verificar:a11y": "node scripts/verificacion/a11y.js / /juego /creacion /mundos /codex /inventario /expansion /oral /reinos /civilis /procesal",
+    "verificar:flujos": "node scripts/verificacion/flujos.js"
   },
   "dependencies": {
     "clsx": "2.1.1",
@@ -27,16 +32,17 @@
     "postcss": "8.5.28"
   },
   "devDependencies": {
-    "@types/node": "20.14.10",
+    "@types/node": "^24.13.4",
     "@types/react": "19.1.17",
     "@types/react-dom": "19.1.11",
     "autoprefixer": "10.4.19",
     "eslint": "8.57.0",
     "eslint-config-next": "15.5.25",
     "jsdom": "^25.0.1",
+    "playwright": "^1.63.0",
     "postcss": "8.5.28",
     "tailwindcss": "3.4.6",
     "typescript": "5.5.3",
-    "vitest": "^2.1.9"
+    "vitest": "^5.0.0"
   }
 }

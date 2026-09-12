@@ -1003,7 +1003,9 @@ html.shell-lock, html.shell-lock body { height: auto; overflow: visible; }
   display: flex;
   flex-direction: column;
   padding-inline: var(--shell-gutter);
-  padding-block: 0.5rem;
+  /* Ajustado para que las actividades más densas (p. ej. /mision/m1_3, que se
+     quedaba a 16 px de caber) entren enteras a 1366×768. */
+  padding-block: 0.25rem;
 }
 
 /* Panel con desplazamiento interno. Lleva tabindex en el componente para que
