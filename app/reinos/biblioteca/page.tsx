@@ -23,7 +23,7 @@ export default function BibliotecaPage() {
   const articuloSel = sel ? getArticulo(sel) : undefined;
 
   return (
-    <main className="min-h-screen px-4 md:px-8 py-6 max-w-5xl mx-auto">
+    <div className="min-h-screen px-4 md:px-8 py-6 max-w-5xl mx-auto">
       <header className="flex items-center justify-between flex-wrap gap-3 mb-6">
         <Link href="/reinos" className="btn text-xs" onClick={() => sfx.click?.()}>◂ Overworld</Link>
         <span className="font-mono-terminal text-[9px] text-doc-aged/40 uppercase tracking-widest">BIBLIOTECA DEL LITIGANTE</span>
@@ -152,6 +152,6 @@ export default function BibliotecaPage() {
           </motion.div>
         )}
       </AnimatePresence>
-    </main>
+    </div>
   );
 }

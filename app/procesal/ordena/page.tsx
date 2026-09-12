@@ -70,7 +70,7 @@ export default function OrdenaPage() {
   };
 
   return (
-    <main className="px-3 md:px-6 py-4 max-w-4xl mx-auto pb-16" data-proc={sel ?? "ordinario"}>
+    <div className="px-3 md:px-6 py-4 max-w-4xl mx-auto pb-16" data-proc={sel ?? "ordinario"}>
       <header className="flex items-center justify-between gap-3 flex-wrap mb-4">
         <Link href="/procesal" className="proc-btn text-xs px-3 py-1.5" onClick={() => sfx.click?.()}>◂ Ciudadela</Link>
         <span className="font-mono-terminal text-[10px] opacity-50 uppercase tracking-widest">Reconstruye el expediente</span>
@@ -152,6 +152,6 @@ export default function OrdenaPage() {
           )}
         </>
       )}
-    </main>
+    </div>
   );
 }

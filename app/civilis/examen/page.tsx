@@ -17,14 +17,14 @@ export default function ExamenPage() {
 
   if (profesor) {
     return (
-      <main className="px-3 md:px-6 py-6 pb-16">
+      <div className="px-3 md:px-6 py-6 pb-16">
         <ExamenOral key={profesor.id} profesor={profesor} />
-      </main>
+      </div>
     );
   }
 
   return (
-    <main className="px-3 md:px-6 py-4 max-w-4xl mx-auto pb-16">
+    <div className="px-3 md:px-6 py-4 max-w-4xl mx-auto pb-16">
       <header className="flex items-center justify-between gap-3 flex-wrap mb-4">
         <Link href="/civilis" className="civ-btn text-xs px-3 py-1.5" onClick={() => sfx.click?.()}>◂ Mapa</Link>
         <span className="font-mono-terminal text-[10px] opacity-50 uppercase tracking-widest">Examen Oral de Grado</span>
@@ -60,6 +60,6 @@ export default function ExamenPage() {
           );
         })}
       </div>
-    </main>
+    </div>
   );
 }

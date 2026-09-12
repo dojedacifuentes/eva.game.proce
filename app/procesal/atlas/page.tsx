@@ -10,7 +10,7 @@ export default function AtlasPage() {
   const codigo = CODIGOS.find((c) => c.id === selId) ?? null;
 
   return (
-    <main className="px-3 md:px-6 py-4 max-w-4xl mx-auto pb-16" data-proc="ordinario" style={codigo ? ({ ["--proc-primary" as any]: codigo.color }) : undefined}>
+    <div className="px-3 md:px-6 py-4 max-w-4xl mx-auto pb-16" data-proc="ordinario" style={codigo ? ({ ["--proc-primary" as any]: codigo.color }) : undefined}>
       <header className="flex items-center justify-between gap-3 flex-wrap mb-4">
         {codigo ? (
           <button onClick={() => { setSelId(null); sfx.click?.(); }} className="proc-btn text-xs px-3 py-1.5">◂ Todos los códigos</button>
@@ -119,6 +119,6 @@ export default function AtlasPage() {
           </div>
         </motion.div>
       )}
-    </main>
+    </div>
   );
 }

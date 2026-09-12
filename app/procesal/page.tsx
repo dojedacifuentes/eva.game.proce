@@ -34,7 +34,7 @@ export default function ProcesalHub() {
   useEffect(() => setMounted(true), []);
 
   return (
-    <main className="px-3 md:px-6 py-4 max-w-6xl mx-auto pb-16">
+    <div className="px-3 md:px-6 py-4 max-w-6xl mx-auto pb-16">
       {/* header */}
       <header className="flex items-center justify-between gap-3 flex-wrap mb-3">
         <Link href="/juego" className="proc-btn text-xs px-3 py-1.5" onClick={() => sfx.click?.()}>◂ Ciudad Judicial</Link>
@@ -124,7 +124,7 @@ export default function ProcesalHub() {
                 {e.enPrep && <span className="absolute -bottom-1 -right-1 text-[9px]">🚧</span>}
               </div>
               <div className="mt-1 px-1.5 py-0.5 rounded text-center" style={{ background: "rgba(8,10,18,0.8)", border: "1px solid color-mix(in srgb, var(--proc-primary) 40%, transparent)", maxWidth: 108 }}>
-                <div className="proc-heading text-[9px] md:text-[10px] leading-tight" style={{ color: "var(--proc-primary)" }}>{e.nombre}</div>
+                <div className="proc-heading t-meta leading-tight" style={{ color: "color-mix(in srgb, var(--proc-primary) 52%, #F4EEDD)" }}>{e.nombre}</div>
                 {!e.enPrep && total > 0 && (
                   <div className="font-mono-terminal text-[8px] opacity-55">{vistas}/{total}</div>
                 )}
@@ -180,7 +180,7 @@ export default function ProcesalHub() {
           {HABITANTES.map((h) => (
             <div key={h.nombre} className="proc-card px-2.5 py-1.5 flex items-center gap-1.5">
               <span className="text-base">{h.icono}</span>
-              <span className="font-mono-terminal text-[10px] opacity-75">{h.nombre}</span>
+              <span className="font-mono-terminal t-meta txt-normal">{h.nombre}</span>
             </div>
           ))}
         </div>
@@ -218,6 +218,6 @@ export default function ProcesalHub() {
           </>
         )}
       </div>
-    </main>
+    </div>
   );
 }

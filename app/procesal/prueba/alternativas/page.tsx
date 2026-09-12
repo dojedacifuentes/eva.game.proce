@@ -31,7 +31,7 @@ export default function AlternativasPage() {
     if (qs.length > 0 && idx >= qs.length && !claimed) { setClaimed(true); premio(aciertos * 5, aciertos); sfx.unlock?.(); }
   }, [qs.length, idx, claimed, aciertos, premio]);
 
-  if (qs.length === 0) return <main className="px-4 py-16 text-center" data-proc="prueba"><div className="proc-heading proc-float">Citando la prueba…</div></main>;
+  if (qs.length === 0) return <div className="px-4 py-16 text-center" data-proc="prueba"><div className="proc-heading proc-float">Citando la prueba…</div></div>;
 
   const fin = idx >= qs.length;
   const q = !fin ? qs[idx] : null;
@@ -41,7 +41,7 @@ export default function AlternativasPage() {
   const siguiente = () => { setElegida(null); setIdx((i) => i + 1); sfx.click?.(); };
 
   return (
-    <main className="px-3 md:px-6 py-4 max-w-2xl mx-auto pb-16" data-proc="prueba">
+    <div className="px-3 md:px-6 py-4 max-w-2xl mx-auto pb-16" data-proc="prueba">
       <header className="flex items-center justify-between gap-3 flex-wrap mb-4">
         <Link href="/procesal/prueba" className="proc-btn text-xs px-3 py-1.5" onClick={() => sfx.click?.()}>◂ Sala de la Verdad</Link>
         <span className="font-mono-terminal text-[10px] opacity-50 uppercase tracking-widest">Alternativas difíciles</span>
@@ -90,6 +90,6 @@ export default function AlternativasPage() {
           <button onClick={() => setSeed((s) => s + 1)} className="proc-btn px-5 py-2.5 text-sm">↻ Otra ronda</button>
         </motion.div>
       )}
-    </main>
+    </div>
   );
 }

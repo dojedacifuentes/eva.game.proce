@@ -63,7 +63,7 @@ export default function ExamenProcPage() {
   const reiniciar = () => { setFase("intro"); setQs([]); sfx.click?.(); };
 
   return (
-    <main className="px-3 md:px-6 py-4 max-w-2xl mx-auto pb-16" data-proc="ordinario" style={{ ["--proc-primary" as any]: EXAMINADOR.color }}>
+    <div className="px-3 md:px-6 py-4 max-w-2xl mx-auto pb-16" data-proc="ordinario" style={{ ["--proc-primary" as any]: EXAMINADOR.color }}>
       <header className="flex items-center justify-between gap-3 flex-wrap mb-4">
         <Link href="/procesal" className="proc-btn text-xs px-3 py-1.5" onClick={() => sfx.click?.()}>◂ Ciudadela</Link>
         <span className="font-mono-terminal text-[10px] opacity-50 uppercase tracking-widest">{EXAMINADOR.cargo}</span>
@@ -140,6 +140,6 @@ export default function ExamenProcPage() {
           <button onClick={reiniciar} className="proc-btn px-5 py-2.5 text-sm mt-2">↻ Rendir de nuevo</button>
         </motion.div>
       )}
-    </main>
+    </div>
   );
 }

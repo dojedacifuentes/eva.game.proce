@@ -58,10 +58,10 @@ export default function EdificioPage(props: { params: Promise<{ edificio: string
 
   if (!edificio) {
     return (
-      <main className="px-4 py-10 max-w-2xl mx-auto text-center">
+      <div className="px-4 py-10 max-w-2xl mx-auto text-center">
         <p className="proc-heading text-2xl mb-3">Edificio no encontrado</p>
         <Link href="/procesal" className="proc-btn px-4 py-2 text-sm inline-block">◂ Volver a la Ciudadela</Link>
-      </main>
+      </div>
     );
   }
 
@@ -74,7 +74,7 @@ export default function EdificioPage(props: { params: Promise<{ edificio: string
   const etapa = etapas.find((e) => e.id === sel) ?? null;
 
   return (
-    <main className="px-3 md:px-6 py-4 max-w-6xl mx-auto pb-16" data-proc={edificio.id}>
+    <div className="px-3 md:px-6 py-4 max-w-6xl mx-auto pb-16" data-proc={edificio.id}>
       {/* header */}
       <header className="flex items-center justify-between gap-3 flex-wrap mb-3">
         <Link href="/procesal" className="proc-btn text-xs px-3 py-1.5" onClick={() => sfx.click?.()}>◂ Ciudadela</Link>
@@ -201,7 +201,7 @@ export default function EdificioPage(props: { params: Promise<{ edificio: string
           </div>
         </>
       )}
-    </main>
+    </div>
   );
 }
 

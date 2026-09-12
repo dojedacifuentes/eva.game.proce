@@ -16,7 +16,7 @@ export default function LogrosPage() {
   const n = desbloq.length;
 
   return (
-    <main className="px-3 md:px-6 py-4 max-w-4xl mx-auto pb-16" data-civ="compraventa">
+    <div className="px-3 md:px-6 py-4 max-w-4xl mx-auto pb-16" data-civ="compraventa">
       <header className="flex items-center justify-between gap-3 flex-wrap mb-4">
         <Link href="/civilis" className="civ-btn text-xs px-3 py-1.5" onClick={() => sfx.click?.()}>◂ Mapa</Link>
         <span className="font-mono-terminal text-[10px] opacity-50 uppercase tracking-widest">Salón de Trofeos</span>
@@ -48,6 +48,6 @@ export default function LogrosPage() {
           );
         })}
       </div>
-    </main>
+    </div>
   );
 }

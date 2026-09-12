@@ -23,25 +23,33 @@ type ZoneNode = {
   tipo: "zona" | "boss" | "start";
 };
 
+// Trazado en serpentina: cuatro hileras de izquierda a derecha y vuelta, con
+// 160 px entre nodos y 100 px entre hileras. Las etiquetas más largas ("CORTE
+// GLITCH") miden ~116 px a 13 px de cuerpo, así que nunca llegan a solaparse.
+// La franja inferior (y > 490) queda libre para la arquitectura del escenario.
 const MAP_NODES: ZoneNode[] = [
-  { id: "start",        acto: 0, label: "INICIO",         sublabel: "Ciudad Judicial",   x: 80,  y: 250, color: "#4BE7FF", icono: "⚖️",  tipo: "start" },
-  { id: "jurisdiccion", acto: 1, label: "JURISDICCIÓN",   sublabel: "art. 76 CPR",        x: 180, y: 250, color: "#4BE7FF", icono: "🏛️",  tipo: "zona"  },
-  { id: "competencia",  acto: 1, label: "COMPETENCIA",    sublabel: "arts. 45-133",       x: 290, y: 200, color: "#4BE7FF", icono: "⚖️",  tipo: "zona"  },
-  { id: "boss_1",       acto: 1, label: "ESFINGE",        sublabel: "Boss Acto I",        x: 380, y: 200, color: "#4BE7FF", icono: "🗿",  tipo: "boss"  },
-  { id: "emplazamiento",acto: 2, label: "EMPLAZAMIENTO",  sublabel: "arts. 40-54",        x: 460, y: 150, color: "#7AD4E6", icono: "📬",  tipo: "zona"  },
-  { id: "notificaciones",acto:2, label: "NOTIFICACIÓN",   sublabel: "art. 44 CPC",        x: 540, y: 200, color: "#7AD4E6", icono: "📮",  tipo: "zona"  },
-  { id: "boss_2",       acto: 2, label: "RECEPTOR",       sublabel: "Boss Acto II",       x: 600, y: 150, color: "#7AD4E6", icono: "👻",  tipo: "boss"  },
-  { id: "prueba",       acto: 3, label: "PRUEBA",         sublabel: "arts. 341-427",      x: 420, y: 310, color: "#D7B46A", icono: "📜",  tipo: "zona"  },
-  { id: "discusion",    acto: 3, label: "DISCUSIÓN",      sublabel: "arts. 254-318",      x: 340, y: 360, color: "#D7B46A", icono: "⚡",  tipo: "zona"  },
-  { id: "boss_3",       acto: 3, label: "ORÁCULO",        sublabel: "Boss Acto III",      x: 500, y: 360, color: "#D7B46A", icono: "🔎",  tipo: "boss"  },
-  { id: "sentencia",    acto: 4, label: "SENTENCIA",      sublabel: "art. 158 CPC",       x: 580, y: 300, color: "#F2F2F0", icono: "⚒️", tipo: "zona"  },
-  { id: "boss_4",       acto: 4, label: "JUEZ HIERRO",    sublabel: "Boss Acto IV",       x: 660, y: 250, color: "#F2F2F0", icono: "🤖",  tipo: "boss"  },
-  { id: "recursos",     acto: 5, label: "RECURSOS",       sublabel: "arts. 766-810",      x: 660, y: 350, color: "#8A5CFF", icono: "⚔️",  tipo: "zona"  },
-  { id: "boss_5",       acto: 5, label: "CORTE GLITCH",   sublabel: "Boss Acto V",        x: 720, y: 300, color: "#8A5CFF", icono: "🌀", tipo: "boss"  },
-  { id: "ejecutivo",    acto: 6, label: "EJECUTIVO",      sublabel: "arts. 434-478",      x: 700, y: 400, color: "#FF8A3D", icono: "💼",  tipo: "zona"  },
-  { id: "boss_6",       acto: 6, label: "LEVIATÁN",       sublabel: "Boss Acto VI",       x: 750, y: 450, color: "#FF8A3D", icono: "🐉",  tipo: "boss"  },
-  { id: "examen",       acto: 7, label: "EXAMEN",         sublabel: "GRADO",              x: 750, y: 350, color: "#FF4FCF", icono: "🎓",  tipo: "zona"  },
-  { id: "boss_final",   acto: 7, label: "COMISIÓN",       sublabel: "Boss Final",         x: 760, y: 250, color: "#FF4FCF", icono: "👨‍⚖️", tipo: "boss" },
+  // ── Hilera 1 · izquierda → derecha ──
+  { id: "start",         acto: 0, label: "INICIO",        sublabel: "Ciudad Judicial", x: 90,  y: 110, color: "#4BE7FF", icono: "⚖️",   tipo: "start" },
+  { id: "jurisdiccion",  acto: 1, label: "JURISDICCIÓN",  sublabel: "art. 76 CPR",     x: 255, y: 110, color: "#4BE7FF", icono: "🏛️",   tipo: "zona"  },
+  { id: "competencia",   acto: 1, label: "COMPETENCIA",   sublabel: "arts. 45-133",    x: 420, y: 110, color: "#4BE7FF", icono: "⚖️",   tipo: "zona"  },
+  { id: "boss_1",        acto: 1, label: "ESFINGE",       sublabel: "Jefe Acto I",     x: 585, y: 110, color: "#4BE7FF", icono: "🗿",   tipo: "boss"  },
+  { id: "emplazamiento", acto: 2, label: "EMPLAZAMIENTO", sublabel: "arts. 40-54",     x: 745, y: 110, color: "#7AD4E6", icono: "📬",   tipo: "zona"  },
+  // ── Hilera 2 · derecha → izquierda ──
+  { id: "notificaciones",acto: 2, label: "NOTIFICACIÓN",  sublabel: "art. 44 CPC",     x: 745, y: 212, color: "#7AD4E6", icono: "📮",   tipo: "zona"  },
+  { id: "boss_2",        acto: 2, label: "RECEPTOR",      sublabel: "Jefe Acto II",    x: 585, y: 212, color: "#7AD4E6", icono: "👻",   tipo: "boss"  },
+  { id: "discusion",     acto: 3, label: "DISCUSIÓN",     sublabel: "arts. 254-318",   x: 420, y: 212, color: "#D7B46A", icono: "⚡",   tipo: "zona"  },
+  { id: "prueba",        acto: 3, label: "PRUEBA",        sublabel: "arts. 341-427",   x: 255, y: 212, color: "#D7B46A", icono: "📜",   tipo: "zona"  },
+  { id: "boss_3",        acto: 3, label: "ORÁCULO",       sublabel: "Jefe Acto III",   x: 90,  y: 212, color: "#D7B46A", icono: "🔎",   tipo: "boss"  },
+  // ── Hilera 3 · izquierda → derecha ──
+  { id: "sentencia",     acto: 4, label: "SENTENCIA",     sublabel: "art. 158 CPC",    x: 90,  y: 314, color: "#F2F2F0", icono: "⚒️",   tipo: "zona"  },
+  { id: "boss_4",        acto: 4, label: "JUEZ HIERRO",   sublabel: "Jefe Acto IV",    x: 255, y: 314, color: "#F2F2F0", icono: "🤖",   tipo: "boss"  },
+  { id: "recursos",      acto: 5, label: "RECURSOS",      sublabel: "arts. 766-810",   x: 420, y: 314, color: "#8A5CFF", icono: "⚔️",   tipo: "zona"  },
+  { id: "boss_5",        acto: 5, label: "CORTE GLITCH",  sublabel: "Jefe Acto V",     x: 585, y: 314, color: "#8A5CFF", icono: "🌀",   tipo: "boss"  },
+  { id: "ejecutivo",     acto: 6, label: "EJECUTIVO",     sublabel: "arts. 434-478",   x: 745, y: 314, color: "#FF8A3D", icono: "💼",   tipo: "zona"  },
+  // ── Hilera 4 · el tramo final ──
+  { id: "boss_6",        acto: 6, label: "LEVIATÁN",      sublabel: "Jefe Acto VI",    x: 255, y: 416, color: "#FF8A3D", icono: "🐉",   tipo: "boss"  },
+  { id: "examen",        acto: 7, label: "EXAMEN",        sublabel: "Grado",           x: 470, y: 416, color: "#FF4FCF", icono: "🎓",   tipo: "zona"  },
+  { id: "boss_final",    acto: 7, label: "COMISIÓN",      sublabel: "Jefe final",      x: 690, y: 416, color: "#FF4FCF", icono: "👨‍⚖️", tipo: "boss"  },
 ];
 
 const MAP_PATHS = [
@@ -110,11 +118,12 @@ function MapNode({
   // El mapa era sólo para ratón: los <g> con onClick no recibían foco ni
   // respondían al teclado. Ahora cada nodo es un botón con nombre accesible.
   const isBoss = node.tipo === "boss";
-  const size = node.tipo === "boss" ? 30 : node.tipo === "start" ? 24 : 26;
+  const size = node.tipo === "boss" ? 42 : node.tipo === "start" ? 34 : 36;
   const r = size / 2;
   const baseColor = locked ? "rgba(60,70,90,0.8)" : node.color;
 
-  const labelW = node.label.length * 5.2 + 10;
+  // Placa de la etiqueta: dimensionada para 13px de texto, no para 8px.
+  const labelW = node.label.length * 8.2 + 18;
 
   return (
     <motion.g
@@ -164,8 +173,8 @@ function MapNode({
       {/* disco del waypoint */}
       <circle
         cx={node.x} cy={node.y} r={r}
-        fill={locked ? "rgba(18,22,34,0.92)" : "rgba(8,12,20,0.93)"}
-        stroke={baseColor} strokeWidth={activo ? 2.6 : 1.6}
+        fill={locked ? "rgba(18,22,34,0.97)" : "rgba(8,12,20,0.975)"}
+        stroke={baseColor} strokeWidth={activo ? 3.4 : 2.2}
         style={{ filter: !locked ? `drop-shadow(0 0 9px ${node.color}88)` : undefined }}
       />
       {/* anillo giratorio para boss */}
@@ -177,26 +186,29 @@ function MapNode({
       )}
 
       {completado && (
-        <text x={node.x} y={node.y + 4} textAnchor="middle" fontSize="14" fill="#58F5B0">✓</text>
+        <text x={node.x} y={node.y + 7} textAnchor="middle" fontSize="22" fontWeight="700" fill="#58F5B0">✓</text>
       )}
       {locked && (
-        <text x={node.x} y={node.y + 4} textAnchor="middle" fontSize="12" fill="rgba(255,255,255,0.3)">🔒</text>
+        <text x={node.x} y={node.y + 6} textAnchor="middle" fontSize="18" fill="rgba(255,255,255,0.55)">🔒</text>
       )}
       {!completado && !locked && (
-        <text x={node.x} y={node.y + (isBoss ? 6 : 5)} textAnchor="middle" fontSize={isBoss ? 18 : 14}>{node.icono}</text>
+        <text x={node.x} y={node.y + (isBoss ? 9 : 8)} textAnchor="middle" fontSize={isBoss ? 26 : 21}>{node.icono}</text>
       )}
 
       {/* etiqueta holográfica */}
       {!locked && (
         <g>
-          <rect x={node.x - labelW / 2} y={node.y + r + 6} width={labelW} height={11}
-            rx="2" fill="rgba(6,10,18,0.74)" stroke={`${node.color}40`} strokeWidth="0.5" />
-          <text x={node.x} y={node.y + r + 14} textAnchor="middle" fontSize="8"
-            fontFamily="JetBrains Mono, monospace" fill={node.color} letterSpacing="1">
+          {/* Placa casi opaca: el nombre del distrito debe leerse sobre el
+              escenario, no competir con él. */}
+          <rect x={node.x - labelW / 2} y={node.y + r + 7} width={labelW} height={18}
+            rx="3" fill="rgba(7,10,18,0.94)" stroke={`${node.color}70`} strokeWidth="0.9" />
+          <text x={node.x} y={node.y + r + 20} textAnchor="middle" fontSize="13"
+            fontFamily="var(--font-mono), monospace" fontWeight="600"
+            fill={completado ? "#58F5B0" : node.color} letterSpacing="0.6">
             {node.label}
           </text>
-          <text x={node.x} y={node.y + r + 24} textAnchor="middle" fontSize="6.5"
-            fontFamily="JetBrains Mono, monospace" fill="rgba(232,223,197,0.5)">
+          <text x={node.x} y={node.y + r + 36} textAnchor="middle" fontSize="10.5"
+            fontFamily="var(--font-mono), monospace" fill="rgba(232,223,197,0.75)">
             {node.sublabel}
           </text>
         </g>
@@ -506,7 +518,7 @@ export default function GameWorldMap({ compacto = false }: { compacto?: boolean 
       >
         <svg
           ref={svgRef}
-          viewBox="30 100 780 380"
+          viewBox="20 50 800 620"
           className="w-full block"
           preserveAspectRatio="xMidYMid meet"
           role="group"

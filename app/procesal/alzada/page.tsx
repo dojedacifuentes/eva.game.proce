@@ -61,7 +61,7 @@ export default function AlzadaPage() {
   const veredictoAlz = prestigio >= 80 ? "La Sala te escucha con respeto." : prestigio >= 50 ? "Sobrevives en estrados." : prestigio > 0 ? "El relator carraspea, incómodo." : "Te bajaron del estrado.";
 
   return (
-    <main className="px-3 md:px-6 py-4 max-w-2xl mx-auto pb-16" data-proc="recursos">
+    <div className="px-3 md:px-6 py-4 max-w-2xl mx-auto pb-16" data-proc="recursos">
       <header className="flex items-center justify-between gap-3 flex-wrap mb-3">
         <Link href="/procesal" className="proc-btn text-xs px-3 py-1.5" onClick={() => sfx.click?.()}>◂ Ciudadela</Link>
         <span className="font-mono-terminal text-[10px] opacity-50 uppercase tracking-widest">Segunda instancia</span>
@@ -173,6 +173,6 @@ export default function AlzadaPage() {
           <p className="font-mono-terminal text-[10px] opacity-45 text-center mt-3">Repasa las {MEMORIA_ALZADA.length} reglas y luego pon a prueba tu criterio en Hipótesis.</p>
         </div>
       )}
-    </main>
+    </div>
   );
 }

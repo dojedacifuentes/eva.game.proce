@@ -3,9 +3,15 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useGame } from "@/store/useGame";
 import { useHydrated } from "@/lib/useHydrated";
-import { isMuted, setMuted, startAmbient, stopAmbient, sfx } from "@/lib/audio";
+import {
+  isMuted, setMuted, stopAmbient, sfx,
+  startAmbienteHipnotico, stopAmbienteHipnotico,
+} from "@/lib/audio";
 import { JUEGO } from "@/lib/brand";
 import EvaMark from "./EvaMark";
+
+/** Preferencia de audio del jugador, recordada entre sesiones. */
+const CLAVE_AUDIO = "foro-invisible:audio";
 
 /**
  * Cabecera única del shell.
@@ -35,16 +41,47 @@ export default function ShellHeader({
   const xp = useGame((s) => s.xp);
   const monedas = useGame((s) => s.monedas);
 
-  const [muted, setMutedState] = useState(true);
-  useEffect(() => setMutedState(isMuted()), []);
+  // Tres estados en un solo control, en vez de dos botones distintos:
+  //   apagado → sólo efectos → efectos + ambiente de estudio
+  // El ambiente de estudio es el colchón hipnótico de lib/audio.ts: pensado
+  // para acompañar mientras se estudia, no para ambientar una escena.
+  const [audio, setAudio] = useState<"apagado" | "efectos" | "estudio">("apagado");
+  useEffect(() => {
+    if (isMuted()) return;
+    try {
+      setAudio(localStorage.getItem(CLAVE_AUDIO) === "estudio" ? "estudio" : "efectos");
+    } catch {
+      setAudio("efectos");
+    }
+  }, []);
 
   function alternarAudio() {
-    const nuevo = !muted;
-    setMutedState(nuevo);
-    setMuted(nuevo);
-    if (nuevo) stopAmbient();
-    else { startAmbient("ambiente"); sfx.click?.(); }
+    const siguiente: Record<typeof audio, typeof audio> = {
+      apagado: "efectos",
+      efectos: "estudio",
+      estudio: "apagado",
+    };
+    const nuevo = siguiente[audio];
+    setAudio(nuevo);
+    setMuted(nuevo === "apagado");
+    try { localStorage.setItem(CLAVE_AUDIO, nuevo); } catch { /* sin persistencia */ }
+
+    if (nuevo === "apagado") {
+      stopAmbienteHipnotico();
+      stopAmbient();
+    } else if (nuevo === "efectos") {
+      stopAmbienteHipnotico();
+      sfx.click?.();
+    } else {
+      startAmbienteHipnotico();
+    }
   }
+
+  const ESTADO_AUDIO = {
+    apagado: { icono: "🔇", etiqueta: "Sonido apagado. Activar efectos", color: "border-doc-aged/35 text-doc-aged/70" },
+    efectos: { icono: "🔊", etiqueta: "Efectos activos. Activar ambiente de estudio", color: "border-zona-recursos/60 text-zona-recursos" },
+    estudio: { icono: "🌊", etiqueta: "Ambiente de estudio activo. Apagar el sonido", color: "border-zona-cautelares/70 text-zona-cautelares" },
+  }[audio];
 
   // Hasta que el estado persistido esté leído no se afirma nada del jugador.
   const hayPartida = hydrated && !!personaje.nombre;
@@ -57,7 +94,7 @@ export default function ShellHeader({
           <Link
             href={back.href}
             onClick={() => sfx.click?.()}
-            className="shrink-0 flex items-center gap-1.5 px-2 py-1.5 border border-zona-competencia/25 text-zona-competencia font-mono-terminal text-[10px] uppercase tracking-widest hover:border-zona-competencia transition-colors"
+            className="shrink-0 flex items-center gap-1.5 px-3 min-h-[44px] border border-zona-competencia/40 text-zona-competencia t-meta font-mono-terminal uppercase tracking-wider hover:bg-zona-competencia/10 hover:border-zona-competencia transition-colors"
           >
             <span aria-hidden="true">←</span>
             <span className="hidden sm:inline">{back.label}</span>
@@ -72,15 +109,15 @@ export default function ShellHeader({
           className="shrink-0 flex items-center gap-2 group"
           aria-label={`${JUEGO.nombre} — ir a la portada`}
         >
-          <EvaMark size={26} />
+          <EvaMark size={30} />
           <span className="hidden md:block leading-none">
-            <span className="font-display-grave text-[13px] text-doc-aged tracking-widest">
+            <span className="font-display-grave t-titulo txt-fuerte tracking-widest">
               {JUEGO.partes.uno}
             </span>
-            <span className="font-display-grave text-[13px] tracking-widest" style={{ color: "var(--zona-competencia)" }}>
+            <span className="font-display-grave t-titulo tracking-widest" style={{ color: "var(--zona-competencia)" }}>
               {JUEGO.partes.dos}
             </span>
-            <span className="font-serif-juridica text-[13px] text-doc-aged">{JUEGO.partes.tres}</span>
+            <span className="font-serif-juridica t-titulo txt-fuerte">{JUEGO.partes.tres}</span>
           </span>
         </Link>
 
@@ -88,12 +125,12 @@ export default function ShellHeader({
         {(eyebrow || title) && (
           <div className="min-w-0 flex-1 border-l border-zona-competencia/15 pl-2 md:pl-4">
             {eyebrow && (
-              <div className="font-mono-terminal text-[8px] uppercase tracking-[.25em] text-zona-competencia/80 truncate">
+              <div className="t-etiqueta text-zona-competencia truncate">
                 {eyebrow}
               </div>
             )}
             {title && (
-              <h1 className="font-display-grave text-sm md:text-lg text-doc-aged leading-tight truncate">
+              <h1 className="font-display-grave t-titulo md:text-[1.45rem] txt-fuerte leading-tight truncate">
                 {title}
               </h1>
             )}
@@ -109,13 +146,13 @@ export default function ShellHeader({
           <div className="shrink-0 flex items-center gap-2">
             <div className="hidden sm:flex flex-col items-end leading-none gap-1">
               <div className="flex items-center gap-1.5">
-                <span className="font-display-grave text-[11px] text-doc-aged truncate max-w-[110px]">
+                <span className="font-display-grave t-base txt-fuerte truncate max-w-[130px]">
                   {personaje.nombre}
                 </span>
-                <span className="font-mono-terminal text-[9px] text-zona-cautelares">Nv.{nivel}</span>
+                <span className="t-meta font-mono-terminal text-zona-cautelares">Nv.{nivel}</span>
               </div>
               <div
-                className="w-24 h-1 bg-bg-steel rounded-full overflow-hidden"
+                className="w-28 h-1.5 bg-bg-steel rounded-full overflow-hidden"
                 role="progressbar"
                 aria-valuenow={xpEnNivel}
                 aria-valuemin={0}
@@ -128,9 +165,9 @@ export default function ShellHeader({
                 />
               </div>
             </div>
-            <div className="flex items-center gap-1 px-1.5 py-1 border border-zona-prueba/30">
-              <span aria-hidden="true" className="text-[10px]">🪙</span>
-              <span className="font-mono-terminal text-[10px] text-zona-prueba">{monedas}</span>
+            <div className="flex items-center gap-1.5 px-2.5 py-1.5 border border-zona-prueba/45 rounded">
+              <span aria-hidden="true" className="text-base">🪙</span>
+              <span className="t-base font-mono-terminal text-zona-prueba">{monedas}</span>
               <span className="sr-only">monedas</span>
             </div>
           </div>
@@ -139,13 +176,11 @@ export default function ShellHeader({
         <button
           type="button"
           onClick={alternarAudio}
-          aria-pressed={!muted}
-          aria-label={muted ? "Activar sonido" : "Silenciar sonido"}
-          className={`shrink-0 w-9 h-9 flex items-center justify-center border transition-colors ${
-            muted ? "border-doc-aged/25 text-doc-aged/40" : "border-zona-recursos/45 text-zona-recursos"
-          }`}
+          aria-label={ESTADO_AUDIO.etiqueta}
+          title={ESTADO_AUDIO.etiqueta}
+          className={`shrink-0 w-11 h-11 flex items-center justify-center border rounded text-lg transition-colors ${ESTADO_AUDIO.color}`}
         >
-          <span aria-hidden="true">{muted ? "🔇" : "🔊"}</span>
+          <span aria-hidden="true">{ESTADO_AUDIO.icono}</span>
         </button>
       </div>
     </header>

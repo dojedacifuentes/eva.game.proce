@@ -88,7 +88,7 @@ export default function CascadaPage() {
   // ── IDLE ──
   if (estado === "idle") {
     return (
-      <main className="px-3 md:px-6 py-4 max-w-2xl mx-auto pb-16" data-civ="extincion">
+      <div className="px-3 md:px-6 py-4 max-w-2xl mx-auto pb-16" data-civ="extincion">
         <header className="flex items-center justify-between gap-3 flex-wrap mb-4">
           <Link href="/civilis" className="civ-btn text-xs px-3 py-1.5" onClick={() => sfx.click?.()}>◂ Mapa</Link>
           <span className="font-mono-terminal text-[10px] opacity-50 uppercase tracking-widest">Contrarreloj</span>
@@ -101,7 +101,7 @@ export default function CascadaPage() {
           </p>
           <button onClick={comenzar} className="civ-btn px-6 py-3 text-base mt-5">Comenzar ▸</button>
         </div>
-      </main>
+      </div>
     );
   }
 
@@ -109,7 +109,7 @@ export default function CascadaPage() {
   if (estado === "fin") {
     const xp = Math.floor(score / 8); const oro = Math.floor(score / 16);
     return (
-      <main className="px-3 md:px-6 py-4 max-w-2xl mx-auto pb-16" data-civ="extincion">
+      <div className="px-3 md:px-6 py-4 max-w-2xl mx-auto pb-16" data-civ="extincion">
         <header className="flex items-center justify-between gap-3 flex-wrap mb-4">
           <Link href="/civilis" className="civ-btn text-xs px-3 py-1.5" onClick={() => sfx.click?.()}>◂ Mapa</Link>
           <span className="font-mono-terminal text-[10px] opacity-50 uppercase tracking-widest">Resultado</span>
@@ -126,14 +126,14 @@ export default function CascadaPage() {
           </div>
           <button onClick={comenzar} className="civ-btn px-6 py-3 text-base mt-5">↻ Otra ronda</button>
         </motion.div>
-      </main>
+      </div>
     );
   }
 
   // ── PLAYING ──
   const bajo = tiempo <= 10;
   return (
-    <main className="px-3 md:px-6 py-4 max-w-2xl mx-auto pb-16" data-civ={caso?.region ?? "extincion"}>
+    <div className="px-3 md:px-6 py-4 max-w-2xl mx-auto pb-16" data-civ={caso?.region ?? "extincion"}>
       {/* HUD */}
       <div className="flex items-center justify-between gap-3 mb-3">
         <div className="font-mono-terminal text-[13px]">
@@ -188,6 +188,6 @@ export default function CascadaPage() {
           )}
         </motion.div>
       )}
-    </main>
+    </div>
   );
 }

@@ -24,11 +24,11 @@ export default function RegionCivilPage(props: { params: Promise<{ region: strin
 
   if (!region) {
     return (
-      <main className="px-6 py-20 max-w-3xl mx-auto text-center">
+      <div className="px-6 py-20 max-w-3xl mx-auto text-center">
         <div className="text-5xl mb-4">🧭</div>
         <h1 className="civ-heading text-2xl mb-3">Región desconocida</h1>
         <Link href="/civilis" className="civ-btn px-4 py-2 text-sm">◂ Volver al mapa</Link>
-      </main>
+      </div>
     );
   }
 
@@ -53,7 +53,7 @@ export default function RegionCivilPage(props: { params: Promise<{ region: strin
   };
 
   return (
-    <main className="px-3 md:px-6 py-4 max-w-4xl mx-auto pb-16" data-civ={region.id}>
+    <div className="px-3 md:px-6 py-4 max-w-4xl mx-auto pb-16" data-civ={region.id}>
       <header className="flex items-center justify-between gap-3 flex-wrap mb-3">
         <Link href="/civilis" className="civ-btn text-xs px-3 py-1.5" onClick={() => sfx.click?.()}>◂ Mapa</Link>
         <Link href="/civilis/codex" className="civ-btn text-xs px-3 py-1.5" onClick={() => sfx.click?.()}>📚 Codex</Link>
@@ -145,6 +145,6 @@ export default function RegionCivilPage(props: { params: Promise<{ region: strin
           </div>
         </div>
       )}
-    </main>
+    </div>
   );
 }

@@ -71,7 +71,7 @@ export default function ClasificaPage() {
   );
 
   return (
-    <main className="px-3 md:px-6 py-4 max-w-4xl mx-auto pb-16" data-proc="prueba">
+    <div className="px-3 md:px-6 py-4 max-w-4xl mx-auto pb-16" data-proc="prueba">
       <header className="flex items-center justify-between gap-3 flex-wrap mb-4">
         <Link href="/procesal/prueba" className="proc-btn text-xs px-3 py-1.5" onClick={() => sfx.click?.()}>◂ Sala de la Verdad</Link>
         <span className="font-mono-terminal text-[10px] opacity-50 uppercase tracking-widest">Clasifica de columna a columna</span>
@@ -145,6 +145,6 @@ export default function ClasificaPage() {
           )}
         </LayoutGroup>
       )}
-    </main>
+    </div>
   );
 }

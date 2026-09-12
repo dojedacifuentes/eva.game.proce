@@ -42,17 +42,17 @@ export default function ShellNav() {
                 onClick={() => sfx.click?.()}
                 onMouseEnter={() => sfx.hover?.()}
                 aria-current={activo ? "page" : undefined}
-                className="flex-1 flex flex-col items-center justify-center gap-0.5 px-1 py-1.5 active:scale-95 transition-transform"
-                style={{ color: activo ? "var(--zona-competencia)" : "rgba(232,223,197,0.55)" }}
+                className="flex-1 flex flex-col items-center justify-center gap-1 px-1 py-2 rounded-md active:scale-95 transition-all"
+                style={{ color: activo ? "var(--zona-competencia)" : "rgba(232,223,197,0.78)", background: activo ? "rgba(75,231,255,0.09)" : "transparent" }}
               >
                 <span
                   aria-hidden="true"
-                  className="text-[18px] leading-none"
+                  className="text-[22px] leading-none"
                   style={activo ? { filter: "drop-shadow(0 0 7px var(--zona-competencia))" } : undefined}
                 >
                   {d.icon}
                 </span>
-                <span className="font-mono-terminal text-[9px] uppercase tracking-wider leading-none">
+                <span className="t-micro font-mono-terminal uppercase tracking-wider leading-none">
                   {d.label}
                 </span>
                 {/* El nombre accesible no se queda en el emoji. */}
@@ -61,7 +61,7 @@ export default function ShellNav() {
                   aria-hidden="true"
                   className="h-0.5 rounded-full transition-all"
                   style={{
-                    width: activo ? 20 : 0,
+                    width: activo ? 24 : 0,
                     background: "var(--zona-competencia)",
                     boxShadow: activo ? "0 0 6px var(--zona-competencia)" : "none",
                   }}

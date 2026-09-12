@@ -76,10 +76,12 @@ body {
    COMPONENTES BASE — terminales, paneles, documentos
    ============================================================================ */
 .terminal {
-  border: 1px solid rgba(75,231,255,.18);
+  border: 1px solid rgba(75,231,255,.30);
+  /* Casi opaca. Antes era .85/.92 y el fondo animado se transparentaba a través
+     del texto. El estándar viene de .reino-card, donde ya se había resuelto. */
   background:
-    linear-gradient(180deg, rgba(19,23,32,.85), rgba(10,18,32,.92)),
-    radial-gradient(800px 200px at 50% 0%, rgba(75,231,255,.04), transparent 60%);
+    linear-gradient(180deg, var(--sup-1), var(--sup-2)),
+    radial-gradient(800px 200px at 50% 0%, rgba(75,231,255,.05), transparent 60%);
   box-shadow:
     0 0 24px rgba(75,231,255,.07),
     inset 0 1px 0 rgba(255,255,255,.04),
@@ -97,9 +99,9 @@ body {
 
 /* Panel holográfico — para info crítica */
 .holo {
-  border: 1px solid rgba(138,92,255,.25);
+  border: 1px solid rgba(138,92,255,.38);
   background:
-    linear-gradient(180deg, rgba(24,30,52,.65), rgba(13,16,28,.9));
+    linear-gradient(180deg, rgba(24,30,52,.965), rgba(13,16,28,.99));
   box-shadow:
     0 0 40px rgba(138,92,255,.1),
     inset 0 1px 0 rgba(255,255,255,.05);
@@ -110,7 +112,9 @@ body {
    BOTONES
    ============================================================================ */
 .btn {
-  @apply px-4 py-2 border uppercase tracking-widest text-xs;
+  @apply px-4 py-2.5 border uppercase tracking-wider;
+  font-size: var(--t-boton);
+  min-height: 44px;
   font-family: var(--font-mono);
   border-color: rgba(75,231,255,.35);
   color: var(--zona-competencia);
@@ -958,7 +962,7 @@ input, textarea { caret-color: var(--zona-competencia); }
      se decide la identidad y el CSS sólo la consuma. */
   --eva-accent: #7AD4E6;
   --shell-gutter: 0.75rem;
-  --shell-nav-h: 58px;
+  --shell-nav-h: 66px;
 }
 @media (min-width: 768px) { :root { --shell-gutter: 1.25rem; } }
 
@@ -1017,9 +1021,9 @@ html.shell-lock, html.shell-lock body { height: auto; overflow: visible; }
 .shell-header {
   min-width: 0;
   padding-inline: var(--shell-gutter);
-  border-bottom: 1px solid rgba(75, 231, 255, 0.12);
-  background: linear-gradient(180deg, rgba(8, 10, 17, 0.92), rgba(8, 10, 17, 0.72));
-  backdrop-filter: blur(8px);
+  border-bottom: 1px solid var(--linea);
+  /* Opaca: la cabecera se lee sobre cualquier fondo animado. */
+  background: linear-gradient(180deg, rgba(11, 14, 23, 0.99), rgba(8, 10, 17, 0.975));
 }
 
 .shell-nav {
@@ -1029,9 +1033,8 @@ html.shell-lock, html.shell-lock body { height: auto; overflow: visible; }
   position: fixed;
   left: 0; right: 0; bottom: 0;
   z-index: 45;
-  border-top: 1px solid rgba(75, 231, 255, 0.16);
-  background: linear-gradient(180deg, rgba(6, 7, 11, 0.9), rgba(6, 7, 11, 0.985));
-  backdrop-filter: blur(10px);
+  border-top: 1px solid var(--linea);
+  background: linear-gradient(180deg, rgba(10, 13, 21, 0.985), rgba(6, 7, 11, 0.998));
   /* Área segura de los teléfonos con gesto inferior. */
   padding-bottom: env(safe-area-inset-bottom, 0px);
 }
@@ -1093,3 +1096,167 @@ html.shell-lock, html.shell-lock body { height: auto; overflow: visible; }
    sumaría 100vh dentro de una región que ya está acotada, y reaparecería el
    scroll del documento que este trabajo elimina. */
 .shell-main .min-h-screen { min-height: 100%; }
+
+
+/* ============================================================================
+   LEGIBILIDAD — superficies opacas y escala tipográfica
+   ----------------------------------------------------------------------------
+   Dos problemas medidos en el código anterior:
+     · 647 textos por debajo de 12 px (302 a 9 px, 228 a 10 px, 101 a 8 px).
+     · ~340 textos con opacidad <= 45 %, que sobre el fondo #06070B da una
+       relación de contraste de ~3:1 o peor — por debajo de lo legible.
+   Se corrige con una escala mínima y superficies casi opacas, no aclarando el
+   texto caso por caso.
+   ============================================================================ */
+:root {
+  /* ── Superficies. Casi opacas: el fondo animado ya no atraviesa el texto. ── */
+  --sup-1: rgba(16, 20, 30, 0.975);   /* panel base */
+  --sup-2: rgba(10, 13, 22, 0.992);   /* panel base, extremo del degradado */
+  --sup-alta: rgba(22, 27, 40, 0.985);/* panel elevado / destacado */
+  --linea: rgba(75, 231, 255, 0.22);  /* borde por defecto */
+
+  /* ── Escala tipográfica. Mínimo 12 px; el cuerpo, 15-16 px. ───────────────
+     Con clamp() acompaña al ancho de la ventana sin llegar a descolocar nada. */
+  --t-micro:  12px;                        /* insignias, contadores */
+  --t-meta:   13px;                        /* metadatos, pies */
+  --t-base:   clamp(14px, 0.95rem, 15px);  /* interfaz general */
+  --t-cuerpo: clamp(15px, 1rem, 16.5px);   /* texto que se lee de verdad */
+  --t-boton:  14px;
+  --t-titulo: clamp(18px, 1.35rem, 22px);
+  --t-display: clamp(24px, 2.2rem, 34px);
+}
+
+/* Cuerpo por defecto: antes heredaba el 16 px del navegador pero casi todo el
+   contenido lo pisaba con utilidades diminutas. */
+body { font-size: var(--t-base); line-height: 1.5; }
+
+/* ── Clases semánticas de texto ─────────────────────────────────────────────
+   Sustituyen a las utilidades de píxeles sueltos. El nombre dice el papel del
+   texto, no su tamaño, para que la escala se pueda ajustar en un solo sitio. */
+.t-micro   { font-size: var(--t-micro);  line-height: 1.35; letter-spacing: .06em; }
+.t-meta    { font-size: var(--t-meta);   line-height: 1.45; }
+.t-base    { font-size: var(--t-base);   line-height: 1.5; }
+.t-cuerpo  { font-size: var(--t-cuerpo); line-height: 1.6; }
+.t-titulo  { font-size: var(--t-titulo); line-height: 1.2; }
+.t-display { font-size: var(--t-display); line-height: 1.1; }
+
+/* Etiqueta de sección: versalitas con espaciado, pero legibles. */
+.t-etiqueta {
+  color: rgba(232, 223, 197, 0.86);
+  font-family: var(--font-mono);
+  font-size: var(--t-micro);
+  letter-spacing: .18em;
+  text-transform: uppercase;
+  line-height: 1.3;
+}
+
+/* ── Énfasis de texto. Sustituyen a doc-aged/30…/60, que no daban contraste. ─ */
+.txt-fuerte { color: #F4EEDD; }                    /* títulos */
+.txt-normal { color: #E8DFC5; }                    /* cuerpo */
+.txt-suave  { color: rgba(232, 223, 197, 0.86); }  /* secundario, aún legible */
+.txt-tenue  { color: rgba(232, 223, 197, 0.74); }  /* mínimo admisible */
+
+/* Suelo de seguridad: ninguna utilidad de píxeles puede bajar de 12 px en texto
+   que el usuario deba leer. Cubre lo que quede sin migrar a las clases de
+   arriba, en el juego base y en las tres expansiones. */
+.text-\[7px\], .text-\[8px\], .text-\[9px\],
+.text-\[10px\], .text-\[11px\] { font-size: var(--t-micro) !important; }
+.text-\[12px\], .text-\[13px\] { font-size: var(--t-meta) !important; }
+
+/* Suelo de contraste: las opacidades más bajas sobre texto se elevan al mínimo
+   legible. No afecta a bordes ni a fondos, sólo al color del texto. */
+.text-doc-aged\/5, .text-doc-aged\/10, .text-doc-aged\/15,
+.text-doc-aged\/20, .text-doc-aged\/25, .text-doc-aged\/30,
+.text-doc-aged\/35, .text-doc-aged\/40, .text-doc-aged\/45 {
+  color: rgba(232, 223, 197, 0.82) !important;
+}
+.text-doc-aged\/50, .text-doc-aged\/55, .text-doc-aged\/60,
+.text-doc-aged\/65 {
+  color: rgba(232, 223, 197, 0.9) !important;
+}
+
+
+/* ── Panel del armazón. Una sola definición para todas las pantallas. ─────── */
+.panel {
+  border: 1px solid var(--linea);
+  background: linear-gradient(180deg, var(--sup-1), var(--sup-2));
+  border-radius: 8px;
+}
+.panel-alto {
+  border: 1px solid rgba(122, 212, 230, 0.4);
+  background: linear-gradient(160deg, var(--sup-alta), var(--sup-2) 70%);
+  border-radius: 8px;
+}
+
+
+/* ============================================================================
+   DENSIDAD DENTRO DEL ARMAZÓN
+   ----------------------------------------------------------------------------
+   Las pantallas anteriores al shell estaban pensadas para un documento que se
+   desplazaba: reservaban hasta 96 px de relleno inferior para no quedar bajo la
+   barra fija, y usaban ritmos verticales de página larga (mb-10, py-16).
+
+   Dentro del armazón el alto es finito y ese hueco ya lo reserva
+   `.shell-navspace`, así que aquí sobra por completo: eran ~100 px que obligaban
+   a desplazarse para llegar al botón de una actividad que, de otro modo, cabía.
+   ============================================================================ */
+.shell-main .pb-24 { padding-bottom: 0; }
+.shell-main .pb-28 { padding-bottom: 0; }
+.shell-main .pb-20 { padding-bottom: 0; }
+
+/* Ritmo vertical comprimido: la mitad, aproximadamente. */
+.shell-main .py-16 { padding-block: 1.25rem; }
+.shell-main .py-10 { padding-block: 1rem; }
+.shell-main .py-8  { padding-block: 0.85rem; }
+.shell-main .py-6  { padding-block: 0.75rem; }
+.shell-main .mb-10 { margin-bottom: 1rem; }
+.shell-main .mb-8  { margin-bottom: 0.85rem; }
+.shell-main .mb-6  { margin-bottom: 0.75rem; }
+.shell-main .mt-10 { margin-top: 1rem; }
+.shell-main .mt-8  { margin-top: 0.85rem; }
+
+/* Los `min-h-screen` heredados no deben forzar el alto de la ventana dentro de
+   una región ya acotada (complementa la regla de más arriba). */
+.shell-main .min-h-screen { min-height: auto; }
+
+
+/* Los fondos de las expansiones traen `min-height: 100vh` de cuando eran la
+   página entera. Dentro del armazón eso suma una ventana completa por debajo de
+   la cabecera y la barra, y garantiza el desplazamiento. Aquí pasan a llenar su
+   contenedor. */
+.shell-main .civ-bg,
+.shell-main .proc-bg,
+.shell-main .reino-parchment { min-height: 100%; }
+
+/* Relleno inferior heredado de las expansiones: mismo caso que .pb-24. */
+.shell-main .pb-16 { padding-bottom: 0.5rem; }
+
+
+/* ============================================================================
+   COLORES DE IDENTIDAD USADOS COMO TEXTO
+   ----------------------------------------------------------------------------
+   Los tonos de zona están elegidos como identidad cromática, y varios de ellos
+   —el púrpura casacional, el rojo procesal, el magenta de tensión— se quedan en
+   4,4 de contraste sobre los paneles oscuros: justo por debajo del 4,5 que pide
+   WCAG AA para texto normal.
+
+   En vez de cambiar la paleta, que es marca, se aclara SÓLO su uso como texto.
+   Bordes, destellos y rellenos siguen con el color original, así que la
+   identidad no se toca.
+   ============================================================================ */
+:root {
+  --zona-recursos-txt: #A98CFF;
+  --zona-nulidad-txt: #F08585;
+  --zona-oralidad-txt: #FF85DC;
+  --zona-ejecutivo-txt: #FFA76B;
+  --zona-incidentes-txt: #F0A878;
+}
+.text-zona-recursos   { color: var(--zona-recursos-txt); }
+.text-zona-nulidad    { color: var(--zona-nulidad-txt); }
+.text-zona-oralidad   { color: var(--zona-oralidad-txt); }
+.text-zona-ejecutivo  { color: var(--zona-ejecutivo-txt); }
+.text-zona-incidentes { color: var(--zona-incidentes-txt); }
+
+/* Los alias `neon-*` son los mismos tonos con otro nombre: mismo tratamiento. */
+.text-neon-violet { color: var(--zona-recursos-txt); }
+.text-neon-red    { color: var(--zona-nulidad-txt); }

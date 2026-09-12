@@ -26,7 +26,7 @@ export default function PruebaHub() {
   }, []);
 
   return (
-    <main className="px-3 md:px-6 py-4 max-w-5xl mx-auto pb-16" data-proc="prueba">
+    <div className="px-3 md:px-6 py-4 max-w-5xl mx-auto pb-16" data-proc="prueba">
       <header className="flex items-center justify-between gap-3 flex-wrap mb-3">
         <Link href="/procesal" className="proc-btn text-xs px-3 py-1.5" onClick={() => sfx.click?.()}>◂ Ciudadela</Link>
         <div className="flex items-center justify-end gap-2 font-mono-terminal text-[11px] flex-wrap">
@@ -69,6 +69,6 @@ export default function PruebaHub() {
           </Link>
         ))}
       </div>
-    </main>
+    </div>
   );
 }

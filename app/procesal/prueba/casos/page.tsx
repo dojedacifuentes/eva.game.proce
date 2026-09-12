@@ -32,7 +32,7 @@ export default function CasosPruebaPage() {
     if (fin && !claimed) { setClaimed(true); premio(aciertos * 5, aciertos); sfx.unlock?.(); }
   }, [fin, claimed, aciertos, premio]);
 
-  if (casos.length === 0) return <main className="px-4 py-16 text-center" data-proc="prueba"><div className="proc-heading proc-float">Instruyendo la causa…</div></main>;
+  if (casos.length === 0) return <div className="px-4 py-16 text-center" data-proc="prueba"><div className="proc-heading proc-float">Instruyendo la causa…</div></div>;
 
   const total = casos.reduce((n, c) => n + c.preguntas.length, 0);
   const hechas = casos.slice(0, cIdx).reduce((n, c) => n + c.preguntas.length, 0) + pIdx;
@@ -51,7 +51,7 @@ export default function CasosPruebaPage() {
   };
 
   return (
-    <main className="px-3 md:px-6 py-4 max-w-2xl mx-auto pb-16" data-proc="prueba">
+    <div className="px-3 md:px-6 py-4 max-w-2xl mx-auto pb-16" data-proc="prueba">
       <header className="flex items-center justify-between gap-3 flex-wrap mb-4">
         <Link href="/procesal/prueba" className="proc-btn text-xs px-3 py-1.5" onClick={() => sfx.click?.()}>◂ Sala de la Verdad</Link>
         <span className="font-mono-terminal text-[10px] opacity-50 uppercase tracking-widest">Resolución de casos</span>
@@ -114,6 +114,6 @@ export default function CasosPruebaPage() {
           </motion.div>
         </div>
       ) : null}
-    </main>
+    </div>
   );
 }

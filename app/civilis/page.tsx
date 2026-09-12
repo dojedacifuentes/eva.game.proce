@@ -59,7 +59,7 @@ export default function CivilisHub() {
   ];
 
   return (
-    <main className="px-3 md:px-6 py-4 max-w-6xl mx-auto pb-16">
+    <div className="px-3 md:px-6 py-4 max-w-6xl mx-auto pb-16">
       {/* header */}
       <header className="flex items-center justify-between gap-3 flex-wrap mb-3">
         <Link href="/juego" className="civ-btn text-xs px-3 py-1.5" onClick={() => sfx.click?.()}>◂ Ciudad Judicial</Link>
@@ -140,7 +140,7 @@ export default function CivilisHub() {
                 )}
               </div>
               <div className="mt-1 px-1.5 py-0.5 rounded text-center" style={{ background: "rgba(8,9,13,0.78)", border: "1px solid color-mix(in srgb, var(--civ-primary) 40%, transparent)", maxWidth: 92 }}>
-                <div className="civ-heading text-[9px] md:text-[10px] leading-tight" style={{ color: "var(--civ-primary)" }}>{r.nombre}</div>
+                <div className="civ-heading t-meta leading-tight" style={{ color: "color-mix(in srgb, var(--civ-primary) 52%, #F4EEDD)" }}>{r.nombre}</div>
               </div>
             </button>
           );
@@ -184,7 +184,7 @@ export default function CivilisHub() {
           {PARTY_CIVIL.map((p) => (
             <div key={p.id} className="civ-card p-2.5 text-center">
               <div className="text-2xl mb-1" style={{ filter: `drop-shadow(0 0 6px ${p.color})` }}>{p.icono}</div>
-              <div className="civ-heading text-[11px] leading-tight" style={{ color: p.color }}>{p.nombre}</div>
+              <div className="civ-heading t-meta leading-tight" style={{ color: `color-mix(in srgb, ${p.color} 55%, #F4EEDD)` }}>{p.nombre}</div>
               <div className="font-mono-terminal text-[8px] opacity-55 leading-tight mt-0.5">{p.titulo}</div>
             </div>
           ))}
@@ -211,6 +211,6 @@ export default function CivilisHub() {
           </motion.div>
         );
       })()}
-    </main>
+    </div>
   );
 }

@@ -328,8 +328,8 @@ function CampañaCard({ mod, completada, gate, onClick }: CampañaCardProps) {
         <span className={`text-4xl ${locked ? "grayscale" : ""}`}>{mod.icono}</span>
         <div>
           <div
-            className="text-[9px] font-mono-terminal uppercase tracking-widest mb-1 opacity-70"
-            style={{ color: `var(--zona-${mod.zona})` }}
+            className="t-micro font-mono-terminal uppercase tracking-widest mb-1.5"
+            style={{ color: `color-mix(in srgb, var(--zona-${mod.zona}) 62%, #F4EEDD)` }}
           >
             {mod.subtitulo}
           </div>

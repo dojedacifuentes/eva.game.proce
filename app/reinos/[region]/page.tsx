@@ -64,11 +64,11 @@ export default function RegionPage(props: { params: Promise<{ region: string }> 
 
   if (!region) {
     return (
-      <main className="min-h-screen px-6 py-20 max-w-3xl mx-auto text-center">
+      <div className="min-h-screen px-6 py-20 max-w-3xl mx-auto text-center">
         <div className="text-5xl mb-4">🧭</div>
         <h1 className="font-display-grave text-2xl text-doc-aged mb-3">Región desconocida</h1>
         <Link href="/reinos" className="btn text-xs">◂ Volver al overworld</Link>
-      </main>
+      </div>
     );
   }
 
@@ -129,7 +129,7 @@ export default function RegionPage(props: { params: Promise<{ region: string }> 
 
   return (
     <div data-reino={region.id} style={{ background: `radial-gradient(1100px 600px at 50% -10%, ${region.paleta.ambient}, transparent 60%)` }}>
-      <main className="min-h-screen px-4 md:px-8 py-6 max-w-5xl mx-auto">
+      <div className="min-h-screen px-4 md:px-8 py-6 max-w-5xl mx-auto">
         {/* Header de región */}
         <header className="flex items-start justify-between flex-wrap gap-3 mb-5">
           <div className="flex items-center gap-3">
@@ -274,7 +274,7 @@ export default function RegionPage(props: { params: Promise<{ region: string }> 
             </motion.div>
           )}
         </AnimatePresence>
-      </main>
+      </div>
 
       {/* Toast: subiste de nivel */}
       <AnimatePresence>

@@ -22,31 +22,27 @@ export default function EvaPanel({
   return (
     <section
       aria-labelledby="eva-titulo"
-      className="rounded-lg border p-3 flex flex-col gap-2"
-      style={{
-        borderColor: "rgba(122,212,230,0.28)",
-        background: "linear-gradient(160deg, rgba(122,212,230,0.07), rgba(8,10,17,0.85) 65%)",
-      }}
+      className="panel-alto p-3.5 flex flex-col gap-2.5"
     >
       <div className="flex items-center gap-2">
-        <EvaMark size={22} />
+        <EvaMark size={26} />
         <div className="leading-none">
-          <h2 id="eva-titulo" className="font-mono-terminal text-[9px] uppercase tracking-[.25em]" style={{ color: EVA.color }}>
+          <h2 id="eva-titulo" className="t-etiqueta" style={{ color: EVA.color }}>
             {EVA.nombre} · Tu próximo paso
           </h2>
         </div>
       </div>
 
       {paso.contexto && (
-        <div className="font-mono-terminal text-[8px] uppercase tracking-widest text-doc-aged/40">
+        <div className="t-meta font-mono-terminal uppercase tracking-wider txt-suave">
           {paso.contexto}
         </div>
       )}
 
-      <div className="font-display-grave text-doc-aged leading-tight text-[15px]">{paso.titulo}</div>
+      <div className="font-display-grave txt-fuerte leading-tight t-titulo">{paso.titulo}</div>
 
       {/* El porqué, siempre visible. */}
-      <p className="font-serif-juridica text-doc-aged/70 text-xs leading-snug not-italic">
+      <p className="font-serif-juridica txt-normal t-cuerpo leading-snug not-italic">
         {paso.razon}
       </p>
 
@@ -54,7 +50,7 @@ export default function EvaPanel({
         href={paso.href}
         onClick={() => sfx.click?.()}
         onMouseEnter={() => sfx.hover?.()}
-        className="mt-auto block text-center font-display-grave text-[13px] py-2.5 border transition-all hover:brightness-125"
+        className="mt-auto block text-center font-display-grave t-titulo py-3 border-2 rounded transition-all hover:brightness-125"
         style={{
           borderColor: "var(--eva-accent)",
           color: "var(--eva-accent)",
@@ -65,7 +61,7 @@ export default function EvaPanel({
       </Link>
 
       {!compacto && (
-        <div className="font-mono-terminal text-[8px] text-doc-aged/30 leading-snug">
+        <div className="t-micro font-mono-terminal txt-tenue leading-snug">
           Recomendación calculada con tu progreso guardado. Sin análisis externo.
         </div>
       )}

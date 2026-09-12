@@ -18,7 +18,7 @@ export default function CartasPage() {
   const carta = sel ? getCarta(sel) : undefined;
 
   return (
-    <main className="px-3 md:px-6 py-4 max-w-5xl mx-auto pb-16">
+    <div className="px-3 md:px-6 py-4 max-w-5xl mx-auto pb-16">
       <header className="flex items-center justify-between gap-3 flex-wrap mb-4">
         <Link href="/civilis" className="civ-btn text-xs px-3 py-1.5" onClick={() => sfx.click?.()}>◂ Mapa</Link>
         <span className="font-mono-terminal text-[10px] opacity-50 uppercase tracking-widest">Mazo de Artículos</span>
@@ -93,6 +93,6 @@ export default function CartasPage() {
           </motion.div>
         )}
       </AnimatePresence>
-    </main>
+    </div>
   );
 }

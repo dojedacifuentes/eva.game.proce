@@ -66,22 +66,22 @@ export default function Juego() {
             <Etiqueta color="var(--zona-recursos)">Misión actual</Etiqueta>
             {progreso.misionActual ? (
               <div className="mt-1.5">
-                <div className="font-display-grave text-sm text-doc-aged leading-tight">
+                <div className="font-display-grave t-titulo txt-fuerte leading-tight">
                   {progreso.misionActual.titulo}
                 </div>
-                <p className="font-mono-terminal text-[9px] text-doc-aged/50 mt-1 leading-snug">
+                <p className="t-meta txt-suave mt-1.5 leading-snug">
                   {progreso.misionActual.descripcion}
                 </p>
                 <Link
                   href={`/mision/${progreso.misionActual.id}`}
                   onClick={() => sfx.click?.()}
-                  className="btn btn-recurso w-full text-[10px] py-2 mt-2.5 inline-block text-center"
+                  className="btn btn-recurso w-full mt-3 inline-flex items-center justify-center text-center"
                 >
                   ▶ Atender
                 </Link>
               </div>
             ) : (
-              <p className="font-serif-juridica text-doc-aged/55 text-xs italic mt-1">
+              <p className="font-serif-juridica txt-suave t-base italic mt-1.5">
                 Sin misiones pendientes en este acto.
               </p>
             )}
@@ -106,7 +106,7 @@ export default function Juego() {
                   transition={{ duration: 0.8 }}
                 />
               </div>
-              <span className="font-mono-terminal text-[10px] text-zona-prueba shrink-0">
+              <span className="t-meta text-zona-prueba shrink-0">
                 {progreso.porcentaje}%
               </span>
             </div>
@@ -118,7 +118,7 @@ export default function Juego() {
             <Link
               href="/inventario"
               onClick={() => sfx.click?.()}
-              className="block text-center font-mono-terminal text-[9px] text-doc-aged/40 hover:text-zona-competencia mt-2.5 transition-colors"
+              className="block text-center t-meta txt-suave hover:text-zona-competencia mt-3 py-1.5 transition-colors"
             >
               Atributos, logros y reliquias →
             </Link>
@@ -128,7 +128,7 @@ export default function Juego() {
         {/* ═══ CENTRO — mapa o lista de misiones ═══ */}
         <section className="order-2 lg:order-2 flex flex-col min-h-0 gap-2">
           <div className="shrink-0 flex items-center justify-between gap-2">
-            <h2 className="font-mono-terminal text-[9px] uppercase tracking-[.25em] text-zona-competencia">
+            <h2 className="t-etiqueta text-zona-competencia">
               {vista === "mapa" ? "Mapa · 7 distritos" : "Misiones de campaña"}
             </h2>
             {/* Alternativa explícita al mapa para elegir misión. */}
@@ -139,7 +139,7 @@ export default function Juego() {
                   type="button"
                   onClick={() => { setVista(v); sfx.click?.(); }}
                   aria-pressed={vista === v}
-                  className="px-2.5 py-1.5 font-mono-terminal text-[9px] uppercase tracking-widest transition-colors"
+                  className="px-3 py-2 t-micro font-mono-terminal uppercase tracking-widest transition-colors"
                   style={{
                     color: vista === v ? "var(--zona-competencia)" : "rgba(232,223,197,0.45)",
                     background: vista === v ? "rgba(75,231,255,0.1)" : "transparent",
@@ -176,10 +176,10 @@ export default function Juego() {
                   {boss.icono}
                 </span>
                 <div className="min-w-0">
-                  <div className="font-display-grave text-sm text-doc-aged leading-tight truncate">
+                  <div className="font-display-grave t-base txt-fuerte leading-tight truncate">
                     {boss.nombre}
                   </div>
-                  <div className="font-mono-terminal text-[8px] text-doc-aged/50">
+                  <div className="t-meta txt-suave">
                     {progreso.pendientesActo === 1 ? "Queda" : "Quedan"} {plural(progreso.pendientesActo, "misión", "misiones")}
                   </div>
                 </div>
@@ -195,13 +195,13 @@ export default function Juego() {
             className="block p-3 border transition-all hover:brightness-125"
             style={{ borderColor: "rgba(138,92,255,0.3)", background: "rgba(138,92,255,0.06)" }}
           >
-            <div className="font-mono-terminal text-[8px] uppercase tracking-widest text-zona-recursos">
+            <div className="t-etiqueta text-zona-recursos">
               Mundos y expansiones
             </div>
-            <div className="font-display-grave text-sm text-doc-aged mt-1">
+            <div className="font-display-grave t-titulo txt-fuerte mt-1.5">
               Reinos · Civilis · Procesal
             </div>
-            <div className="font-mono-terminal text-[8px] text-doc-aged/45 mt-0.5">
+            <div className="t-meta txt-suave mt-1">
               13 mundos de campaña y 3 expansiones →
             </div>
           </Link>
@@ -262,21 +262,20 @@ function ListaMisiones({ misionesCompletadas }: { misionesCompletadas: string[] 
   const router = useRouter();
   return (
     <div
-      className="shell-scroll flex-1 min-h-[240px] lg:min-h-0 rounded-lg border border-zona-competencia/12 p-3 space-y-4"
+      className="shell-scroll panel flex-1 min-h-[240px] lg:min-h-0 p-3 space-y-4"
       tabIndex={0}
       role="region"
       aria-label="Lista de misiones de la campaña"
-      style={{ background: "linear-gradient(180deg, rgba(13,15,23,0.7), rgba(8,10,17,0.85))" }}
     >
       {CAMPAÑA.map((acto) => {
         const hechas = acto.misiones.filter((m) => misionesCompletadas.includes(m.id)).length;
         return (
           <section key={acto.numero}>
             <div className="flex items-center justify-between mb-1.5">
-              <h3 className="font-mono-terminal text-[9px] uppercase tracking-widest text-zona-recursos">
+              <h3 className="t-etiqueta text-zona-recursos">
                 Acto {acto.numero}: {acto.titulo}
               </h3>
-              <span className="font-mono-terminal text-[8px] text-doc-aged/40">
+              <span className="t-meta txt-suave font-mono-terminal">
                 {hechas}/{acto.misiones.length}
               </span>
             </div>
@@ -286,19 +285,19 @@ function ListaMisiones({ misionesCompletadas }: { misionesCompletadas: string[] 
                 return (
                   <li
                     key={mision.id}
-                    className="flex items-center gap-2 p-2 border rounded"
+                    className="flex items-center gap-2.5 p-2.5 border rounded"
                     style={{
                       borderColor: hecha ? "rgba(88,245,176,0.25)" : "rgba(75,231,255,0.1)",
                       background: hecha ? "rgba(88,245,176,0.03)" : "transparent",
                     }}
                   >
-                    <span aria-hidden="true" className="text-sm shrink-0">{TIPO_ICON[mision.tipo] ?? "📌"}</span>
+                    <span aria-hidden="true" className="text-lg shrink-0">{TIPO_ICON[mision.tipo] ?? "📌"}</span>
                     <div className="flex-1 min-w-0">
-                      <div className="font-display-grave text-xs text-doc-aged truncate">{mision.titulo}</div>
-                      <div className="font-mono-terminal text-[8px] text-doc-aged/45 truncate">{mision.descripcion}</div>
+                      <div className="font-display-grave t-base txt-fuerte truncate">{mision.titulo}</div>
+                      <div className="t-meta txt-suave truncate mt-0.5">{mision.descripcion}</div>
                     </div>
                     {hecha ? (
-                      <span className="text-[10px] text-zona-cautelares shrink-0">
+                      <span className="text-base text-zona-cautelares shrink-0">
                         <span aria-hidden="true">✓</span>
                         <span className="sr-only">Completada</span>
                       </span>
@@ -307,7 +306,7 @@ function ListaMisiones({ misionesCompletadas }: { misionesCompletadas: string[] 
                         type="button"
                         onClick={() => { sfx.click?.(); router.push(`/mision/${mision.id}`); }}
                         onMouseEnter={() => sfx.hover?.()}
-                        className="shrink-0 text-[9px] font-mono-terminal px-2.5 py-1.5 border border-zona-competencia/40 text-zona-competencia hover:border-zona-competencia transition-all"
+                        className="shrink-0 t-meta font-mono-terminal uppercase tracking-wider px-3 py-2 border border-zona-competencia/50 text-zona-competencia hover:bg-zona-competencia/10 hover:border-zona-competencia transition-all"
                       >
                         Jugar
                         <span className="sr-only"> {mision.titulo}</span>
@@ -326,13 +325,7 @@ function ListaMisiones({ misionesCompletadas }: { misionesCompletadas: string[] 
 
 function Panel({ children, borde }: { children: React.ReactNode; borde?: string }) {
   return (
-    <div
-      className="rounded-lg border p-2.5"
-      style={{
-        borderColor: borde ?? "rgba(75,231,255,0.12)",
-        background: "linear-gradient(180deg, rgba(13,15,23,0.7), rgba(8,10,17,0.85))",
-      }}
-    >
+    <div className="panel p-3" style={borde ? { borderColor: borde } : undefined}>
       {children}
     </div>
   );
@@ -341,8 +334,8 @@ function Panel({ children, borde }: { children: React.ReactNode; borde?: string 
 function Etiqueta({ children, color }: { children: React.ReactNode; color?: string }) {
   return (
     <div
-      className="font-mono-terminal text-[8px] uppercase tracking-widest"
-      style={{ color: color ?? "rgba(232,223,197,0.45)" }}
+      className="t-etiqueta"
+      style={{ color: color ?? "rgba(232,223,197,0.72)" }}
     >
       {children}
     </div>
@@ -351,9 +344,9 @@ function Etiqueta({ children, color }: { children: React.ReactNode; color?: stri
 
 function Dato({ etiqueta, valor }: { etiqueta: string; valor: string }) {
   return (
-    <div className="text-center border border-doc-aged/10 py-1">
-      <dt className="font-mono-terminal text-[7px] uppercase tracking-widest text-doc-aged/35 m-0">{etiqueta}</dt>
-      <dd className="font-mono-terminal text-[11px] text-zona-competencia m-0">{valor}</dd>
+    <div className="text-center border border-doc-aged/20 rounded py-1.5">
+      <dt className="t-micro font-mono-terminal uppercase tracking-wider txt-suave m-0">{etiqueta}</dt>
+      <dd className="t-base font-mono-terminal text-zona-competencia m-0 mt-0.5">{valor}</dd>
     </div>
   );
 }

@@ -54,7 +54,7 @@ export default function ReinosHome() {
   const mostrarEditor = mounted && (editarPerfil || !perfilNombre);
 
   return (
-    <main className="min-h-screen px-4 md:px-8 py-6 max-w-6xl mx-auto">
+    <div className="min-h-screen px-4 md:px-8 py-6 max-w-6xl mx-auto">
       {/* Header */}
       <header className="flex items-center justify-between flex-wrap gap-3 mb-6">
         <Link href="/juego" className="btn text-xs" onClick={() => sfx.click?.()}>◂ Ciudad Judicial</Link>
@@ -209,6 +209,6 @@ export default function ReinosHome() {
       {mostrarEditor && (
         <PerfilJurista onClose={() => setEditarPerfil(false)} forzado={mounted && !perfilNombre} />
       )}
-    </main>
+    </div>
   );
 }

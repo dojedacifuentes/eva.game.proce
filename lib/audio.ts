@@ -310,3 +310,199 @@ export function startAmbientReino(region: string) {
     droneNodes.push({ osc, gain, lfo, lfoGain });
   });
 }
+
+// ════════════════════════════════════════════════════════════════════════════
+// AMBIENTE HIPNÓTICO — pensado para estudiar, no para ambientar una escena.
+//
+// El ambiente anterior eran dos senoidales y poco más. Este monta un colchón
+// sostenido con las propiedades que hacen que un sonido acompañe sin robar
+// atención:
+//
+//  · Intervalos consonantes (fundamental, quinta y octava): nada que resolver,
+//    así que el oído deja de seguirlo.
+//  · Pares de osciladores desafinados unas décimas de hercio. La diferencia
+//    produce un batido lentísimo —una pulsación cada tres o cuatro segundos—
+//    que es de donde sale la sensación envolvente.
+//  · Respiración de volumen de ciclo muy largo (~20 s), por debajo del ritmo
+//    de la respiración en reposo.
+//  · Una capa de ruido filtrado que barre el paso bajo muy despacio: el papel
+//    y la lluvia del foro.
+//  · Campanas escasas y separadas, con caída larga, para marcar el paso del
+//    tiempo sin sobresaltar.
+//
+// Todo sintetizado, sin archivos. Volumen deliberadamente bajo.
+// ════════════════════════════════════════════════════════════════════════════
+
+type NodoHipnotico = { parar: () => void };
+let nodosHipnoticos: NodoHipnotico[] = [];
+let temporizadorCampana: ReturnType<typeof setTimeout> | null = null;
+
+/** Par de osciladores desafinados: su diferencia es el batido que se percibe. */
+function parBatiente(c: AudioContext, destino: AudioNode, frecuencia: number, batido: number, volumen: number) {
+  const mezcla = c.createGain();
+  mezcla.gain.setValueAtTime(0, c.currentTime);
+  mezcla.gain.linearRampToValueAtTime(volumen, c.currentTime + 6); // entrada lenta
+  mezcla.connect(destino);
+
+  const osciladores = [frecuencia, frecuencia + batido].map((f) => {
+    const o = c.createOscillator();
+    o.type = "sine";
+    o.frequency.value = f;
+    o.connect(mezcla);
+    o.start();
+    return o;
+  });
+
+  return {
+    parar: () => {
+      try {
+        mezcla.gain.cancelScheduledValues(c.currentTime);
+        mezcla.gain.linearRampToValueAtTime(0, c.currentTime + 1.6);
+        setTimeout(() => osciladores.forEach((o) => { try { o.stop(); } catch {} }), 1800);
+      } catch { /* contexto ya cerrado */ }
+    },
+  };
+}
+
+/** Ruido rosa aproximado, filtrado y con barrido lento. */
+function capaDeRuido(c: AudioContext, destino: AudioNode, volumen: number) {
+  const segundos = 4;
+  const buffer = c.createBuffer(1, c.sampleRate * segundos, c.sampleRate);
+  const datos = buffer.getChannelData(0);
+  // Filtro de Voss simplificado: más energía en graves que el ruido blanco, que
+  // resulta áspero a volumen bajo.
+  let b0 = 0, b1 = 0, b2 = 0;
+  for (let i = 0; i < datos.length; i++) {
+    const blanco = Math.random() * 2 - 1;
+    b0 = 0.99765 * b0 + blanco * 0.0990460;
+    b1 = 0.96300 * b1 + blanco * 0.2965164;
+    b2 = 0.57000 * b2 + blanco * 1.0526913;
+    datos[i] = (b0 + b1 + b2 + blanco * 0.1848) * 0.09;
+  }
+
+  const fuente = c.createBufferSource();
+  fuente.buffer = buffer;
+  fuente.loop = true;
+
+  const filtro = c.createBiquadFilter();
+  filtro.type = "lowpass";
+  filtro.frequency.value = 420;
+  filtro.Q.value = 0.7;
+
+  // Barrido del filtro: un ciclo cada ~33 s.
+  const lfo = c.createOscillator();
+  const lfoGain = c.createGain();
+  lfo.frequency.value = 0.03;
+  lfoGain.gain.value = 260;
+  lfo.connect(lfoGain);
+  lfoGain.connect(filtro.frequency);
+
+  const gan = c.createGain();
+  gan.gain.setValueAtTime(0, c.currentTime);
+  gan.gain.linearRampToValueAtTime(volumen, c.currentTime + 8);
+
+  fuente.connect(filtro);
+  filtro.connect(gan);
+  gan.connect(destino);
+  fuente.start();
+  lfo.start();
+
+  return {
+    parar: () => {
+      try {
+        gan.gain.cancelScheduledValues(c.currentTime);
+        gan.gain.linearRampToValueAtTime(0, c.currentTime + 1.6);
+        setTimeout(() => { try { fuente.stop(); lfo.stop(); } catch {} }, 1800);
+      } catch { /* contexto ya cerrado */ }
+    },
+  };
+}
+
+/** Campana suelta con caída larga. */
+function campana(c: AudioContext, destino: AudioNode, frecuencia: number, volumen: number) {
+  const o = c.createOscillator();
+  const g = c.createGain();
+  const filtro = c.createBiquadFilter();
+  filtro.type = "lowpass";
+  filtro.frequency.value = 1800;
+
+  o.type = "triangle";
+  o.frequency.value = frecuencia;
+  g.gain.setValueAtTime(0, c.currentTime);
+  g.gain.linearRampToValueAtTime(volumen, c.currentTime + 0.04);
+  g.gain.exponentialRampToValueAtTime(0.0001, c.currentTime + 7); // caída larga
+
+  o.connect(filtro);
+  filtro.connect(g);
+  g.connect(destino);
+  o.start();
+  o.stop(c.currentTime + 7.2);
+}
+
+/** La menor: grados consonantes, sin tensión que pida resolución. */
+const NOTAS_CAMPANA = [220, 261.63, 329.63, 440];
+
+/**
+ * Arranca el ambiente hipnótico. Sustituye a cualquier otro ambiente en curso.
+ * Respeta el silencio global: si el audio está apagado, no suena nada.
+ */
+export function startAmbienteHipnotico() {
+  stopAmbienteHipnotico();
+  stopAmbient();
+  if (muted) return;
+  const c = ctx();
+  if (!c || !masterGain) return;
+  if (c.state === "suspended") c.resume().catch(() => {});
+
+  // Bus propio, con su respiración de ciclo largo.
+  const bus = c.createGain();
+  bus.gain.value = 0.9;
+  bus.connect(masterGain);
+
+  const respiracion = c.createOscillator();
+  const respiracionGain = c.createGain();
+  respiracion.frequency.value = 0.05;  // un ciclo cada 20 s
+  respiracionGain.gain.value = 0.22;
+  respiracion.connect(respiracionGain);
+  respiracionGain.connect(bus.gain);
+  respiracion.start();
+
+  nodosHipnoticos.push({
+    parar: () => { try { respiracion.stop(); } catch {} },
+  });
+
+  // Fundamental, quinta y octava, cada una con su batido propio.
+  nodosHipnoticos.push(parBatiente(c, bus, 55,    0.25, 0.052)); // La1
+  nodosHipnoticos.push(parBatiente(c, bus, 82.41, 0.33, 0.034)); // Mi2, quinta
+  nodosHipnoticos.push(parBatiente(c, bus, 110,   0.18, 0.022)); // La2, octava
+  nodosHipnoticos.push(capaDeRuido(c, bus, 0.030));
+
+  // Campanas cada 17-27 s, en orden rotatorio: previsible sin ser monótono.
+  let indice = 0;
+  const programar = () => {
+    const espera = 17000 + (indice % 5) * 2500;
+    temporizadorCampana = setTimeout(() => {
+      if (muted || nodosHipnoticos.length === 0) return;
+      const cc = ctx();
+      if (cc) campana(cc, bus, NOTAS_CAMPANA[indice % NOTAS_CAMPANA.length], 0.05);
+      indice++;
+      programar();
+    }, espera);
+  };
+  programar();
+}
+
+/** Detiene el ambiente hipnótico con un desvanecido suave. */
+export function stopAmbienteHipnotico() {
+  if (temporizadorCampana) {
+    clearTimeout(temporizadorCampana);
+    temporizadorCampana = null;
+  }
+  nodosHipnoticos.forEach((n) => n.parar());
+  nodosHipnoticos = [];
+}
+
+/** ¿Está sonando el ambiente hipnótico? */
+export function ambienteHipnoticoActivo(): boolean {
+  return nodosHipnoticos.length > 0;
+}

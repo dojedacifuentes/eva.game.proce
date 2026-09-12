@@ -26,7 +26,7 @@ export default function ComparadorPage() {
   };
 
   return (
-    <main className="px-3 md:px-6 py-4 max-w-6xl mx-auto pb-16" data-proc="ordinario">
+    <div className="px-3 md:px-6 py-4 max-w-6xl mx-auto pb-16" data-proc="ordinario">
       <header className="flex items-center justify-between gap-3 flex-wrap mb-3">
         <Link href="/procesal" className="proc-btn text-xs px-3 py-1.5" onClick={() => sfx.click?.()}>◂ Ciudadela</Link>
         <span className="font-mono-terminal text-[10px] opacity-50 uppercase tracking-widest">Procedimientos en paralelo</span>
@@ -120,6 +120,6 @@ export default function ComparadorPage() {
           </div>
         ))}
       </div>
-    </main>
+    </div>
   );
 }

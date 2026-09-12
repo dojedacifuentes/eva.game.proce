@@ -39,9 +39,9 @@ export default function ExpedienteVivoPage() {
 
   if (carpetas.length === 0) {
     return (
-      <main className="px-4 py-16 max-w-md mx-auto text-center" data-proc="incidental">
+      <div className="px-4 py-16 max-w-md mx-auto text-center" data-proc="incidental">
         <div className="proc-heading text-lg proc-float">Recibiendo carpetas…</div>
-      </main>
+      </div>
     );
   }
 
@@ -68,7 +68,7 @@ export default function ExpedienteVivoPage() {
   const reiniciar = () => { setSeed((s) => s + 1); sfx.click?.(); };
 
   return (
-    <main className="px-3 md:px-6 py-4 max-w-2xl mx-auto pb-16" data-proc="incidental">
+    <div className="px-3 md:px-6 py-4 max-w-2xl mx-auto pb-16" data-proc="incidental">
       <header className="flex items-center justify-between gap-3 flex-wrap mb-4">
         <Link href="/procesal" className="proc-btn text-xs px-3 py-1.5" onClick={() => sfx.click?.()}>◂ Ciudadela</Link>
         <span className="font-mono-terminal text-[10px] opacity-50 uppercase tracking-widest">El expediente cobra vida</span>
@@ -144,6 +144,6 @@ export default function ExpedienteVivoPage() {
           </motion.div>
         </div>
       ) : null}
-    </main>
+    </div>
   );
 }

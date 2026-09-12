@@ -161,7 +161,7 @@ export default function ReinosOverworld() {
               </div>
 
               {/* etiqueta */}
-              <span className="mt-1 font-mono-terminal text-center leading-tight px-1.5 rounded" style={{ fontSize: 9.5, color: locked ? "rgba(180,190,200,.6)" : "#eef1e6", background: "rgba(6,7,11,.62)", letterSpacing: ".02em", textShadow: "0 1px 3px #000" }}>
+              <span className="mt-1 font-mono-terminal text-center leading-tight px-1.5 rounded" style={{ fontSize: 13, fontWeight: 600, color: locked ? "rgba(200,208,218,.85)" : "#F4EEDD", background: "rgba(6,7,11,.92)", letterSpacing: ".02em", textShadow: "0 1px 3px #000" }}>
                 {r.orden}. {r.nombre.replace("de las ", "").replace("de la ", "").replace("de los ", "").replace("de el ", "")}
               </span>
             </motion.button>
