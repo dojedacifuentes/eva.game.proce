@@ -1,4 +1,5 @@
 "use client";
+import { use } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { sfx } from "@/lib/audio";
@@ -10,7 +11,8 @@ import BossBattle from "@/components/reinos/BossBattle";
 // REINOS — Página de Boss (deep-link autónomo a un duelo)
 // ============================================================================
 
-export default function BossPage({ params }: { params: { id: string } }) {
+export default function BossPage(props: { params: Promise<{ id: string }> }) {
+  const params = use(props.params);
   const router = useRouter();
   const boss = getBoss(params.id);
   const region = boss ? getRegion(boss.region) : undefined;

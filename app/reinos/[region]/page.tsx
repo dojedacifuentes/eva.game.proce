@@ -1,6 +1,6 @@
 "use client";
 import Link from "next/link";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState, use } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { sfx, startAmbientReino, stopAmbient } from "@/lib/audio";
 import { getRegion } from "@/data/reinos/regiones";
@@ -18,7 +18,8 @@ const VIDAS_INICIALES = 3;
 
 type Encuentro = { tipo: "desafio"; id: string } | { tipo: "boss" } | null;
 
-export default function RegionPage({ params }: { params: { region: string } }) {
+export default function RegionPage(props: { params: Promise<{ region: string }> }) {
+  const params = use(props.params);
   const region = getRegion(params.region);
 
   const resolverDesafio = useReinos((s) => s.resolverDesafio);

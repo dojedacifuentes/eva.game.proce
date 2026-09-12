@@ -1,6 +1,6 @@
 "use client";
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, use } from "react";
 import { motion } from "framer-motion";
 import { sfx } from "@/lib/audio";
 import { useProcesal } from "@/store/useProcesal";
@@ -8,7 +8,8 @@ import { getEdificio } from "@/data/procesal/edificios";
 import { etapasDe } from "@/data/procesal/etapas";
 import type { EdificioId, EtapaProc } from "@/types/procesal";
 
-export default function EdificioPage({ params }: { params: { edificio: string } }) {
+export default function EdificioPage(props: { params: Promise<{ edificio: string }> }) {
+  const params = use(props.params);
   const edificio = getEdificio(params.edificio);
   const [mounted, setMounted] = useState(false);
   const [sel, setSel] = useState<string | null>(null);

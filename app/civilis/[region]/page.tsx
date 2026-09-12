@@ -1,6 +1,6 @@
 "use client";
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useState, use } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { sfx } from "@/lib/audio";
 import { useCivilis } from "@/store/useCivilis";
@@ -11,7 +11,8 @@ import { codexPorRegion } from "@/data/civilis/codex";
 import ClasificadorCivil from "@/components/civilis/ClasificadorCivil";
 import CivScenery from "@/components/civilis/CivScenery";
 
-export default function RegionCivilPage({ params }: { params: { region: string } }) {
+export default function RegionCivilPage(props: { params: Promise<{ region: string }> }) {
+  const params = use(props.params);
   const region = getRegionCivil(params.region);
   const completarRegion = useCivilis((s) => s.completarRegion);
   const derrotarBoss = useCivilis((s) => s.derrotarBoss);

@@ -1,4 +1,13 @@
-# EXPEDIENTE C-1725/2026 — Derecho Procesal Civil RPG · v1.0
+# EVA Game Proce · Derecho Procesal Civil RPG
+
+Juego creado por **Diego Ojeda** durante su preparación del examen de grado. Este repositorio es la base independiente para desarrollar la experiencia **EVA / Proyecto01**.
+
+- Repositorio de trabajo: [dojedacifuentes/eva.game.proce](https://github.com/dojedacifuentes/eva.game.proce).
+- Origen: [dojedacifuentes/rpgproce](https://github.com/dojedacifuentes/rpgproce), commit `76f58dad250664e9f171353a87b4f668cc0df56f`. Se conserva su historial.
+- Juego original: [rpgproce.vercel.app](https://rpgproce.vercel.app). La nueva copia tendrá su propia URL al desplegarse.
+- [Guía de despliegue en Vercel](docs/DEPLOYMENT.md).
+
+Esta importación conserva el juego y prepara su ejecución en Vercel. El rediseño responsive, el asistente de creación de personaje y la identidad visual de EVA quedan para la siguiente etapa.
 
 **Disco Elysium + Código de Procedimiento Civil chileno.** RPG narrativo web sobre jurisdicción, competencia, juicio ordinario y sus etapas, recursos, juicio ejecutivo y disposiciones comunes. Pensado para **estudio del examen de grado**.
 
@@ -8,8 +17,8 @@ Estética: minimalismo cyberpunk-notarial, CRT, glitch jurídico, neon azul/viol
 
 ## Stack
 
-- **Next.js 14** (App Router)
-- **TypeScript** con `ignoreBuildErrors: true` (tolerancia en deploy)
+- **Next.js 15.5** (App Router) + **React 19.1**
+- **TypeScript** con comprobación de tipos durante la compilación
 - **TailwindCSS** + CSS personalizado
 - **Framer Motion**
 - **Zustand + persist** (estado y guardado en `localStorage` con guarda SSR)
@@ -102,17 +111,22 @@ derecho-procesal-rpg/
 ## Cómo correr localmente
 
 ```bash
-npm install
+npm ci
 npm run dev   # http://localhost:3000
 ```
 
-Node 18.17+ o 20+.
+Node **24.x** y npm. En PowerShell, si la política de scripts bloquea `npm`, usa `npm.cmd`.
+
+Para comprobar producción: `npm run lint`, `npm run build`, `npm run typecheck` y `npm start`.
 
 ## Cómo desplegar en Vercel
 
-1. Subir contenido del ZIP a un repo nuevo en GitHub (el **contenido**, no la carpeta padre).
-2. https://vercel.com/new → importá el repo. Framework: Next.js. Root: `./`. Deploy.
-3. ~2 min → link público.
+1. En [Vercel](https://vercel.com/new), importa `dojedacifuentes/eva.game.proce`.
+2. Nombre sugerido: `eva-game-proce`. Framework: **Next.js**. Root Directory: `./`. Rama de producción: `main`.
+3. Node: **24.x**. La configuración del repositorio ejecuta `npm ci` y `npm run build`. Deja Output Directory en su valor predeterminado.
+4. No se requieren variables de entorno, base de datos ni claves de IA para esta versión. Pulsa Deploy y comprueba la URL asignada.
+
+Las partidas se guardan en el navegador mediante `localStorage`: la nueva URL no comparte automáticamente las partidas del sitio original. Consulta [la guía completa](docs/DEPLOYMENT.md).
 
 ## Aviso pedagógico
 
