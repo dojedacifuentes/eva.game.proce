@@ -6,6 +6,7 @@ import { calcularRelevancia, getPistasConectadas, descubrirPistaAleatoria } from
 import PistaCard from "./PistaCard";
 import { sfx } from "@/lib/audio";
 import { fx } from "@/lib/fx";
+import { useModalAccesible } from "@/lib/useModalAccesible";
 
 // ============================================================================
 // TABLERO DE DEDUCCIÓN — v3 visual system
@@ -36,6 +37,9 @@ export default function TableroDeduccion({
   onCloseExpanded,
 }: TableroDeduccionProps) {
   const [seleccionadas, setSeleccionadas] = useState<Set<string>>(new Set());
+  // Foco atrapado, Escape y devolución del foco, conservando el arte
+  // propio de este overlay (ver lib/useModalAccesible.ts).
+  const cajaModal = useModalAccesible<HTMLDivElement>(onCloseExpanded);
 
   const pistaDescubiertaObj = expandedPista
     ? caso.pistas.find((p) => p.id === expandedPista)
@@ -142,11 +146,12 @@ export default function TableroDeduccion({
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-bg-deep/90 flex items-center justify-center z-50 p-4"
+            className="modal-scrim"
             style={{ backdropFilter: "blur(4px)" }}
             onClick={onCloseExpanded}
           >
             <motion.div
+              ref={cajaModal} role="dialog" aria-modal="true" aria-label="Pista ampliada"
               initial={{ opacity: 0, scale: 0.85, y: 30 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.85, y: 30 }}

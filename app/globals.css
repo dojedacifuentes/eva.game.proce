@@ -203,11 +203,14 @@ body {
 /* ============================================================================
    ZONAS — visual identity por institución
    ============================================================================ */
+/* Subida al estándar opaco del resto de superficies (.terminal, .holo,
+   .reino-card). Era la última que seguía en .7/.85 y la usa el modal de
+   GrimorioSkills, donde el texto quedaba sobre el fondo animado. */
 .zona-card {
   position: relative;
   border: 1px solid var(--zona-color, rgba(75,231,255,.25));
   background:
-    linear-gradient(180deg, rgba(19,23,32,.7), rgba(10,18,32,.85)),
+    linear-gradient(180deg, var(--sup-1), var(--sup-2)),
     radial-gradient(80% 100% at 0% 0%, color-mix(in srgb, var(--zona-color, #4BE7FF) 8%, transparent), transparent 60%);
   box-shadow:
     0 0 24px color-mix(in srgb, var(--zona-color, #4BE7FF) 8%, transparent),
@@ -961,6 +964,9 @@ input, textarea { caret-color: var(--zona-competencia); }
   /* Acento de EVA. Vive aquí para que lib/brand.ts sea el único sitio donde
      se decide la identidad y el CSS sólo la consuma. */
   --eva-accent: #7AD4E6;
+  /* Escalera de apilado. La atmósfera CRT vive en 50-51; los modales tienen que
+     quedar POR ENCIMA o se ven a través de la viñeta negra. */
+  --z-modal: 120;
   --shell-gutter: 0.75rem;
   --shell-nav-h: 66px;
 }
@@ -1160,7 +1166,8 @@ body { font-size: var(--t-base); line-height: 1.5; }
    que el usuario deba leer. Cubre lo que quede sin migrar a las clases de
    arriba, en el juego base y en las tres expansiones. */
 .text-\[7px\], .text-\[8px\], .text-\[9px\],
-.text-\[10px\], .text-\[11px\] { font-size: var(--t-micro) !important; }
+.text-\[9\.5px\], .text-\[10px\], .text-\[10\.5px\],
+.text-\[11px\], .text-\[11\.5px\] { font-size: var(--t-micro) !important; }
 .text-\[12px\], .text-\[13px\] { font-size: var(--t-meta) !important; }
 
 /* Suelo de contraste: las opacidades más bajas sobre texto se elevan al mínimo
@@ -1260,3 +1267,63 @@ body { font-size: var(--t-base); line-height: 1.5; }
 /* Los alias `neon-*` son los mismos tonos con otro nombre: mismo tratamiento. */
 .text-neon-violet { color: var(--zona-recursos-txt); }
 .text-neon-red    { color: var(--zona-nulidad-txt); }
+
+/* ============================================================================
+   MODAL — ver components/shell/Modal.tsx
+   ============================================================================ */
+.modal-scrim {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-modal);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--shell-gutter);
+  background: rgba(3, 4, 8, 0.86);
+  backdrop-filter: blur(3px);
+}
+
+.modal-caja {
+  display: grid;
+  /* cabecera y pie fijos; el cuerpo es la única fila elástica */
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  width: 100%;
+  /* Nunca más alto que la ventana: de aquí sale la garantía de que el modal
+     cabe en pantalla y no hay que desplazar el documento. */
+  max-height: min(88dvh, 46rem);
+  border: 1.5px solid;
+  border-radius: 10px;
+  background: linear-gradient(180deg, var(--sup-alta), var(--sup-2) 70%);
+  box-shadow: 0 24px 70px -12px rgba(0, 0, 0, 0.85), 0 0 40px -20px rgba(75, 231, 255, 0.35);
+  overflow: hidden;
+}
+
+.modal-cabecera {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.9rem 1rem;
+  border-bottom: 1px solid var(--linea);
+}
+
+.modal-cuerpo {
+  min-height: 0;
+  padding: 1rem;
+}
+
+.modal-pie {
+  padding: 0.85rem 1rem;
+  border-top: 1px solid var(--linea);
+  background: rgba(6, 8, 14, 0.6);
+  display: flex;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+}
+
+/* Tarjeta de un overlay con arte propio: conserva su aspecto pero nunca
+   sobrepasa la ventana, para que su acción quede siempre alcanzable. */
+.modal-arte {
+  max-height: min(88dvh, 46rem);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}

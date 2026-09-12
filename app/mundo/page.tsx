@@ -1,6 +1,6 @@
 "use client";
 import Link from "next/link";
-import { getAllNpcs } from "@/data/npcs";
+import { ENCUENTROS_ZONA, NPCS_V2 } from "@/data/npcs-v2";
 import { EVENTOS_MUNDO } from "@/data/eventos-mundo";
 import ZonaCard from "@/components/ZonaCard";
 import GameShell from "@/components/shell/GameShell";
@@ -79,7 +79,8 @@ const ZONAS_METADATA: Record<string, { nombre: string; descripcion: string; href
 };
 
 export default function MundoHub() {
-  const npcs = getAllNpcs();
+  // Sólo los que tienen encuentro de zona: los demás son mentores de /expansion.
+  const npcs = Object.values(NPCS_V2).filter((n) => ENCUENTROS_ZONA[n.id]);
 
   const zonasSet = new Set<string>();
   npcs.forEach((npc) => zonasSet.add(npc.zona));
@@ -91,7 +92,7 @@ export default function MundoHub() {
     { val: npcs.length, label: "NPCs", color: "var(--zona-competencia)" },
     { val: EVENTOS_MUNDO.length, label: "Eventos", color: "var(--zona-prueba)" },
     { val: zonas.length, label: "Zonas", color: "var(--zona-recursos)" },
-    { val: npcs.filter((n) => n.mision).length, label: "Misiones", color: "var(--zona-cautelares)" },
+    { val: npcs.filter((n) => ENCUENTROS_ZONA[n.id]?.mision).length, label: "Misiones", color: "var(--zona-cautelares)" },
     { val: "∞", label: "Posibilidades", color: "var(--zona-nulidad)" },
   ];
 

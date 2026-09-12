@@ -69,7 +69,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <WorldThemeProvider />
         {/* GlobalCanvas incluye el HUD de realimentación y la intro */}
         <GlobalCanvas />
-        <div className="relative z-10">{children}</div>
+        {/* `relative` sin z-index: con `z-10` este contenedor creaba un contexto
+            de apilado que ENCERRABA a los modales por debajo de las capas CRT
+            (scanlines z-50 y ruido+viñeta z-51), que son hermanas suyas. El
+            resultado era que todo modal quedaba bajo una viñeta negra al 60 %. */}
+        <div className="relative">{children}</div>
       </body>
     </html>
   );

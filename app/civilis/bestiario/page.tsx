@@ -6,9 +6,13 @@ import { sfx } from "@/lib/audio";
 import { useCivilis } from "@/store/useCivilis";
 import { CASOS_CIVIL, getCaso } from "@/data/civilis/casos";
 import { REGIONES_CIVIL } from "@/data/civilis/regiones";
+import { useModalAccesible } from "@/lib/useModalAccesible";
 
 export default function BestiarioPage() {
   const [mounted, setMounted] = useState(false);
+  // Foco atrapado, Escape y devolución del foco, conservando el arte
+  // propio de este overlay (ver lib/useModalAccesible.ts).
+  const cajaModal = useModalAccesible<HTMLDivElement>(() => setSel(null));
   const [sel, setSel] = useState<string | null>(null);
   const resueltos = useCivilis((s) => s.casosResueltos);
   useEffect(() => setMounted(true), []);
@@ -70,8 +74,9 @@ export default function BestiarioPage() {
       <AnimatePresence>
         {caso && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setSel(null)}
-            className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: "rgba(6,7,11,0.86)", backdropFilter: "blur(4px)" }}>
+            className="modal-scrim" >
             <motion.div initial={{ scale: 0.92, y: 12 }} animate={{ scale: 1, y: 0 }} onClick={(ev) => ev.stopPropagation()} data-civ={caso.region}
+              ref={cajaModal} role="dialog" aria-modal="true" aria-label="Caso del bestiario"
               className="civ-panel p-5 md:p-6 max-w-lg w-full">
               <div className="flex items-center gap-3 mb-3">
                 <span className="text-4xl civ-float" style={{ filter: "drop-shadow(0 0 8px var(--civ-primary))" }}>{caso.iconoEnemigo}</span>

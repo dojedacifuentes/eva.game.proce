@@ -5,9 +5,13 @@ import { motion, AnimatePresence } from "framer-motion";
 import { sfx } from "@/lib/audio";
 import { useCivilis } from "@/store/useCivilis";
 import { CARTAS_CIVIL, RAREZA_CARTA, getCarta } from "@/data/civilis/cartas";
+import { useModalAccesible } from "@/lib/useModalAccesible";
 
 export default function CartasPage() {
   const [mounted, setMounted] = useState(false);
+  // Foco atrapado, Escape y devolución del foco, conservando el arte
+  // propio de este overlay (ver lib/useModalAccesible.ts).
+  const cajaModal = useModalAccesible<HTMLDivElement>(() => setSel(null));
   const [sel, setSel] = useState<string | null>(null);
   const obtenidas = useCivilis((s) => s.cartasObtenidas);
   useEffect(() => setMounted(true), []);
@@ -79,8 +83,9 @@ export default function CartasPage() {
       <AnimatePresence>
         {carta && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setSel(null)}
-            className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: "rgba(6,7,11,0.86)", backdropFilter: "blur(4px)" }}>
+            className="modal-scrim" >
             <motion.div initial={{ rotateY: 70, opacity: 0, scale: 0.9 }} animate={{ rotateY: 0, opacity: 1, scale: 1 }} transition={{ type: "spring", stiffness: 90, damping: 13 }}
+              ref={cajaModal} role="dialog" aria-modal="true" aria-label="Carta jurídica"
               onClick={(e) => e.stopPropagation()} data-civ={carta.region}
               className="rounded-xl p-6 max-w-sm w-full text-center" style={{ border: `2.5px solid ${RAREZA_CARTA[carta.rareza].color}`, background: `linear-gradient(180deg, ${RAREZA_CARTA[carta.rareza].color}22, rgba(11,9,7,0.97) 65%)`, boxShadow: `0 0 50px ${RAREZA_CARTA[carta.rareza].color}44` }}>
               <div className="font-mono-terminal text-[9px] uppercase tracking-widest" style={{ color: RAREZA_CARTA[carta.rareza].color }}>{RAREZA_CARTA[carta.rareza].label}</div>

@@ -3,6 +3,7 @@ import { useState } from "react";
 import { motion } from "framer-motion";
 import { sfx } from "@/lib/audio";
 import { useReinos } from "@/store/useReinos";
+import { useModalAccesible } from "@/lib/useModalAccesible";
 
 // ============================================================================
 // REINOS — Editor de perfil del jurista (nombre + avatar). Personalización.
@@ -30,6 +31,9 @@ export default function PerfilJurista({
   const perfilAvatar = useReinos((s) => s.perfilAvatar);
   const setPerfil = useReinos((s) => s.setPerfil);
   const [nombre, setNombre] = useState(perfilNombre ?? "");
+  // Foco atrapado, Escape y devolución del foco, conservando el arte
+  // propio de este overlay (ver lib/useModalAccesible.ts).
+  const cajaModal = useModalAccesible<HTMLDivElement>(() => { if (!forzado) onClose(); });
   const [avatar, setAvatar] = useState(perfilAvatar ?? AVATARES[0]);
 
   const confirmar = () => {
@@ -42,11 +46,12 @@ export default function PerfilJurista({
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
-      className="fixed inset-0 z-[60] flex items-center justify-center p-5"
-      style={{ background: "rgba(6,7,11,.86)", backdropFilter: "blur(4px)" }}
+      className="modal-scrim"
+      
       onClick={() => { if (!forzado) onClose(); }}
     >
       <motion.div
+              ref={cajaModal} role="dialog" aria-modal="true" aria-label="Perfil del jurista"
         initial={{ scale: 0.92, y: 12 }}
         animate={{ scale: 1, y: 0 }}
         onClick={(e) => e.stopPropagation()}

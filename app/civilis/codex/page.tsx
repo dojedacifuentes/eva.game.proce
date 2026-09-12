@@ -6,9 +6,13 @@ import { sfx } from "@/lib/audio";
 import { useCivilis } from "@/store/useCivilis";
 import { CODEX_CIVIL, RAREZA_CIVIL, getEntradaCodex } from "@/data/civilis/codex";
 import { REGIONES_CIVIL } from "@/data/civilis/regiones";
+import { useModalAccesible } from "@/lib/useModalAccesible";
 
 export default function CodexCivilPage() {
   const [mounted, setMounted] = useState(false);
+  // Foco atrapado, Escape y devolución del foco, conservando el arte
+  // propio de este overlay (ver lib/useModalAccesible.ts).
+  const cajaModal = useModalAccesible<HTMLDivElement>(() => setSel(null));
   const [sel, setSel] = useState<string | null>(null);
   const desbloqueado = useCivilis((s) => s.codexDesbloqueado);
   useEffect(() => setMounted(true), []);
@@ -92,10 +96,11 @@ export default function CodexCivilPage() {
           <motion.div
             initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
             onClick={() => setSel(null)}
-            className="fixed inset-0 z-50 flex items-center justify-center p-4"
-            style={{ background: "rgba(6,7,11,0.86)", backdropFilter: "blur(4px)" }}
+            className="modal-scrim"
+            
           >
             <motion.div
+              ref={cajaModal} role="dialog" aria-modal="true" aria-label="Entrada del códex"
               initial={{ scale: 0.92, y: 12 }} animate={{ scale: 1, y: 0 }}
               onClick={(ev) => ev.stopPropagation()}
               data-civ={entrada.region}

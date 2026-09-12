@@ -1,7 +1,7 @@
 "use client";
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { getNpcsInZona } from "@/data/npcs";
+import { npcsDeZona } from "@/data/npcs-v2";
 import { getEventosInZona } from "@/data/eventos-mundo";
 
 // ============================================================================
@@ -35,7 +35,7 @@ export default function ZonaCard({
   href,
   emoji,
 }: ZonaCardProps) {
-  const npcs = getNpcsInZona(zonaId);
+  const npcs = npcsDeZona(zonaId);
   const eventos = getEventosInZona(zonaId);
   const zonaColor = `var(--zona-${zonaId})`;
 

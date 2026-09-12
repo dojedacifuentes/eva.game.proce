@@ -6,6 +6,7 @@ import { sfx } from "@/lib/audio";
 import { ARTICULOS, articulosPorRegion, RAREZA_META, getArticulo } from "@/data/reinos/articulos";
 import { REGIONES } from "@/data/reinos/regiones";
 import { useReinos } from "@/store/useReinos";
+import { useModalAccesible } from "@/lib/useModalAccesible";
 
 // ============================================================================
 // REINOS — Biblioteca del Litigante (coleccionables: artículos legendarios)
@@ -14,6 +15,9 @@ import { useReinos } from "@/store/useReinos";
 export default function BibliotecaPage() {
   const desbloqueados = useReinos((s) => s.articulosDesbloqueados);
   const [mounted, setMounted] = useState(false);
+  // Foco atrapado, Escape y devolución del foco, conservando el arte
+  // propio de este overlay (ver lib/useModalAccesible.ts).
+  const cajaModal = useModalAccesible<HTMLDivElement>(() => setSel(null));
   const [sel, setSel] = useState<string | null>(null);
   useEffect(() => setMounted(true), []);
 
@@ -103,11 +107,12 @@ export default function BibliotecaPage() {
           <motion.div
             initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
             onClick={() => setSel(null)}
-            className="fixed inset-0 z-50 flex items-center justify-center p-5"
-            style={{ background: "rgba(6,7,11,0.86)", backdropFilter: "blur(4px)", perspective: 1100 }}
+            className="modal-scrim"
+            style={{ perspective: 1100 }}
           >
             {/* halo de rareza detrás de la carta */}
             <motion.div
+              ref={cajaModal} role="dialog" aria-modal="true" aria-label="Artículo legendario"
               initial={{ opacity: 0, scale: 0.6 }} animate={{ opacity: 0.5, scale: 1 }}
               transition={{ duration: 0.5 }}
               className="absolute left-1/2 top-1/2 pointer-events-none rounded-full"

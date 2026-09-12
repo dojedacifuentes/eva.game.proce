@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useGame } from "@/store/useGame";
 import { SKILLS, skillsDesbloqueadas, type Skill } from "@/lib/skills";
 import { sfx } from "@/lib/audio";
+import { useModalAccesible } from "@/lib/useModalAccesible";
 
 // ============================================================================
 // GRIMORIO DE SKILLS — vista de habilidades coleccionables
@@ -15,6 +16,9 @@ export default function GrimorioSkills() {
   const pushLog = useGame((s) => s.pushLog);
   const desbloqueadas = skillsDesbloqueadas(logros);
   const [activa, setActiva] = useState<Skill | null>(null);
+  // Foco atrapado, Escape y devolución del foco, conservando el arte
+  // propio de este overlay (ver lib/useModalAccesible.ts).
+  const cajaModal = useModalAccesible<HTMLDivElement>(() => setActiva(null));
   const [usadas, setUsadas] = useState<string[]>([]);
 
   function usar(s: Skill) {
@@ -79,9 +83,10 @@ export default function GrimorioSkills() {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={() => setActiva(null)}
-            className="fixed inset-0 z-50 bg-bg-deep/80 backdrop-blur-sm flex items-center justify-center p-4"
+            className="modal-scrim"
           >
             <motion.div
+              ref={cajaModal} role="dialog" aria-modal="true" aria-label="Detalle de habilidad"
               initial={{ scale: 0.92, y: 12 }}
               animate={{ scale: 1, y: 0 }}
               onClick={(e) => e.stopPropagation()}

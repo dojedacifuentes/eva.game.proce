@@ -2,7 +2,7 @@
 import { useRef, useState } from "react";
 import { useGame } from "@/store/useGame";
 import { sfx } from "@/lib/audio";
-import Dialogo from "./Dialogo";
+import Modal from "./Modal";
 
 /**
  * Respaldo de partida: exportar a JSON e importar.
@@ -99,20 +99,28 @@ export default function GestorPartida() {
 
       {/* Importar reemplaza la partida actual: se pregunta antes. */}
       {pendiente && (
-        <Dialogo
+        <Modal
           titulo="Importar reemplaza tu partida"
-          descripcion={`Se sustituirá el progreso actual${personaje.nombre ? ` de ${personaje.nombre}` : ""} por el del archivo. Exporta antes si quieres conservarlo.`}
+          acento="var(--zona-nulidad-txt)"
+          ancho="md"
+          etiquetaCuerpo="Confirmación de importación de partida"
           onCerrar={() => setPendiente(null)}
+          pie={
+            <div className="flex flex-col sm:flex-row gap-2 w-full">
+              <button type="button" onClick={() => setPendiente(null)} className="btn flex-1">
+                Cancelar
+              </button>
+              <button type="button" onClick={confirmarImportacion} className="btn btn-danger flex-1">
+                Importar y reemplazar
+              </button>
+            </div>
+          }
         >
-          <div className="flex flex-col sm:flex-row gap-2">
-            <button type="button" onClick={() => setPendiente(null)} className="btn text-[11px] px-4 py-2.5 flex-1">
-              Cancelar
-            </button>
-            <button type="button" onClick={confirmarImportacion} className="btn btn-danger text-[11px] px-4 py-2.5 flex-1">
-              Importar y reemplazar
-            </button>
-          </div>
-        </Dialogo>
+          <p className="t-cuerpo txt-normal leading-relaxed m-0">
+            Se sustituirá el progreso actual{personaje.nombre ? ` de ${personaje.nombre}` : ""} por el del
+            archivo. Exporta antes si quieres conservarlo.
+          </p>
+        </Modal>
       )}
     </section>
   );

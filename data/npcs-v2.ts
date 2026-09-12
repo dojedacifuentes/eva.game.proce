@@ -958,3 +958,250 @@ export const NPCS_V2: Record<NpcId, Npc> = {
 
 // Array derivado para iteración — usado por NPCInteractionPanel
 export const TODOS_NPCS: Npc[] = Object.values(NPCS_V2);
+
+
+// ============================================================================
+// ENCUENTROS DE ZONA
+// ----------------------------------------------------------------------------
+// Lo que antes vivía en `data/npcs.ts`, que era un SEGUNDO sistema de NPC en
+// paralelo a éste: el mismo personaje definido dos veces con textos distintos,
+// el modal de zona leyendo del archivo viejo y los arcos de mentor leyendo de
+// aquí. Ahora hay una sola fuente de verdad. Los arcos siguen arriba; esto son
+// los diálogos cortos que el jugador encuentra al visitar la zona.
+//
+// Identificadores unificados con los de este archivo:
+//   doctora_noemí → dra_noemí · abogado_neruda → lic_neruda
+//   profesor_torres → prof_torres
+// ============================================================================
+
+export interface DialogoEncuentro {
+  id: string;
+  texto: string;
+  efecto?: { reputacion?: number; trauma?: number; nivelEconomico?: number };
+}
+
+export interface EncuentroZona {
+  dialogo_inicial: DialogoEncuentro;
+  dialogos: DialogoEncuentro[];
+  mision?: { titulo: string; descripcion: string; recompensa: string };
+}
+
+export const ENCUENTROS_ZONA: Partial<Record<NpcId, EncuentroZona>> = {
+  dra_noemí: {
+    dialogo_inicial: {
+      id: "noemí_001",
+      texto: "Bienvenido a mi juzgado. Aquí la competencia es todo. Un error en jurisdicción = nulidad. ¿Entiendes los alcances de tu acción?",
+      efecto: { reputacion: 0 },
+    },
+    dialogos: [
+      {
+        id: "noemí_002",
+        texto: "He visto abogados arruinarse por no revisar competencia relativa. La materia, el fuero, la cuantía... todo importa.",
+        efecto: { reputacion: 5 },
+      },
+      {
+        id: "noemí_003",
+        texto: "La demanda debe cumplir art. 254 al pie de la letra. Ni una coma fuera de lugar. Eso es lo que nos diferencia del caos.",
+        efecto: { reputacion: 10 },
+      },
+      {
+        id: "noemí_004",
+        texto: "¿Inhibitoria o declinatoria? Muchos se confunden. Inhibitoria es para invocar competencia a favor de otro tribunal. Declinatoria es para rechazar la propia.",
+        efecto: { reputacion: 15 },
+      },
+    ],
+    mision: {
+      titulo: "Resolver caso de competencia cuestionada",
+      descripcion: "Una demanda fue interpuesta ante tribunal incompetente por materia. Debe determinarse si procede inhibitoria o declinatoria.",
+      recompensa: "+15 Reputación · +20 Ciclo Procesal",
+    },
+  },
+  juez_silva: {
+    dialogo_inicial: {
+      id: "silva_001",
+      texto: "Las cautelares son el arma más peligrosa del proceso. Una medida mal concedida destruye patrimonios. Por eso soy cauteloso... con todo.",
+      efecto: { reputacion: 0 },
+    },
+    dialogos: [
+      {
+        id: "silva_002",
+        texto: "Art. 273 a 302. Las prejudiciales son anteriores al proceso. Las precautorias preparatorias. Innominadas en el 298. Cada una con su régimen.",
+        efecto: { reputacion: 5 },
+      },
+      {
+        id: "silva_003",
+        texto: "Para obtener una cautelar conmigo necesitas: verosimilitud del derecho, peligro en la demora, y contracautela. Sin eso, rechazaré de plano.",
+        efecto: { reputacion: 10 },
+      },
+      {
+        id: "silva_004",
+        texto: "He visto litigantes gastar fortunas en cautelares inútiles. La verdadera estrategia es prever qué necesitarás antes de que suceda.",
+        efecto: { reputacion: 8 },
+      },
+    ],
+    mision: {
+      titulo: "Justificar una medida cautelar urgente",
+      descripcion: "Un embargo debe decretarse sin previo traslado. Demuestra que sin él el deudor dispersará su patrimonio.",
+      recompensa: "+12 Reputación · Embargo Express skill",
+    },
+  },
+  receptor_castro: {
+    dialogo_inicial: {
+      id: "castro_001",
+      texto: "He notificado abogados, jueces, traficantes. Los demandados son creativos en desaparecer. Art. 40-46 es mi biblia, pero en el terreno es pura improvisación.",
+      efecto: { reputacion: 0 },
+    },
+    dialogos: [
+      {
+        id: "castro_002",
+        texto: "Personal es la mejor. Entre 6 AM y 22 PM, en el domicilio. Pero si el tipo no está... subsidiaria: dos intentos en días distintos.",
+        efecto: { reputacion: 5 },
+      },
+      {
+        id: "castro_003",
+        texto: "Publicación en diario oficial. El último recurso. Sirve cuando el demandado es prácticamente inubicable o intenta evadir notificación.",
+        efecto: { reputacion: 10 },
+      },
+      {
+        id: "castro_004",
+        texto: "Carta certificada post-subsidiaria. Muchos olvidan esto. Sin ella, la notificación es incompleta. He visto nulidades por esto.",
+        efecto: { reputacion: 7 },
+      },
+    ],
+    mision: {
+      titulo: "Notificar a demandado evasivo",
+      descripcion: "Un demandado cambió tres veces de domicilio. Debes lograr notificación válida dentro de 30 días.",
+      recompensa: "+10 Reputación · Blindaje del 44 skill",
+    },
+  },
+  lic_neruda: {
+    dialogo_inicial: {
+      id: "neruda_001",
+      texto: "He interpuesto apelaciones que nadie creía que funcionarían. La clave: leer la ley como si fuera poesía. Hay grietas en todas partes.",
+      efecto: { reputacion: 0 },
+    },
+    dialogos: [
+      {
+        id: "neruda_002",
+        texto: "Art. 186-190. Apelación. 15 días. Demandante y demandado pueden. El tribunal de apelaciones revisa de novo.",
+        efecto: { reputacion: 5 },
+      },
+      {
+        id: "neruda_003",
+        texto: "Casación en la forma: 768. Vicios de procedimiento. Casación en el fondo: 775. Errores de derecho sustantivo. Ambas son desasimiento.",
+        efecto: { reputacion: 10 },
+      },
+      {
+        id: "neruda_004",
+        texto: "La Corte Suprema leo como quien lee a Cortázar: entre líneas. Donde otros ven silencio, yo veo jurisprudencia.",
+        efecto: { reputacion: 12 },
+      },
+    ],
+    mision: {
+      titulo: "Preparar apelación imposible",
+      descripcion: "Sentencia adversa con argumentación floja. Identifica 3 vicios que justifiquen apelación exitosa.",
+      recompensa: "+15 Reputación · +1 Ciclo Procesal",
+    },
+  },
+  escribana_gloria: {
+    dialogo_inicial: {
+      id: "gloria_001",
+      texto: "Un documento bien hecho vale más que cien testigos. Por eso los instrumentos públicos son irrefutables en su forma, aunque no en su contenido.",
+      efecto: { reputacion: 0 },
+    },
+    dialogos: [
+      {
+        id: "gloria_002",
+        texto: "Art. 1700 CC. Instrumento público prueba hasta la tacha de falsedad. Privado requiere reconocimiento para ser plena prueba.",
+        efecto: { reputacion: 5 },
+      },
+      {
+        id: "gloria_003",
+        texto: "Pericia caligráfica. Cuando la falsedad es cuestionada, necesitas experto. He visto casos ganarse o perderse por una firma.",
+        efecto: { reputacion: 10 },
+      },
+      {
+        id: "gloria_004",
+        texto: "La confesión de parte es la mejor prueba. Art. 1709. Si el adversario confiesa, no hay nada que probar.",
+        efecto: { reputacion: 8 },
+      },
+    ],
+    mision: {
+      titulo: "Autenticar documento cuestionado",
+      descripcion: "Una letra de cambio es impugnada como falsificada. Debes obtener pericia caligráfica que la valide.",
+      recompensa: "+12 Reputación · +10 Nivel Económico",
+    },
+  },
+  prof_torres: {
+    dialogo_inicial: {
+      id: "torres_001",
+      texto: "La cosa juzgada es el corazón del proceso. Art. 175, 177. Seguridad jurídica. Pero cuidado: no es tan simple como parece.",
+      efecto: { reputacion: 0 },
+    },
+    dialogos: [
+      {
+        id: "torres_002",
+        texto: "¿Diferencia entre cosa juzgada material y cosa juzgada formal? Formal: se ejecutoria sin apelación. Material: produce estabilidad permanente.",
+        efecto: { reputacion: 5 },
+      },
+      {
+        id: "torres_003",
+        texto: "Preclusión. Art. 64. Es la muerte de un derecho por inactividad. Bilateralidad. Art. 76. Ambas partes deben ser oídas. Estos son los pilares.",
+        efecto: { reputacion: 10 },
+      },
+      {
+        id: "torres_004",
+        texto: "La jurisprudencia es ley viva. La Corte Suprema sienta precedentes. ¿Cómo se argumenta contra jurisprudencia consolidada? Con más jurisprudencia.",
+        efecto: { reputacion: 15 },
+      },
+    ],
+    mision: {
+      titulo: "Escribir ensayo doctrinario",
+      descripcion: "Analiza si una sentencia anterior produce cosa juzgada en este nuevo conflicto. Identidad de partes, objeto, causa.",
+      recompensa: "+20 Reputación · Unlock: Doctrinal Mode",
+    },
+  },
+};
+
+
+/** NPC que habita una zona del mapa y tiene encuentro corto. */
+export function npcsDeZona(zona: string): Npc[] {
+  const alterno = zona === "cosajuzgada" ? "cosa_juzgada" : zona === "cosa_juzgada" ? "cosajuzgada" : zona;
+  return Object.values(NPCS_V2).filter(
+    (n) => (n.zona === zona || n.zona === alterno) && ENCUENTROS_ZONA[n.id] !== undefined,
+  );
+}
+
+/** Encuentro de zona de un NPC, si lo tiene. */
+export function encuentroDe(id: NpcId): EncuentroZona | undefined {
+  return ENCUENTROS_ZONA[id];
+}
+
+/** Un NPC por su id. */
+export function getNpcV2(id: NpcId): Npc | undefined {
+  return NPCS_V2[id];
+}
+
+/**
+ * Retratos. El campo `emoji` de cada NPC es un símbolo de su MATERIA (candado
+ * para cautelares, buzón para notificaciones), que funciona como icono de zona
+ * pero no como cara: en el medallón del diálogo salía un candado en lugar del
+ * personaje. Esto da la figura humana; el símbolo se conserva para lo demás.
+ */
+export const RETRATOS: Partial<Record<NpcId, string>> = {
+  dra_noemí: "👩‍⚖️",
+  juez_silva: "🧑‍⚖️",
+  receptor_castro: "🧑‍💼",
+  lic_neruda: "🕵️",
+  escribana_gloria: "👩‍💼",
+  prof_torres: "👨‍🏫",
+  fiscal_mendoza: "🧑‍💻",
+  paralegal_diego: "🧑‍🎓",
+  secretaria_patricia: "👩‍💻",
+  juez_supremo_araya: "👑",
+};
+
+/** Retrato del personaje; si no lo tiene, su símbolo de materia. */
+export function retratoDe(id: NpcId): string {
+  return RETRATOS[id] ?? NPCS_V2[id]?.emoji ?? "🧑";
+}

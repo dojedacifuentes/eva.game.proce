@@ -1,100 +1,98 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { getNpcsInZona, type NpcId } from "@/data/npcs";
-import { getEventosInZona, shouldEventOccur, type EventoMundo } from "@/data/eventos-mundo";
+import { sfx } from "@/lib/audio";
+import { npcsDeZona, retratoDe, type NpcId } from "@/data/npcs-v2";
+import { getEventosInZona, type EventoMundo } from "@/data/eventos-mundo";
 import EncuentroNpc from "./EncuentroNpc";
 import EventoMundoModal from "./EventoMundoModal";
+import RetratoNpc from "./game/RetratoNpc";
 
-interface ZonaExplorador {
+// ============================================================================
+// EXPLORADOR DE ZONA — habitantes y eventos de un mundo.
+//
+// Antes abría el modal del NPC SOLO, en el primer render, tapando el contenido
+// de la zona antes de que el jugador pudiera verlo. Ahora los habitantes se
+// presentan como tarjetas y el encuentro lo abre quien quiere hablar.
+// ============================================================================
+
+export default function ZonaExplorador({
+  zona,
+  children,
+}: {
   zona: string;
-  children: React.ReactNode;
-}
-
-export default function ZonaExplorador({ zona, children }: ZonaExplorador) {
-  const [npcsEnZona, setNpcsEnZona] = useState<NpcId[]>([]);
-  const [eventosEnZona, setEventosEnZona] = useState<EventoMundo[]>([]);
+  children?: React.ReactNode;
+}) {
+  const [npcs, setNpcs] = useState<NpcId[]>([]);
+  const [eventos, setEventos] = useState<EventoMundo[]>([]);
   const [npcActual, setNpcActual] = useState<NpcId | null>(null);
   const [eventoActual, setEventoActual] = useState<EventoMundo | null>(null);
-  const [explorado, setExplorado] = useState(false);
 
-  // Al montar o cambiar de zona, cargar NPCs y eventos
   useEffect(() => {
-    const npcs = getNpcsInZona(zona);
-    const eventos = getEventosInZona(zona);
-
-    // Mapear NPCs a sus IDs
-    const npcIds = npcs.map((npc) => npc.id as NpcId);
-    setNpcsEnZona(npcIds);
-    setEventosEnZona(eventos);
-
-    // Iniciar exploración: mostrar NPC si hay, sino evento
-    if (npcIds.length > 0) {
-      setNpcActual(npcIds[0]);
-    } else {
-      verificarEventos(eventos);
-    }
+    setNpcs(npcsDeZona(zona).map((n) => n.id));
+    setEventos(getEventosInZona(zona));
   }, [zona]);
 
-  const verificarEventos = (eventos: EventoMundo[]) => {
-    for (const evento of eventos) {
-      if (shouldEventOccur(evento)) {
-        setEventoActual(evento);
-        return;
-      }
-    }
-    // Si no hay eventos, marcar como explorado
-    setExplorado(true);
-  };
-
-  const cerrarNpc = () => {
-    setNpcActual(null);
-
-    // Después de NPC, verificar si hay más NPCs
-    const siguienteNpcIdx = npcsEnZona.indexOf(npcActual!) + 1;
-    if (siguienteNpcIdx < npcsEnZona.length) {
-      setNpcActual(npcsEnZona[siguienteNpcIdx]);
-    } else {
-      // Si no hay más NPCs, verificar eventos
-      verificarEventos(eventosEnZona);
-    }
-  };
-
-  const cerrarEvento = () => {
-    setEventoActual(null);
-    setExplorado(true);
-  };
+  const habitantes = npcsDeZona(zona);
 
   return (
     <>
-      {/* Indicador de exploración */}
-      {!explorado && (
-        <motion.div
-          initial={{ opacity: 0, y: -10 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="mb-4 p-3 bg-zona-recursos/10 border border-zona-recursos/50 rounded text-xs text-zona-recursos font-mono-terminal"
-        >
-          🔍 Exploración en progreso... NPCs: {npcsEnZona.length} | Eventos: {eventosEnZona.length}
-        </motion.div>
+      {/* Habitantes de la zona: el encuentro es una decisión, no una emboscada */}
+      {habitantes.length > 0 && (
+        <section className="mb-4" aria-labelledby="titulo-habitantes">
+          <h2 id="titulo-habitantes" className="t-etiqueta text-zona-competencia mb-2">
+            Quién está aquí
+          </h2>
+          <div className="flex flex-wrap gap-2">
+            {habitantes.map((npc) => (
+              <motion.button
+                key={npc.id}
+                type="button"
+                whileHover={{ y: -2 }}
+                onClick={() => { setNpcActual(npc.id); sfx.click?.(); }}
+                onMouseEnter={() => sfx.hover?.()}
+                className="panel flex items-center gap-3 p-3 text-left transition-all hover:brightness-125 min-h-[44px]"
+                style={{ maxWidth: "22rem" }}
+              >
+                <RetratoNpc emoji={retratoDe(npc.id)} acento="var(--zona-competencia)" size={46} />
+                <span className="min-w-0">
+                  <span className="block font-display-grave t-base txt-fuerte leading-tight truncate">
+                    {npc.nombre}
+                  </span>
+                  <span className="block t-meta txt-suave truncate">{npc.titulo}</span>
+                  <span className="block t-micro font-mono-terminal text-zona-competencia mt-0.5">
+                    Hablar →
+                  </span>
+                </span>
+              </motion.button>
+            ))}
+          </div>
+        </section>
       )}
 
-      {/* Contenido de la zona */}
+      {/* Eventos de la zona */}
+      {eventos.length > 0 && (
+        <div className="mb-3 flex flex-wrap gap-2">
+          {eventos.map((ev) => (
+            <button
+              key={ev.id}
+              type="button"
+              onClick={() => { setEventoActual(ev); sfx.click?.(); }}
+              className="btn text-zona-oralidad border-zona-oralidad/45"
+            >
+              ⚠ {ev.titulo ?? "Atender evento"}
+            </button>
+          ))}
+        </div>
+      )}
+
       {children}
 
-      {/* NPC Modal */}
-      {npcActual && (
-        <EncuentroNpc
-          npcId={npcActual}
-          onCerrar={cerrarNpc}
-        />
-      )}
-
-      {/* Evento Modal */}
+      {/* Montaje condicional del padre: nada de AnimatePresence, que dejaba
+          copias del overlay montadas en opacity 0. */}
+      {npcActual && <EncuentroNpc npcId={npcActual} onCerrar={() => setNpcActual(null)} />}
       {eventoActual && (
-        <EventoMundoModal
-          evento={eventoActual}
-          onCerrar={cerrarEvento}
-        />
+        <EventoMundoModal evento={eventoActual} onCerrar={() => setEventoActual(null)} />
       )}
     </>
   );

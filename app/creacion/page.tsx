@@ -8,7 +8,7 @@ import type { Atributos, Origen, Personaje, Rol } from "@/types/game";
 import { sfx } from "@/lib/audio";
 import GameShell from "@/components/shell/GameShell";
 import EvaMark from "@/components/shell/EvaMark";
-import Dialogo from "@/components/shell/Dialogo";
+import Modal from "@/components/shell/Modal";
 import { EVA } from "@/lib/brand";
 import {
   ORIGENES as ORIGEN,
@@ -272,34 +272,38 @@ export default function Creacion() {
 
       {/* Confirmación de reemplazo. Sólo después de un "sí" se toca lo guardado. */}
       {confirmando && (
-        <Dialogo
+        <Modal
           titulo="Vas a reemplazar tu partida"
-          descripcion={`Se perderá el progreso de ${personajeActual.nombre} (nivel ${nivelActual}): misiones, logros, reliquias y monedas. Esta acción no se puede deshacer.`}
+          acento="var(--zona-nulidad-txt)"
+          ancho="md"
+          etiquetaCuerpo="Confirmación de reemplazo de partida"
           onCerrar={() => setConfirmando(false)}
+          pie={
+            <div className="flex flex-col sm:flex-row gap-2 w-full">
+              <button
+                type="button"
+                onClick={() => { setConfirmando(false); sfx.click?.(); }}
+                className="btn flex-1"
+              >
+                Conservar la actual
+              </button>
+              <button type="button" onClick={comenzarDeVerdad} className="btn btn-danger flex-1">
+                Sí, reemplazar
+              </button>
+            </div>
+          }
         >
-          <div className="flex flex-col sm:flex-row gap-2">
-            <button
-              type="button"
-              onClick={() => { setConfirmando(false); sfx.click?.(); }}
-              className="btn text-[11px] px-4 py-2.5 flex-1"
-            >
-              Conservar la actual
-            </button>
-            <button
-              type="button"
-              onClick={comenzarDeVerdad}
-              className="btn btn-danger text-[11px] px-4 py-2.5 flex-1"
-            >
-              Sí, reemplazar
-            </button>
-          </div>
+          <p className="t-cuerpo txt-normal leading-relaxed m-0">
+            Se perderá el progreso de <strong className="txt-fuerte">{personajeActual.nombre}</strong> (nivel{" "}
+            {nivelActual}): misiones, logros, reliquias y monedas. Esta acción no se puede deshacer.
+          </p>
           <Link
             href="/inventario"
-            className="block text-center font-mono-terminal text-[9px] uppercase tracking-widest text-doc-aged/40 hover:text-zona-competencia mt-3"
+            className="block text-center t-meta font-mono-terminal uppercase tracking-widest txt-suave hover:text-zona-competencia mt-4 py-2"
           >
             Antes quiero exportar mi partida
           </Link>
-        </Dialogo>
+        </Modal>
       )}
     </GameShell>
   );
