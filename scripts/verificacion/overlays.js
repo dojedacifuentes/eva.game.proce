@@ -10,6 +10,11 @@ const OVERLAYS = [
   { id: 'npc-zona', ruta: '/mundo/cautelares', abrir: async (p) => {
       await p.locator('button:has-text("Hablar")').first().click({ timeout: 6000 });
     } },
+  // Ajustes de sonido: el botón de la cabecera. Sustituyó al control que
+  // ciclaba entre tres estados sin decir cuáles eran.
+  { id: 'audio-panel', ruta: '/juego', abrir: async (p) => {
+      await p.locator('header button[aria-haspopup="dialog"]').first().click({ timeout: 6000 });
+    } },
   // /mundo/conciliacion no tiene escenas narrativas por delante (escenasMundo
   // lo deja vacío) y su zona, cosajuzgada, es la que más eventos trae: el
   // explorador se monta de inmediato y el botón del evento está a la vista.

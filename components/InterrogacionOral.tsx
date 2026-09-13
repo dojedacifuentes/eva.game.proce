@@ -9,6 +9,7 @@ import { AvatarBoss } from "@/components/AvataresJuridicos";
 import { sfx } from "@/lib/audio";
 import { fx } from "@/lib/fx";
 import { haptica } from "@/lib/haptica";
+import { useAtajosAlternativas, letraDeOpcion } from "@/lib/useAtajosAlternativas";
 import { shuffleOptions } from "@/lib/shuffleOptions";
 
 const TODOS = [...BOSSES, ...BOSSES_EXTRA];
@@ -99,6 +100,11 @@ export default function InterrogacionOral({ bossId, onFin }: { bossId: BossId; o
     if (!ataque) return null;
     return shuffleOptions(ataque.opciones, "correcta");
   }, [ataqueIdx, bossId]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Teclas 1-4 y A-D mientras no haya réplica en pantalla. Va aquí arriba por la
+  // regla de la casa —todos los hooks antes del retorno condicional—; `responder`
+  // es una declaración de función, así que se puede nombrar antes de definirla.
+  useAtajosAlternativas(shuffled?.options.length ?? 0, responder, !feedback && !terminado);
 
   // ── RETORNO CONDICIONAL DESPUÉS DE TODOS LOS HOOKS ───────────────────────
   if (!boss) {
@@ -281,8 +287,16 @@ export default function InterrogacionOral({ bossId, onFin }: { bossId: BossId; o
                 : elegida === i ? "mal"
                 : "apagada";
               return (
-                <button key={`${ataqueIdx}-${i}`} type="button" disabled={!!feedback} onClick={() => responder(i)} className="opcion" data-estado={estado}>
-                  <span className="opcion-letra" aria-hidden="true">{estado === "ok" ? "✓" : estado === "mal" ? "✗" : String.fromCharCode(65 + i)}</span>
+                <button
+                  key={`${ataqueIdx}-${i}`}
+                  type="button"
+                  disabled={!!feedback}
+                  onClick={() => responder(i)}
+                  className="opcion"
+                  data-estado={estado}
+                  aria-keyshortcuts={!feedback ? `${i + 1} ${letraDeOpcion(i)}` : undefined}
+                >
+                  <span className="opcion-letra" aria-hidden="true">{estado === "ok" ? "✓" : estado === "mal" ? "✗" : letraDeOpcion(i)}</span>
                   <span>{op.texto}</span>
                 </button>
               );

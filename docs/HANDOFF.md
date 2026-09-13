@@ -47,8 +47,11 @@ Node **24.x**. Sin variables de entorno, sin claves, sin backend.
 | Personajes, diálogos de zona y misiones | `data/npcs-v2.ts` (fuente única) |
 | Sonido | `lib/audio.ts` (todo generado, sin archivos) |
 | Vibración en móvil | `lib/haptica.ts` |
+| Volumen y modos de sonido | `components/shell/PanelAudio.tsx` + `setVolumen()` en `lib/audio.ts` |
 | La espera entre preguntas de una actividad | `lib/useAvanceAutomatico.ts` + `components/shell/PistaAvance.tsx` |
+| Las teclas que responden una alternativa | `lib/useAtajosAlternativas.ts` (con pruebas) |
 | El aviso de subida de nivel | `components/shell/AvisoNivel.tsx` + `lib/progreso.ts` (con pruebas) |
+| La racha de días de estudio | `lib/racha.ts` (con pruebas) + los campos del guardado que actualiza `avanzarRacha()` en `store/useGame.ts` |
 | El mapa de campaña (nodos, cables, distritos, detalle) | `components/MapaFlujo.tsx` |
 | El fondo de toda la aplicación | `components/FondoCiudad.tsx` (SVG estático, componente de servidor) |
 
@@ -109,6 +112,12 @@ Cada una de estas costó un fallo real. Están aquí para que no se repitan.
   `key` deja **copias fantasma montadas**. Con `reactStrictMode` se nota como
   contenido duplicado y desplazado. Si el padre ya monta condicionalmente, no
   hace falta `AnimatePresence`.
+- **Ningún hook detrás de un `return`.** `MissionRunner` e `InterrogacionOral`
+  tienen retornos tempranos (misión sin contenido, jefe inexistente) y el lint lo
+  caza en cuanto un hook queda debajo. En ambos el atajo de teclado se declara
+  arriba del todo; el cuerpo sólo corre al pulsar una tecla, cuando las funciones
+  que nombra ya existen. `InterrogacionOral` lleva rotulada la convención:
+  «TODOS LOS HOOKS PRIMERO».
 - **Nunca llames a una función con efectos desde dentro de un actualizador de
   estado.** `setTiempo(s => { if (s <= 0) fallar(); … })` parecía inocente y no lo
   era: al agotarse el reloj, la respuesta seguía sin registrarse, el intervalo no

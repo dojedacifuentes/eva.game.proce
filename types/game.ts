@@ -328,4 +328,10 @@ export type SaveState = {
   // Sistema de inventario — reliquias procesales
   relicsEquipadas: string[];   // IDs de reliquias actualmente equipadas (máx. 3)
   relicsCompradas: string[];   // IDs de reliquias compradas (historial)
+
+  // Constancia. Ver lib/racha.ts: cuenta días con actividad real, no visitas.
+  rachaDias: number;
+  mejorRacha: number;
+  ultimoDiaJugado: string;     // AAAA-MM-DD en hora local
+  actividadesHoy: number;
 };

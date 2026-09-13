@@ -51,6 +51,32 @@ Esta tanda se integró **sobre** la v4, que llegó a `main` mientras estaba en
 curso. Las cifras de §2 son las del resultado combinado, medidas después de
 resolver la fusión; no las de ninguna de las dos ramas por separado.
 
+## 1·ter · Segunda tanda: el juego responde
+
+| Qué | Antes | Ahora |
+|---|---|---|
+| **Constancia** | Nada medía si el jugador vuelve, que es lo único que decide un examen de grado | `lib/racha.ts`: días seguidos con **actividad real**, no visitas. Sólo avanza desde `gainXp` y `completarMision`. Día en hora local, no UTC. 15 pruebas: cambio de mes, de año, 29 de febrero y reloj movido hacia atrás |
+| **Responder con el teclado** | Había que llevar la mano al ratón en cada pregunta | `lib/useAtajosAlternativas.ts`: teclas **1-9 y A-I**, en misiones, cédula e interrogatorio. Se apagan mientras hay respuesta en pantalla y nunca roban teclas a un campo de texto ni a un diálogo |
+| **Volumen** | No existía: encendido o apagado, con la ganancia fijada en el código | `setVolumen()` con rampa corta —para que no chasquee al mover el control mientras suena el ambiente— y memoria por navegador |
+| **Elegir qué suena** | Un botón que ciclaba entre tres estados sin decir cuáles eran | `PanelAudio`: los tres modos a la vista, con su explicación, más el volumen |
+
+La racha añade cuatro campos al guardado. No hace falta migración: `sanearEstado`
+rellena las claves ausentes, así que una partida anterior empieza la racha en
+cero sin perder nada de lo suyo.
+
+**Medido después de esta tanda**, sobre el build de producción: lint y typecheck
+limpios, **67/67** pruebas, build **46/46**, **9/9** modales sin hallazgos —el
+panel de sonido entra al arnés—, **0** pantallas sin poder avanzar en móvil, **0
+px** de scroll de documento y de desborde en los cinco tamaños, **336 textos**
+sin ninguno bajo 12 px ni bajo AA, y **0** hallazgos de accesibilidad.
+
+Las teclas y la racha no se ven en una captura, así que tienen guion propio,
+`teclado.js`: **9/9**. Su primera versión pasaba **en vacío** —comprobaba la
+racha contra la cédula, que no otorga XP hasta la última pregunta, de modo que
+nunca llegaba a escribirse—; ahora juega una misión entera y comprueba que la
+racha se abre en 1 con la fecha local de hoy, y que limitarse a navegar no la
+toca.
+
 ---
 
 ## 2 · Medición de hoy

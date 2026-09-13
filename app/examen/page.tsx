@@ -3,6 +3,8 @@ import Link from "next/link";
 import { useState } from "react";
 import { useGame } from "@/store/useGame";
 import { sfx } from "@/lib/audio";
+import { haptica } from "@/lib/haptica";
+import { useAtajosAlternativas, letraDeOpcion } from "@/lib/useAtajosAlternativas";
 import GameShell from "@/components/shell/GameShell";
 
 type Q = { q: string; opciones: string[]; correcta: number; explicacion: string; art: string };
@@ -42,9 +44,19 @@ export default function ExamenPage() {
   function contestar(idx: number) {
     if (respuesta !== null) return;
     setRespuesta(idx);
-    if (idx === p.correcta) { setAciertos((a) => a + 1); sfx.confirm?.(); }
-    else sfx.inadmisible?.();
+    if (idx === p.correcta) {
+      setAciertos((a) => a + 1);
+      sfx.confirm?.();
+      haptica.acierto();
+    } else {
+      sfx.inadmisible?.();
+      haptica.error();
+    }
   }
+
+  // Teclas 1-4 y A-D. Se apagan en cuanto hay respuesta en pantalla, para que
+  // una pulsación de más no conteste la pregunta siguiente sin leerla.
+  useAtajosAlternativas(p?.opciones.length ?? 0, contestar, respuesta === null && !terminado);
 
   function avanzar() {
     sfx.click?.();
@@ -119,8 +131,18 @@ export default function ExamenPage() {
                 : idx === respuesta ? "mal"
                 : "apagada";
               return (
-                <button key={idx} type="button" disabled={respuesta !== null} onClick={() => contestar(idx)} className="opcion" data-estado={estado}>
-                  <span className="opcion-letra" aria-hidden="true">{estado === "ok" ? "✓" : estado === "mal" ? "✗" : String.fromCharCode(65 + idx)}</span>
+                <button
+                  key={idx}
+                  type="button"
+                  disabled={respuesta !== null}
+                  onClick={() => contestar(idx)}
+                  className="opcion"
+                  data-estado={estado}
+                  // La letra ya se ve en el botón; esto le dice a quien usa
+                  // lector de pantalla que además es un atajo.
+                  aria-keyshortcuts={respuesta === null ? `${idx + 1} ${letraDeOpcion(idx)}` : undefined}
+                >
+                  <span className="opcion-letra" aria-hidden="true">{estado === "ok" ? "✓" : estado === "mal" ? "✗" : letraDeOpcion(idx)}</span>
                   <span>{op}</span>
                 </button>
               );

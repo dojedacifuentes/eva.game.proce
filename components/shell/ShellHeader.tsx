@@ -3,13 +3,12 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useGame } from "@/store/useGame";
 import { useHydrated } from "@/lib/useHydrated";
-import {
-  isMuted, setMuted, stopAmbient, sfx,
-  startAmbienteHipnotico, stopAmbienteHipnotico,
-} from "@/lib/audio";
+import { isMuted, sfx } from "@/lib/audio";
 import { haptica } from "@/lib/haptica";
+import { rachaVigente } from "@/lib/racha";
 import { JUEGO } from "@/lib/brand";
 import EvaMark from "./EvaMark";
+import PanelAudio, { type ModoAudio } from "./PanelAudio";
 
 /** Preferencia de audio del jugador, recordada entre sesiones. */
 const CLAVE_AUDIO = "foro-invisible:audio";
@@ -46,10 +45,15 @@ export default function ShellHeader({
   const nivel = useGame((s) => s.nivel);
   const xp = useGame((s) => s.xp);
   const monedas = useGame((s) => s.monedas);
+  const rachaDias = useGame((s) => s.rachaDias);
+  const mejorRacha = useGame((s) => s.mejorRacha);
+  const ultimoDiaJugado = useGame((s) => s.ultimoDiaJugado);
+  const actividadesHoy = useGame((s) => s.actividadesHoy);
 
-  // Tres estados en un solo control:
-  //   apagado → sólo efectos → efectos + ambiente de estudio
-  const [audio, setAudio] = useState<"apagado" | "efectos" | "estudio">("apagado");
+  // El modo de sonido se elige en un panel, no ciclando un botón: ciclar obliga
+  // a pulsar hasta acertar y nunca dice qué opciones existen.
+  const [audio, setAudio] = useState<ModoAudio>("apagado");
+  const [panelAudio, setPanelAudio] = useState(false);
   useEffect(() => {
     if (isMuted()) return;
     try {
@@ -59,37 +63,22 @@ export default function ShellHeader({
     }
   }, []);
 
-  function alternarAudio() {
-    const siguiente: Record<typeof audio, typeof audio> = {
-      apagado: "efectos",
-      efectos: "estudio",
-      estudio: "apagado",
-    };
-    const nuevo = siguiente[audio];
-    setAudio(nuevo);
-    setMuted(nuevo === "apagado");
-    try { localStorage.setItem(CLAVE_AUDIO, nuevo); } catch { /* sin persistencia */ }
-
-    if (nuevo === "apagado") {
-      stopAmbienteHipnotico();
-      stopAmbient();
-    } else if (nuevo === "efectos") {
-      stopAmbienteHipnotico();
-      sfx.click?.();
-    } else {
-      startAmbienteHipnotico();
-    }
+  function elegirModo(m: ModoAudio) {
+    setAudio(m);
+    try { localStorage.setItem(CLAVE_AUDIO, m); } catch { /* sin persistencia */ }
   }
 
   const ESTADO_AUDIO = {
-    apagado: { icono: "🔇", etiqueta: "Sonido apagado. Activar efectos" },
-    efectos: { icono: "🔊", etiqueta: "Efectos activos. Activar ambiente de estudio" },
-    estudio: { icono: "🌊", etiqueta: "Ambiente de estudio activo. Apagar el sonido" },
+    apagado: { icono: "🔇", etiqueta: "Sonido apagado. Abrir ajustes de sonido" },
+    efectos: { icono: "🔊", etiqueta: "Efectos activos. Abrir ajustes de sonido" },
+    estudio: { icono: "🌊", etiqueta: "Ambiente de estudio activo. Abrir ajustes de sonido" },
   }[audio];
 
   // Hasta que el estado persistido esté leído no se afirma nada del jugador.
   const hayPartida = hydrated && !!personaje.nombre;
   const xpEnNivel = xp % 100;
+  // Mirar la racha no la reescribe: sólo se actualiza cuando el jugador estudia.
+  const racha = hydrated ? rachaVigente({ rachaDias, mejorRacha, ultimoDiaJugado, actividadesHoy }) : 0;
 
   return (
     <header className="shell-header">
@@ -161,16 +150,37 @@ export default function ShellHeader({
           </Link>
         )}
 
+        {/* Racha: sólo aparece cuando hay algo que celebrar. Un «0 días» a la
+            vista desanima más de lo que motiva. */}
+        {!compacto && hayPartida && racha > 0 && (
+          <span
+            className="cabecera-racha"
+            title={`${racha} ${racha === 1 ? "día seguido" : "días seguidos"} estudiando · mejor marca: ${mejorRacha}`}
+          >
+            <span aria-hidden="true">🔥</span>
+            <span>{racha}</span>
+            <span className="sr-only">
+              {racha === 1 ? "día seguido" : "días seguidos"} estudiando. Mejor marca: {mejorRacha}.
+            </span>
+          </span>
+        )}
+
         <button
           type="button"
-          onClick={alternarAudio}
+          onClick={() => { sfx.tap?.(); setPanelAudio(true); }}
           aria-label={ESTADO_AUDIO.etiqueta}
+          aria-haspopup="dialog"
           title={ESTADO_AUDIO.etiqueta}
           className="cabecera-boton text-lg"
         >
           <span aria-hidden="true">{ESTADO_AUDIO.icono}</span>
         </button>
       </div>
+
+      {/* Montaje condicional del padre: ver el gotcha del overlay fantasma. */}
+      {panelAudio && (
+        <PanelAudio modo={audio} onModo={elegirModo} onCerrar={() => setPanelAudio(false)} />
+      )}
     </header>
   );
 }

@@ -10,13 +10,35 @@ let audioCtx: AudioContext | null = null;
 let masterGain: GainNode | null = null;
 let muted = false;
 
+/** Ganancia del bus principal cuando el volumen está al máximo. */
+const GANANCIA_MAXIMA = 0.35;
+const CLAVE_VOLUMEN = "foro-invisible:volumen";
+
+/** Volumen del jugador, 0-1. Antes no existía: sólo había encendido o apagado. */
+let volumen = 1;
+
+function leerVolumenGuardado(): number {
+  if (typeof window === "undefined") return 1;
+  try {
+    const bruto = Number(localStorage.getItem(CLAVE_VOLUMEN));
+    return Number.isFinite(bruto) && bruto >= 0 && bruto <= 1 ? bruto : 1;
+  } catch {
+    return 1;
+  }
+}
+
+/** Ganancia efectiva del bus, ya con silencio y volumen aplicados. */
+function ganancia(): number {
+  return muted ? 0 : GANANCIA_MAXIMA * volumen;
+}
+
 function ctx() {
   if (typeof window === "undefined") return null;
   if (!audioCtx) {
     try {
       audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)();
       masterGain = audioCtx.createGain();
-      masterGain.gain.value = 0.35;
+      masterGain.gain.value = ganancia();
       masterGain.connect(audioCtx.destination);
     } catch {
       return null;
@@ -28,7 +50,7 @@ function ctx() {
 export function setMuted(m: boolean) {
   muted = m;
   if (typeof window !== "undefined") localStorage.setItem("rpgproce-audio-muted", m ? "1" : "0");
-  if (masterGain) masterGain.gain.value = m ? 0 : 0.35;
+  if (masterGain) masterGain.gain.value = ganancia();
 }
 
 export function isMuted(): boolean {
@@ -36,9 +58,32 @@ export function isMuted(): boolean {
   return localStorage.getItem("rpgproce-audio-muted") === "1";
 }
 
+/**
+ * Fija el volumen (0-1) y lo recuerda. La rampa corta evita el chasquido que
+ * produce cambiar una ganancia de golpe mientras suena el ambiente.
+ */
+export function setVolumen(v: number) {
+  volumen = Math.min(1, Math.max(0, Number.isFinite(v) ? v : 1));
+  if (typeof window !== "undefined") {
+    try { localStorage.setItem(CLAVE_VOLUMEN, String(volumen)); } catch { /* sin persistencia */ }
+  }
+  const c = audioCtx;
+  if (masterGain && c) {
+    masterGain.gain.cancelScheduledValues(c.currentTime);
+    masterGain.gain.linearRampToValueAtTime(ganancia(), c.currentTime + 0.08);
+  } else if (masterGain) {
+    masterGain.gain.value = ganancia();
+  }
+}
+
+export function getVolumen(): number {
+  return volumen;
+}
+
 // Inicializa según localStorage
 if (typeof window !== "undefined") {
   muted = isMuted();
+  volumen = leerVolumenGuardado();
 }
 
 // ─────────────────────────── HELPER GENÉRICO ───────────────────────────

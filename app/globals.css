@@ -1632,6 +1632,23 @@ body { font-size: var(--t-base); line-height: 1.5; }
 .cabecera-ficha .nivel { color: #58F5B0; }
 .cabecera-ficha .monedas { color: #E3C27E; }
 
+/* Racha de estudio. Sólo se pinta cuando hay días que enseñar: un cero a la
+   vista desanima más de lo que motiva. */
+.cabecera-racha {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  gap: .3rem;
+  height: 44px;
+  padding: 0 .6rem;
+  border-radius: 10px;
+  border: 1px solid #6B4A1F;
+  background: #1A1206;
+  font-size: 14px;
+  font-weight: 700;
+  color: #F0B44B;
+}
+
 /* ── Navegación inferior ──────────────────────────────────────────────────── */
 .nav-lista {
   max-width: 40rem;

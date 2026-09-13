@@ -174,6 +174,18 @@ la interfaz se edita ahí y en ningún sitio más.
 - **`lib/useAvanceAutomatico.ts`** convierte la espera entre preguntas en un
   máximo adelantable: cualquier toque, Enter o flecha derecha sigue al momento, y
   una barra muestra cuánto falta. Antes eran 1,5 s fijos por pregunta.
+- **`lib/useAtajosAlternativas.ts`** enlaza las teclas **1-9 y A-I** con las
+  alternativas en pantalla: una tanda entera sin soltar el teclado. Se apagan
+  mientras hay respuesta a la vista, y nunca roban teclas a un campo de texto ni
+  a un diálogo abierto.
+
+### Constancia
+
+`lib/racha.ts` cuenta **días seguidos con actividad real** —no visitas—: el
+contador sólo avanza desde `gainXp` y `completarMision`. Usa el día en hora
+**local**, porque con UTC la racha saltaría a mitad de sesión para quien estudia
+de noche. Mirar la racha no la reescribe. 15 pruebas cubren el cambio de mes, de
+año, el 29 de febrero y el reloj movido hacia atrás.
 
 ### Sonido y tacto
 
@@ -188,8 +200,10 @@ la interfaz se edita ahí y en ningún sitio más.
   `prefers-reduced-motion`. Safari de iOS no implementa `navigator.vibrate`, así
   que en iPhone no vibra nada: nunca es el único canal de información.
 
-Todo arranca en silencio y se controla desde la cabecera (apagado → efectos →
-ambiente de estudio).
+Todo arranca en silencio. El botón de la cabecera abre **`PanelAudio`**, con los
+tres modos a la vista —silencio, efectos, ambiente— y un **control de volumen**
+real, que se recuerda en el navegador. Antes era un botón que ciclaba entre tres
+estados sin decir cuáles había, y el volumen estaba fijado en el código.
 
 ---
 

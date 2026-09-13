@@ -9,6 +9,7 @@ import { getWorldDefinition } from "@/data/worlds";
 import { useGame } from "@/store/useGame";
 import { sfx } from "@/lib/audio";
 import { haptica } from "@/lib/haptica";
+import { useAtajosAlternativas, letraDeOpcion } from "@/lib/useAtajosAlternativas";
 import GameShell from "@/components/shell/GameShell";
 import { colorActo } from "@/components/MapaFlujo";
 
@@ -61,6 +62,19 @@ export default function MissionRunner({ missionId }: { missionId: string }) {
     if (nextMission) return `/mision/${nextMission.id}`;
     return `/boss/${acto.bossId}`;
   }, [game.misionesCompletadas, missionEntry, missionId]);
+
+  // Teclas 1-N y A-N sobre las opciones **barajadas**: el índice de la tecla es
+  // la posición en pantalla, no la del banco de datos. Va antes del retorno
+  // condicional porque un hook no puede quedar detrás de un `return`; el cuerpo
+  // sólo se ejecuta al pulsar una tecla, cuando `answer` ya está definida.
+  useAtajosAlternativas(
+    orden?.length ?? 0,
+    (pos) => {
+      const ops = playbook?.challenge.options;
+      if (orden && ops) answer(ops[orden[pos]]);
+    },
+    fase === "desafio" && !!orden,
+  );
 
   if (!missionEntry || !playbook) {
     return (
@@ -221,8 +235,14 @@ export default function MissionRunner({ missionId }: { missionId: string }) {
                 {orden.map((oi, pos) => {
                   const option = opciones[oi];
                   return (
-                    <button key={option.id} type="button" onClick={() => answer(option)} className="opcion">
-                      <span className="opcion-letra" aria-hidden="true">{String.fromCharCode(65 + pos)}</span>
+                    <button
+                      key={option.id}
+                      type="button"
+                      onClick={() => answer(option)}
+                      className="opcion"
+                      aria-keyshortcuts={`${pos + 1} ${letraDeOpcion(pos)}`}
+                    >
+                      <span className="opcion-letra" aria-hidden="true">{letraDeOpcion(pos)}</span>
                       <span>{option.text}</span>
                     </button>
                   );

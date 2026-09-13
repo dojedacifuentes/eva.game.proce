@@ -7,6 +7,7 @@ import type {
   ProgresionNpc, EstadoNpc, MundoVisual,
 } from "@/types/game";
 import { getRelicById, MAX_RELICS_EQUIPADAS } from "@/data/relics";
+import { RACHA_INICIAL, registrarActividad, type EstadoRacha } from "@/lib/racha";
 
 type Store = SaveState & {
   /** true en cuanto `persist` terminó de leer localStorage. NO se persiste. */
@@ -102,11 +103,31 @@ export function crearEstadoInicial(): SaveState {
     misionesCompletadas: [],
     relicsEquipadas: [],
     relicsCompradas: [],
+    // `sanearEstado` rellena las claves ausentes, así que un guardado anterior a
+    // la racha simplemente empieza de cero sin perder nada.
+    ...RACHA_INICIAL,
   };
 }
 
 /** Claves que se persisten: exactamente las del estado guardado, ni una más. */
 const CLAVES_PERSISTIDAS = Object.keys(crearEstadoInicial()) as (keyof SaveState)[];
+
+/**
+ * Avanza la racha un paso desde el estado guardado.
+ *
+ * Se llama desde `gainXp` y `completarMision`, que son los dos puntos por los
+ * que pasa cualquier progreso real. Abrir la aplicación no cuenta: la racha mide
+ * estudio, no visitas. Los `??` cubren un guardado anterior a estos campos que
+ * llegara sin pasar por `sanearEstado`.
+ */
+function avanzarRacha(s: SaveState): EstadoRacha {
+  return registrarActividad({
+    rachaDias: s.rachaDias ?? 0,
+    mejorRacha: s.mejorRacha ?? 0,
+    ultimoDiaJugado: s.ultimoDiaJugado ?? "",
+    actividadesHoy: s.actividadesHoy ?? 0,
+  });
+}
 
 /**
  * Convierte a `Map` cualquiera de las formas en que `npcesEnProgreso` puede
@@ -419,7 +440,7 @@ export const useGame = create<Store>()(
           const newXp = s.xp + Math.round(bonus);
           const xpPerLevel = 100;
           const newNivel = Math.min(20, Math.floor(newXp / xpPerLevel) + 1);
-          return { xp: newXp, nivel: newNivel, ultimoGuardado: Date.now() };
+          return { ...avanzarRacha(s), xp: newXp, nivel: newNivel, ultimoGuardado: Date.now() };
         }),
       gainMonedas: (amount) =>
         set((s) => {
@@ -446,6 +467,7 @@ export const useGame = create<Store>()(
           const xpPerLevel = 100;
           const newNivel = Math.min(20, Math.floor(newXp / xpPerLevel) + 1);
           return {
+            ...avanzarRacha(s),
             misionesCompletadas: [...s.misionesCompletadas, id],
             xp: newXp,
             nivel: newNivel,
