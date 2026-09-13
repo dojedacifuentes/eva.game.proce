@@ -60,7 +60,6 @@ export default function Codex() {
           <div className="tag mb-2">CODEX PROCESAL</div>
           <h1 className="label-art text-3xl text-zona-notificaciones">Articulado mínimo y temas clave</h1>
         </div>
-        <Link href="/" className="btn">◂ Inicio</Link>
       </div>
 
       {/* El marcador de posición no es una etiqueta: desaparece al escribir y

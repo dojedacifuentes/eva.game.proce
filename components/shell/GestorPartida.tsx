@@ -12,8 +12,7 @@ import Modal from "./Modal";
  *     el sitio original no tiene forma de llevarse su avance a la copia nueva;
  *     esto se la da.
  *  2. Es la red de seguridad frente a cualquier cambio futuro del formato de
- *     guardado. La migración anterior borraba la partida en cada cambio de
- *     versión, y aunque eso ya está corregido, conviene poder respaldar.
+ *     guardado.
  *
  * La descarga usa un Blob local: no se envía nada a ningún servidor.
  */
@@ -58,23 +57,23 @@ export default function GestorPartida() {
   }
 
   return (
-    <section className="terminal p-4 space-y-3">
-      <h2 className="font-mono-terminal text-[9px] uppercase tracking-widest text-zona-competencia">
+    <section className="tarjeta p-4 space-y-3">
+      <h2 className="rotulo m-0" style={{ color: "#4BE7FF" }}>
         Respaldo de partida
       </h2>
-      <p className="font-mono-terminal text-[9px] text-doc-aged/45 leading-snug">
-        Tu progreso se guarda en este navegador y en este dominio. Expórtalo para
-        conservarlo o llevarlo a otro equipo.
+      <p className="t-base txt-normal leading-snug m-0">
+        Tu progreso se guarda en este navegador y en este dominio. Expórtalo para conservarlo o llevarlo a otro
+        equipo.
       </p>
 
-      <div className="flex flex-wrap gap-2">
-        <button type="button" onClick={exportar} className="btn text-[11px] px-3 py-2">
+      <div className="grid sm:grid-cols-2 gap-2">
+        <button type="button" onClick={exportar} className="btn-secundario">
           ↓ Exportar partida
         </button>
         <button
           type="button"
           onClick={() => { sfx.click?.(); archivo.current?.click(); }}
-          className="btn text-[11px] px-3 py-2"
+          className="btn-secundario"
         >
           ↑ Importar partida
         </button>
@@ -92,7 +91,7 @@ export default function GestorPartida() {
       </div>
 
       {aviso && (
-        <p className="font-mono-terminal text-[9px] text-zona-cautelares" role="status" aria-live="polite">
+        <p className="t-meta m-0" style={{ color: "#58F5B0" }} role="status" aria-live="polite">
           {aviso}
         </p>
       )}
@@ -107,7 +106,7 @@ export default function GestorPartida() {
           onCerrar={() => setPendiente(null)}
           pie={
             <div className="flex flex-col sm:flex-row gap-2 w-full">
-              <button type="button" onClick={() => setPendiente(null)} className="btn flex-1">
+              <button type="button" onClick={() => setPendiente(null)} className="btn-secundario flex-1">
                 Cancelar
               </button>
               <button type="button" onClick={confirmarImportacion} className="btn btn-danger flex-1">

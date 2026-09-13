@@ -1,5 +1,4 @@
 "use client";
-import Link from "next/link";
 import { ENCUENTROS_ZONA, NPCS_V2 } from "@/data/npcs-v2";
 import { EVENTOS_MUNDO } from "@/data/eventos-mundo";
 import ZonaCard from "@/components/ZonaCard";
@@ -100,8 +99,7 @@ export default function MundoHub() {
     <GameShell variant="focus" eyebrow="Mundos" title="Zonas procesales" back={{ href: "/mundos", label: "Mundos" }} scrollLabel="Zonas del juego base">
       <div className="min-h-screen px-4 md:px-8 py-8 max-w-6xl mx-auto">
       {/* Header */}
-      <header className="mb-8">
-        <Link href="/juego" className="btn mb-4 inline-block">◂ Volver al mapa principal</Link>
+      <header className="mb-6">
         <div className="font-mono-terminal text-[10px] uppercase tracking-[.3em] text-zona-competencia mb-2">
           MUNDO JUDICIAL VIVO
         </div>
@@ -116,7 +114,8 @@ export default function MundoHub() {
       </header>
 
       {/* Stats */}
-      <div className="grid grid-cols-3 md:grid-cols-5 gap-2 mb-8">
+      {/* En el teléfono las cifras empujaban las zonas fuera de la pantalla. */}
+      <div className="hidden sm:grid grid-cols-3 md:grid-cols-5 gap-2 mb-8">
         {STATS.map((s) => (
           <div key={s.label} className="terminal p-3 text-center">
             <div className="text-lg font-display-grave" style={{ color: s.color }}>{s.val}</div>

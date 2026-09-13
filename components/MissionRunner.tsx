@@ -1,26 +1,53 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { useMemo, useState, type CSSProperties } from "react";
 import { useRouter } from "next/navigation";
-import { motion, AnimatePresence } from "framer-motion";
-import { CAMPAÑA, getMision } from "@/data/campaign";
+import { getMision } from "@/data/campaign";
 import { getMissionPlaybook, type MissionOption } from "@/data/mission-playbooks";
 import { getWorldDefinition } from "@/data/worlds";
 import { useGame } from "@/store/useGame";
 import { sfx } from "@/lib/audio";
 import GameShell from "@/components/shell/GameShell";
+import { colorActo } from "@/components/MapaFlujo";
 
-type Phase = "briefing" | "dossier" | "challenge" | "result";
+// ============================================================================
+// MISIÓN — tres fases en una columna legible: Caso → Desafío → Resultado.
+//
+// Antes eran cuatro fases (briefing y expediente por separado), un titular de
+// hasta 48 px, una columna lateral de progreso/riesgo/foco que en el teléfono
+// caía debajo de todo, y el botón de avance al final del contenido. Ahora:
+//  · briefing y expediente son una sola lectura (un toque menos por misión);
+//  · la fase y el riesgo viajan pegados arriba;
+//  · la acción que hace avanzar va pegada abajo, siempre visible;
+//  · las opciones se barajan al entrar al desafío, para que la respuesta no
+//    dependa de la posición.
+// ============================================================================
+
+type Fase = "caso" | "desafio" | "resultado";
+const FASES: { id: Fase; nombre: string }[] = [
+  { id: "caso", nombre: "Caso" },
+  { id: "desafio", nombre: "Desafío" },
+  { id: "resultado", nombre: "Resultado" },
+];
+
+function barajar(n: number): number[] {
+  const idx = Array.from({ length: n }, (_, i) => i);
+  for (let i = idx.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [idx[i], idx[j]] = [idx[j], idx[i]];
+  }
+  return idx;
+}
 
 export default function MissionRunner({ missionId }: { missionId: string }) {
   const router = useRouter();
   const missionEntry = getMision(missionId);
   const playbook = getMissionPlaybook(missionId);
   const game = useGame();
-  const [phase, setPhase] = useState<Phase>("briefing");
+  const [fase, setFase] = useState<Fase>("caso");
   const [selected, setSelected] = useState<MissionOption | null>(null);
-  const [attempts, setAttempts] = useState(0);
+  const [orden, setOrden] = useState<number[] | null>(null);
   const [risk, setRisk] = useState(18);
   const [completedNow, setCompletedNow] = useState(false);
 
@@ -36,27 +63,33 @@ export default function MissionRunner({ missionId }: { missionId: string }) {
 
   if (!missionEntry || !playbook) {
     return (
-      <GameShell variant="focus" eyebrow="Campaña" title="Misión" back={{ href: "/juego", label: "Hub" }} scrollLabel="Contenido de la misión">
-      <div className="min-h-screen px-4 md:px-8 py-8 max-w-4xl mx-auto">
-        <Link href="/juego" className="btn text-xs">Volver al mapa</Link>
-        <div className="terminal p-6 mt-6">
-          <h1 className="font-display-grave text-2xl text-doc-aged">Mision no encontrada</h1>
-          <p className="text-doc-aged/60 text-sm mt-2 font-mono-terminal">
-            La ruta existe, pero no hay playbook jugable para esta mision.
-          </p>
+      <GameShell variant="focus" eyebrow="Campaña" title="Misión" back={{ href: "/juego", label: "Mapa" }} scrollLabel="Contenido de la misión">
+        <div className="max-w-2xl mx-auto tarjeta p-5 mt-3">
+          <h2 className="text-xl font-bold txt-fuerte">Misión no encontrada</h2>
+          <p className="t-cuerpo txt-normal mt-2">La ruta existe, pero no hay contenido jugable para esta misión.</p>
+          <Link href="/juego" className="btn-primario mt-4">Volver al mapa</Link>
         </div>
-      </div>
-    </GameShell>
+      </GameShell>
     );
   }
 
   const { acto, mision } = missionEntry;
   const world = getWorldDefinition(playbook.worldId);
+  const col = colorActo(acto.zona);
+  const numero = acto.misiones.findIndex((m) => m.id === mision.id) + 1;
   const isCorrect = selected?.correct ?? false;
+  const idxFase = FASES.findIndex((f) => f.id === fase);
+  const opciones = playbook.challenge.options;
+
+  const irADesafio = () => {
+    sfx.click?.();
+    setSelected(null);
+    setOrden(barajar(opciones.length));
+    setFase("desafio");
+  };
 
   const answer = (option: MissionOption) => {
     setSelected(option);
-    setAttempts((n) => n + 1);
     if (option.correct) {
       sfx.confirm?.();
     } else {
@@ -66,7 +99,7 @@ export default function MissionRunner({ missionId }: { missionId: string }) {
       game.ajustarReputacion(-1);
       game.pushLog(`Error en ${mision.titulo}: ${option.feedback}`, "mision");
     }
-    setPhase("result");
+    setFase("resultado");
   };
 
   const completeMission = () => {
@@ -89,304 +122,217 @@ export default function MissionRunner({ missionId }: { missionId: string }) {
     router.push(nextUrl);
   };
 
-  const retry = () => {
-    setSelected(null);
-    setPhase("challenge");
-    sfx.click?.();
-  };
+  const acento = { "--acento": col.c } as CSSProperties;
 
   return (
-    <GameShell variant="focus" eyebrow="Campaña" title="Misión" back={{ href: "/juego", label: "Hub" }} scrollLabel="Contenido de la misión">
-      <div
-      className="min-h-screen px-4 md:px-8 py-6 pb-24"
-      style={{
-        background: `
-          radial-gradient(900px 500px at 8% 0%, ${world.palette.primary}1c, transparent 60%),
-          radial-gradient(800px 460px at 92% 15%, ${world.palette.secondary}18, transparent 62%),
-          linear-gradient(180deg, ${world.palette.surface}, var(--bg-deep) 72%)
-        `,
-      }}
+    <GameShell
+      variant="focus"
+      eyebrow={`Acto ${acto.numero} · Misión ${numero}/${acto.misiones.length}`}
+      title={mision.titulo}
+      back={{ href: "/juego", label: "Mapa" }}
+      scrollLabel="Contenido de la misión"
+      scrollKey={fase}
     >
-      <div className="max-w-6xl mx-auto">
-        <header className="flex items-center justify-between gap-3 flex-wrap mb-5">
-          <div className="flex gap-2 flex-wrap">
-            <Link href="/juego" className="btn text-xs">Volver al mapa</Link>
-            <Link href={world.route} className="btn btn-recurso text-xs">Explorar mundo</Link>
-          </div>
-          <div className="font-mono-terminal text-[9px] uppercase tracking-[.25em] text-doc-aged/45">
-            Acto {acto.numero} / {world.shortTitle} / {mision.tipo}
-          </div>
-        </header>
-
-        <section className="grid lg:grid-cols-[minmax(0,1fr)_320px] gap-5 items-start">
-          <div className="space-y-4">
-            <div className="zona-card p-5 md:p-6" style={{ "--zona-color": world.palette.primary } as React.CSSProperties}>
-              <div className="font-mono-terminal text-[9px] uppercase tracking-[.35em] mb-2" style={{ color: world.palette.primary }}>
-                {playbook.subtitle}
-              </div>
-              <h1 className="font-display-grave text-3xl md:text-5xl text-doc-aged leading-tight">
-                {playbook.title}
-              </h1>
-              <p className="font-serif-juridica text-doc-aged/70 text-sm md:text-base mt-3 max-w-2xl">
-                {world.tagline}
-              </p>
+      <div className="max-w-3xl w-full mx-auto flex flex-col min-h-full">
+        {/* ── Fase y riesgo, siempre arriba ── */}
+        <div className="hud-fijo flex items-center gap-3" style={acento}>
+          <ol className="pasos" aria-label="Fases de la misión">
+            {FASES.map((f, i) => (
+              <li key={f.id} data-estado={i < idxFase ? "hecho" : i === idxFase ? "actual" : "pendiente"} aria-current={i === idxFase ? "step" : undefined}>
+                <span className="pasos-num" aria-hidden="true">{i < idxFase ? "✓" : i + 1}</span>
+                <span>{f.nombre}</span>
+              </li>
+            ))}
+          </ol>
+          <div className="shrink-0 w-24" title="Riesgo procesal: sube con cada error">
+            <div className="flex justify-between t-micro font-datos">
+              <span className="txt-suave">Riesgo</span>
+              <span style={{ color: risk > 65 ? "#F08585" : "#E3C27E" }}>{risk}%</span>
             </div>
+            <div className="medidor mt-1" style={{ height: 6 }} aria-hidden="true">
+              <span style={{ width: `${risk}%`, background: risk > 65 ? "#F08585" : "#D7B46A" }} />
+            </div>
+          </div>
+        </div>
 
-            <AnimatePresence mode="wait">
-              {phase === "briefing" && (
-                <MotionPanel key="briefing" color={world.palette.primary}>
-                  <NpcBlock playbook={playbook} color={world.palette.primary} />
-                  <div className="border-t border-doc-aged/10 pt-4">
-                    <div className="font-mono-terminal text-[9px] uppercase tracking-widest text-doc-aged/45 mb-2">
-                      Objetivo pedagogico
-                    </div>
-                    <p className="text-doc-aged/75 text-sm leading-relaxed font-mono-terminal">
-                      {world.mechanic}
-                    </p>
-                  </div>
-                  <button className="btn btn-cyan w-full py-3" onClick={() => setPhase("dossier")}>
-                    Abrir expediente
-                  </button>
-                </MotionPanel>
-              )}
+        <div className="flex-1 pt-3 space-y-4">
+          {fase === "caso" && (
+            <>
+              <div className="rotulo" style={{ color: col.txt }}>{playbook.subtitle}</div>
 
-              {phase === "dossier" && (
-                <MotionPanel key="dossier" color={world.palette.primary}>
-                  <div>
-                    <div className="font-mono-terminal text-[9px] uppercase tracking-widest mb-2" style={{ color: world.palette.primary }}>
-                      Expediente {playbook.dossier.rol}
-                    </div>
-                    <div className="grid md:grid-cols-2 gap-3">
-                      <DossierList title="Hechos" items={playbook.dossier.facts} />
-                      <DossierList title="Pistas" items={playbook.dossier.clues} />
-                    </div>
+              {/* Quién te habla */}
+              <section className="tarjeta p-4" aria-label="Encargo">
+                <div className="flex items-center gap-3">
+                  <span
+                    className="w-12 h-12 shrink-0 rounded-xl grid place-items-center font-datos font-bold text-[15px]"
+                    style={{ background: "#151B27", border: `2px solid ${col.c}`, color: col.txt }}
+                    aria-hidden="true"
+                  >
+                    {playbook.npc.avatar}
+                  </span>
+                  <div className="min-w-0">
+                    <div className="text-[16px] font-semibold txt-fuerte leading-tight">{playbook.npc.name}</div>
+                    <div className="t-meta txt-suave">{playbook.npc.role}</div>
                   </div>
-                  <button className="btn btn-recurso w-full py-3" onClick={() => setPhase("challenge")}>
-                    Formular estrategia
-                  </button>
-                </MotionPanel>
-              )}
+                </div>
+                <p className="cita mt-3 mb-0">«{playbook.npc.line}»</p>
+              </section>
 
-              {phase === "challenge" && (
-                <MotionPanel key="challenge" color={world.palette.primary}>
-                  <div>
-                    <div className="flex items-center justify-between gap-3 mb-3">
-                      <div className="font-mono-terminal text-[9px] uppercase tracking-widest" style={{ color: world.palette.primary }}>
-                        Desafio / {playbook.challenge.kind}
-                      </div>
-                      <span className="tag" style={{ borderColor: world.palette.primary, color: world.palette.primary }}>
-                        {playbook.feedback.article}
-                      </span>
-                    </div>
-                    <h2 className="font-display-grave text-xl md:text-2xl text-doc-aged leading-snug">
-                      {playbook.challenge.prompt}
-                    </h2>
-                  </div>
-                  <div className="space-y-2">
-                    {playbook.challenge.options.map((option, idx) => (
-                      <button
-                        key={option.id}
-                        onClick={() => answer(option)}
-                        onMouseEnter={() => sfx.hover?.()}
-                        className="w-full text-left p-3 border border-doc-aged/15 hover:border-doc-aged/35 transition-colors"
-                      >
-                        <div className="flex gap-3">
-                          <span className="font-mono-terminal text-[10px] opacity-50">{String.fromCharCode(65 + idx)}</span>
-                          <span className="text-sm text-doc-aged/85 font-mono-terminal leading-relaxed">{option.text}</span>
-                        </div>
-                      </button>
-                    ))}
-                  </div>
-                </MotionPanel>
-              )}
+              {/* Expediente */}
+              <section className="tarjeta p-4" aria-labelledby="t-expediente">
+                <h2 id="t-expediente" className="rotulo m-0" style={{ color: col.txt }}>
+                  Expediente {playbook.dossier.rol}
+                </h2>
+                <ol className="mt-3 space-y-2.5 list-none p-0">
+                  {playbook.dossier.facts.map((f, i) => (
+                    <li key={i} className="flex gap-3 t-cuerpo txt-normal leading-snug">
+                      <span className="font-datos t-meta txt-suave shrink-0 w-5 text-right">{i + 1}.</span>
+                      <span>{f}</span>
+                    </li>
+                  ))}
+                </ol>
+                <div className="rotulo mt-4">Pistas</div>
+                <div className="flex flex-wrap gap-2 mt-2">
+                  {playbook.dossier.clues.map((c) => (
+                    <span key={c} className="chip">{c}</span>
+                  ))}
+                </div>
+              </section>
 
-              {phase === "result" && selected && (
-                <MotionPanel key="result" color={isCorrect ? "var(--zona-cautelares)" : "var(--zona-nulidad)"}>
-                  <div className="flex items-start gap-3">
-                    <div
-                      className="w-12 h-12 border flex items-center justify-center font-display-grave"
-                      style={{
-                        color: isCorrect ? "var(--zona-cautelares)" : "var(--zona-nulidad)",
-                        borderColor: isCorrect ? "var(--zona-cautelares)" : "var(--zona-nulidad)",
-                      }}
-                    >
-                      {isCorrect ? "OK" : "NO"}
-                    </div>
-                    <div>
-                      <div
-                        className="font-mono-terminal text-[9px] uppercase tracking-widest mb-1"
-                        style={{ color: isCorrect ? "var(--zona-cautelares)" : "var(--zona-nulidad)" }}
-                      >
-                        {isCorrect ? "Decision correcta" : "Decision riesgosa"}
-                      </div>
-                      <p className="font-serif-juridica text-doc-aged/85 text-base leading-relaxed">
-                        {selected.feedback}
-                      </p>
-                    </div>
-                  </div>
+              <p className="t-meta txt-suave m-0">
+                <span className="font-semibold txt-normal">Objetivo: </span>{world.mechanic}
+              </p>
+              <Link href={world.route} onClick={() => sfx.click?.()} className="inline-block t-meta underline underline-offset-4" style={{ color: col.txt }}>
+                Explorar el mundo de esta materia →
+              </Link>
+            </>
+          )}
 
-                  <div className="grid md:grid-cols-2 gap-3">
-                    <FeedbackBox label="Consecuencia procesal" text={selected.consequence} />
-                    <FeedbackBox label="Institucion" text={playbook.feedback.institution} />
-                    <FeedbackBox label="Articulo clave" text={playbook.feedback.article} />
-                    <FeedbackBox label="Como decirlo en grado" text={playbook.feedback.exam} />
-                  </div>
+          {fase === "desafio" && orden && (
+            <>
+              <div className="rotulo" style={{ color: col.txt }}>Desafío</div>
+              <h2 className="text-[19px] md:text-[21px] font-semibold txt-fuerte leading-snug m-0">
+                {playbook.challenge.prompt}
+              </h2>
+              <div className="space-y-2.5" role="group" aria-label="Opciones">
+                {orden.map((oi, pos) => {
+                  const option = opciones[oi];
+                  return (
+                    <button key={option.id} type="button" onClick={() => answer(option)} className="opcion">
+                      <span className="opcion-letra" aria-hidden="true">{String.fromCharCode(65 + pos)}</span>
+                      <span>{option.text}</span>
+                    </button>
+                  );
+                })}
+              </div>
+            </>
+          )}
 
-                  {isCorrect ? (
-                    <div className="space-y-3">
-                      <div className="p-3 border border-zona-cautelares/40 bg-zona-cautelares/5">
-                        <div className="font-display-grave text-zona-cautelares text-sm">{playbook.unlock.title}</div>
-                        <p className="text-doc-aged/65 text-xs mt-1 font-mono-terminal">{playbook.unlock.description}</p>
-                        {!alreadyDone && (
-                          <p className="text-zona-prueba text-xs mt-2 font-mono-terminal">
-                            +{mision.recompensa.xp} XP / +{mision.recompensa.monedas} monedas
-                          </p>
-                        )}
-                      </div>
-                      <button className="btn btn-cautelar w-full py-3" onClick={completeMission}>
-                        Cobrar recompensa y continuar
-                      </button>
+          {fase === "resultado" && selected && (
+            <>
+              <section
+                className="tarjeta p-4"
+                style={{ borderColor: isCorrect ? "#58F5B0" : "#F08585", background: isCorrect ? "#0F1B18" : "#1C1215" }}
+                aria-live="polite"
+              >
+                <div className="flex items-start gap-3">
+                  <span
+                    className="w-11 h-11 shrink-0 rounded-full grid place-items-center text-xl font-bold"
+                    style={{ background: isCorrect ? "#58F5B0" : "#F08585", color: "#050A09" }}
+                    aria-hidden="true"
+                  >
+                    {isCorrect ? "✓" : "✗"}
+                  </span>
+                  <div className="min-w-0">
+                    <div className="text-[17px] font-bold" style={{ color: isCorrect ? "#58F5B0" : "#F08585" }}>
+                      {isCorrect ? "Decisión correcta" : "Decisión riesgosa"}
                     </div>
-                  ) : (
-                    <div className="flex gap-2 flex-wrap">
-                      <button className="btn btn-danger flex-1" onClick={retry}>
-                        Reintentar razonadamente
-                      </button>
-                      <button className="btn flex-1" onClick={() => setPhase("dossier")}>
-                        Revisar expediente
-                      </button>
-                    </div>
+                    <p className="t-cuerpo txt-normal leading-snug mt-1 mb-0">{selected.feedback}</p>
+                  </div>
+                </div>
+              </section>
+
+              <div className="grid md:grid-cols-2 gap-3">
+                <Caja rotulo="Consecuencia procesal" texto={selected.consequence} />
+                <Caja rotulo="Cómo decirlo en grado" texto={playbook.feedback.exam} />
+              </div>
+
+              <div className="flex flex-wrap gap-2">
+                <span className="chip">{playbook.feedback.institution}</span>
+                <span className="chip font-datos">{playbook.feedback.article}</span>
+              </div>
+
+              {isCorrect && (
+                <section className="tarjeta p-4" style={{ borderColor: "#2C5A48" }}>
+                  <div className="rotulo" style={{ color: "#58F5B0" }}>Desbloqueas</div>
+                  <div className="text-[17px] font-semibold txt-fuerte mt-1">{playbook.unlock.title}</div>
+                  <p className="t-meta txt-suave mt-1 mb-0">{playbook.unlock.description}</p>
+                  {!alreadyDone && !completedNow && (
+                    <p className="chip chip-premio mt-3 mb-0">+{mision.recompensa.xp} XP · 🪙 {mision.recompensa.monedas}</p>
                   )}
-                </MotionPanel>
+                </section>
               )}
-            </AnimatePresence>
-          </div>
 
-          <aside className="space-y-3 lg:sticky lg:top-4">
-            <div className="terminal p-4">
-              <div className="font-mono-terminal text-[9px] uppercase tracking-widest text-doc-aged/45 mb-2">Progreso de mision</div>
-              <ProgressStep label="Briefing" active={phase === "briefing"} done={phase !== "briefing"} />
-              <ProgressStep label="Expediente" active={phase === "dossier"} done={["challenge", "result"].includes(phase)} />
-              <ProgressStep label="Desafio" active={phase === "challenge"} done={phase === "result"} />
-              <ProgressStep label="Feedback" active={phase === "result"} done={alreadyDone || completedNow} />
-            </div>
+              <div>
+                <div className="rotulo">Para repasar</div>
+                <div className="flex flex-wrap gap-2 mt-2">
+                  {world.examFocus.map((x) => <span key={x} className="chip font-datos">{x}</span>)}
+                </div>
+                <p className="t-meta txt-suave mt-3 mb-0">{playbook.nextHint}</p>
+              </div>
 
-            <div className="terminal p-4">
-              <div className="flex justify-between text-[9px] font-mono-terminal uppercase tracking-widest mb-2">
-                <span className="text-doc-aged/45">Riesgo procesal</span>
-                <span className={risk > 65 ? "text-zona-nulidad" : "text-zona-prueba"}>{risk}%</span>
-              </div>
-              <div className="h-2 bg-bg-deep border border-doc-aged/10">
-                <div
-                  className="h-full transition-all"
-                  style={{
-                    width: `${risk}%`,
-                    background: risk > 65 ? "var(--zona-nulidad)" : "var(--zona-prueba)",
-                  }}
-                />
-              </div>
-              <p className="text-[10px] text-doc-aged/45 mt-3 font-mono-terminal">
-                Fallar no bloquea el aprendizaje: aumenta trauma, baja reputacion y exige reintento con feedback.
-              </p>
-            </div>
+              {!isCorrect && (
+                <p className="t-meta txt-suave m-0">
+                  Fallar no bloquea el aprendizaje: sube el riesgo, baja un punto de reputación y puedes reintentar.
+                </p>
+              )}
+            </>
+          )}
 
-            <div className="terminal p-4">
-              <div className="font-mono-terminal text-[9px] uppercase tracking-widest text-zona-recursos mb-2">
-                Foco examen
-              </div>
-              <div className="space-y-1">
-                {world.examFocus.map((x) => (
-                  <div key={x} className="text-[10px] font-mono-terminal text-doc-aged/65 border border-doc-aged/10 px-2 py-1">
-                    {x}
-                  </div>
-                ))}
-              </div>
-              <p className="text-[10px] text-doc-aged/35 mt-3 font-serif-juridica italic">{playbook.nextHint}</p>
-            </div>
+          {alreadyDone && (
+            <p className="t-meta m-0" style={{ color: "#58F5B0" }}>
+              ✓ Misión ya completada. Puedes repetirla para estudiar sin duplicar la recompensa.
+            </p>
+          )}
+        </div>
 
-            {alreadyDone && (
-              <div className="p-3 border border-zona-cautelares/40 bg-zona-cautelares/5 text-zona-cautelares text-xs font-mono-terminal">
-                Mision ya completada. Puedes repetirla para estudiar sin duplicar recompensa.
-              </div>
-            )}
-          </aside>
-        </section>
+        {/* ── La acción que hace avanzar, siempre a la vista ── */}
+        <div className="barra-accion">
+          {fase === "caso" && (
+            <button type="button" className="btn-primario" style={acento} onClick={irADesafio}>
+              Resolver el caso →
+            </button>
+          )}
+          {fase === "desafio" && (
+            <button type="button" className="btn-secundario" onClick={() => { sfx.click?.(); setFase("caso"); }}>
+              ← Volver al expediente
+            </button>
+          )}
+          {fase === "resultado" && (isCorrect ? (
+            <button type="button" className="btn-primario" style={{ "--acento": "#58F5B0" } as CSSProperties} onClick={completeMission}>
+              {alreadyDone || completedNow ? "Continuar →" : "Cobrar recompensa y continuar →"}
+            </button>
+          ) : (
+            <>
+              <button type="button" className="btn-secundario" onClick={() => { sfx.click?.(); setFase("caso"); }}>
+                Revisar expediente
+              </button>
+              <button type="button" className="btn-primario" style={acento} onClick={irADesafio}>
+                Reintentar
+              </button>
+            </>
+          ))}
+        </div>
       </div>
-    </div>
     </GameShell>
   );
 }
-function MotionPanel({ color, children }: { color: string; children: React.ReactNode }) {
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: 12 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: -8 }}
-      className="terminal p-5 md:p-6 space-y-5"
-      style={{ borderColor: `${color}66` }}
-    >
-      {children}
-    </motion.div>
-  );
-}
 
-function NpcBlock({ playbook, color }: { playbook: ReturnType<typeof getMissionPlaybook> extends infer T ? NonNullable<T> : never; color: string }) {
+function Caja({ rotulo, texto }: { rotulo: string; texto: string }) {
   return (
-    <div className="flex items-start gap-4">
-      <div
-        className="w-16 h-16 shrink-0 border flex items-center justify-center font-display-grave text-lg"
-        style={{
-          borderColor: color,
-          color,
-          background: `${color}12`,
-          boxShadow: `0 0 24px ${color}22`,
-        }}
-      >
-        {playbook.npc.avatar}
-      </div>
-      <div>
-        <div className="font-mono-terminal text-[9px] uppercase tracking-widest mb-1" style={{ color }}>
-          {playbook.npc.role}
-        </div>
-        <h2 className="font-display-grave text-xl text-doc-aged">{playbook.npc.name}</h2>
-        <p className="font-serif-juridica text-doc-aged/75 text-sm mt-2 leading-relaxed">"{playbook.npc.line}"</p>
-      </div>
-    </div>
-  );
-}
-
-function DossierList({ title, items }: { title: string; items: string[] }) {
-  return (
-    <div className="border border-doc-aged/10 p-3">
-      <div className="font-mono-terminal text-[9px] uppercase tracking-widest text-doc-aged/45 mb-2">{title}</div>
-      <div className="space-y-2">
-        {items.map((item, idx) => (
-          <div key={idx} className="flex gap-2 text-xs text-doc-aged/70 font-mono-terminal leading-relaxed">
-            <span className="text-doc-aged/30">{idx + 1}.</span>
-            <span>{item}</span>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-}
-
-function FeedbackBox({ label, text }: { label: string; text: string }) {
-  return (
-    <div className="border border-doc-aged/10 p-3">
-      <div className="font-mono-terminal text-[8px] uppercase tracking-widest text-doc-aged/35 mb-1">{label}</div>
-      <p className="text-xs text-doc-aged/75 leading-relaxed font-mono-terminal">{text}</p>
-    </div>
-  );
-}
-
-function ProgressStep({ label, active, done }: { label: string; active: boolean; done: boolean }) {
-  return (
-    <div className="flex items-center gap-2 py-1">
-      <span className={`w-2 h-2 rounded-full ${done ? "bg-zona-cautelares" : active ? "bg-zona-prueba" : "bg-doc-aged/20"}`} />
-      <span className={`text-[10px] font-mono-terminal ${active ? "text-doc-aged" : done ? "text-zona-cautelares" : "text-doc-aged/35"}`}>
-        {label}
-      </span>
+    <div className="tarjeta p-3.5">
+      <div className="rotulo">{rotulo}</div>
+      <p className="t-base txt-normal leading-snug mt-1.5 mb-0">{texto}</p>
     </div>
   );
 }

@@ -1,8 +1,8 @@
-const { chromium } = require('playwright');
+const { lanzar } = require('./navegador');
 const SAVE = require('./fixtures/save-prueba.json');
 const RUTAS = process.argv.slice(2);
 (async () => {
-  const b = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium-1194/chrome-linux/chrome', args: ['--no-proxy-server','--no-sandbox'] });
+  const b = await lanzar();
   const ctx = await b.newContext({ viewport: { width: 1366, height: 768 } });
   const page = await ctx.newPage();
   await page.goto('http://127.0.0.1:3100/', { waitUntil: 'commit' });

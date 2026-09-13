@@ -1,13 +1,15 @@
 "use client";
-import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
-import AmbienteVivo from "./AmbienteVivo";
 import HUDPersistente from "./HUDPersistente";
 import BootSequence from "./BootSequence";
-import { useGame } from "@/store/useGame";
 
 // ============================================================================
-// GLOBAL CANVAS — fondo animado, realimentación efímera e intro.
+// GLOBAL CANVAS — realimentación efímera e intro.
+//
+// El fondo animado (AmbienteVivo: lluvia, artículos girando y barrido dibujados
+// en un <canvas> a pantalla completa en cada fotograma) se retiró. En un
+// teléfono era el mayor consumo de CPU del juego y restaba contraste a todo lo
+// que tenía encima. El fondo es ahora el plano estático de components/FondoCiudad.
 // ============================================================================
 
 /** Clave en localStorage (no sessionStorage): así la intro no se repite al
@@ -15,9 +17,6 @@ import { useGame } from "@/store/useGame";
 const CLAVE_INTRO = "foro-invisible:intro-vista";
 
 export default function GlobalCanvas() {
-  const pathname = usePathname();
-  const personaje = useGame((s) => s.personaje);
-  const trauma = personaje.trauma || 0;
   const [introHecha, setIntroHecha] = useState(true); // por defecto, no molestar
   const [hydrated, setHydrated] = useState(false);
 
@@ -41,16 +40,6 @@ export default function GlobalCanvas() {
     }
   }, []);
 
-  const modoZona: "ambiente" | "oral" | "ejecutivo" | "nulidad" = (() => {
-    if (!pathname) return "ambiente";
-    if (pathname.includes("/oral")) return "oral";
-    if (pathname.includes("ejecutivo")) return "ejecutivo";
-    if (pathname.includes("nulidad")) return "nulidad";
-    return "ambiente";
-  })();
-
-  const intensidad = Math.min(100, 40 + trauma);
-
   function finIntro() {
     try { localStorage.setItem(CLAVE_INTRO, "1"); } catch { /* sin persistencia */ }
     setIntroHecha(true);
@@ -60,7 +49,6 @@ export default function GlobalCanvas() {
 
   return (
     <>
-      <AmbienteVivo intensidad={intensidad} corrupcion={trauma} modo={modoZona} />
       <HUDPersistente />
       {/* Montaje condicional del padre: ver el gotcha del overlay fantasma. */}
       {!introHecha && <BootSequence onFin={finIntro} />}

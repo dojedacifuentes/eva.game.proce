@@ -36,8 +36,8 @@ export default function ProcesalHub() {
   return (
     <div className="px-3 md:px-6 py-4 max-w-6xl mx-auto pb-16">
       {/* header */}
-      <header className="flex items-center justify-between gap-3 flex-wrap mb-3">
-        <Link href="/juego" className="proc-btn text-xs px-3 py-1.5" onClick={() => sfx.click?.()}>◂ Ciudad Judicial</Link>
+      {/* La cabecera del armazón ya lleva el botón de volver: aquí sólo los recursos. */}
+      <header className="flex items-center justify-end gap-3 flex-wrap mb-3">
         <div className="flex items-center justify-end gap-2 font-mono-terminal text-[11px] flex-wrap">
           <span className="proc-card px-2 py-1">⭐ {mounted ? xp : 0} XP</span>
           <span className="proc-card px-2 py-1">🔖 {mounted ? sellos : 0} sellos</span>
@@ -55,7 +55,7 @@ export default function ProcesalHub() {
       </div>
 
       {/* ── MAPA: CIUDADELA ── */}
-      <div className="proc-panel relative w-full overflow-hidden" style={{ aspectRatio: "16 / 10", minHeight: 320, maxHeight: 560 }}>
+      <div className="proc-panel mapa-expansion relative w-full overflow-hidden">
         <svg viewBox="0 0 100 100" preserveAspectRatio="none" className="absolute inset-0 w-full h-full" style={{ pointerEvents: "none" }}>
           <defs>
             <radialGradient id="proc-map-glow" cx="50%" cy="40%" r="62%">
@@ -123,7 +123,7 @@ export default function ProcesalHub() {
                 )}
                 {e.enPrep && <span className="absolute -bottom-1 -right-1 text-[9px]">🚧</span>}
               </div>
-              <div className="mt-1 px-1.5 py-0.5 rounded text-center" style={{ background: "rgba(8,10,18,0.8)", border: "1px solid color-mix(in srgb, var(--proc-primary) 40%, transparent)", maxWidth: 108 }}>
+              <div className="etiqueta-region mt-1 px-1.5 py-0.5 rounded text-center" style={{ background: "#0A0C14", border: "1px solid color-mix(in srgb, var(--proc-primary) 40%, #1a1a1a)", maxWidth: 108 }}>
                 <div className="proc-heading t-meta leading-tight" style={{ color: "color-mix(in srgb, var(--proc-primary) 52%, #F4EEDD)" }}>{e.nombre}</div>
                 {!e.enPrep && total > 0 && (
                   <div className="font-mono-terminal text-[8px] opacity-55">{vistas}/{total}</div>

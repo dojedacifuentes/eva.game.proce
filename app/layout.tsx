@@ -1,7 +1,8 @@
 import type { Metadata, Viewport } from "next";
-import { Cinzel, Cormorant_Garamond, JetBrains_Mono } from "next/font/google";
+import { Cinzel, Cormorant_Garamond, Inter, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 import GlobalCanvas from "@/components/GlobalCanvas";
+import FondoCiudad from "@/components/FondoCiudad";
 import WorldThemeProvider from "@/components/WorldThemeProvider";
 import { JUEGO, PROYECTO, AUTOR } from "@/lib/brand";
 
@@ -32,6 +33,16 @@ const cormorant = Cormorant_Garamond({
   variable: "--fuente-serif",
 });
 
+// Texto de lectura e interfaz. Antes todo el cuerpo iba en JetBrains Mono y en
+// Cormorant cursiva a 13-14 px: en un teléfono era lo más difícil de leer del
+// juego. Inter tiene altura de x grande y se lee bien a tamaños pequeños; la
+// monoespaciada queda para etiquetas, artículos y cifras.
+const inter = Inter({
+  subsets: ["latin"],
+  display: "swap",
+  variable: "--fuente-sans",
+});
+
 const jetbrains = JetBrains_Mono({
   subsets: ["latin"],
   weight: ["400", "500", "700"],
@@ -59,12 +70,15 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html
       lang="es"
-      className={`${cinzel.variable} ${cormorant.variable} ${jetbrains.variable}`}
+      className={`${inter.variable} ${cinzel.variable} ${cormorant.variable} ${jetbrains.variable}`}
     >
-      <body className="crt">
-        {/* Pulso de fondo. Capa aparte para no aplicar `filter` al <body>, que
-            rompería el `position: fixed` de la navegación y los diálogos. */}
-        <div className="ui-breathe" aria-hidden="true" />
+      <body>
+        {/* Fondo: plano de la Ciudad Judicial visto desde arriba con un flujo de
+            nodos encima. Es SVG estático renderizado en el servidor: se pinta en
+            el primer fotograma y no consume ni un ciclo de CPU al jugar. Sustituye
+            al lienzo animado (lluvia, artículos girando, barrido) y a las capas
+            CRT de mezcla a pantalla completa, que eran lo más caro en móvil. */}
+        <FondoCiudad />
         {/* Aplica data-world al body para activar los 5 temas visuales */}
         <WorldThemeProvider />
         {/* GlobalCanvas incluye el HUD de realimentación y la intro */}

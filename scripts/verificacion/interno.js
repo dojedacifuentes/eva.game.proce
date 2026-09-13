@@ -1,8 +1,8 @@
-const { chromium } = require('playwright');
+const { lanzar } = require('./navegador');
 const SAVE = require('./fixtures/save-prueba.json');
 const RUTAS = process.argv.slice(2);
 (async () => {
-  const b = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium-1194/chrome-linux/chrome', args: ['--no-proxy-server','--no-sandbox'] });
+  const b = await lanzar();
   for (const vp of [{w:1366,h:768},{w:1440,h:900}]) {
     const ctx = await b.newContext({ viewport: { width: vp.w, height: vp.h } });
     const page = await ctx.newPage();

@@ -1,7 +1,7 @@
 "use client";
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { useEffect, useState } from "react";
+import { useEffect, useState, type CSSProperties } from "react";
 import { useGame } from "@/store/useGame";
 import { useHydrated } from "@/lib/useHydrated";
 import { sfx } from "@/lib/audio";
@@ -10,11 +10,9 @@ import GameShell from "@/components/shell/GameShell";
 import EvaMark from "@/components/shell/EvaMark";
 
 // ============================================================================
-// PORTADA — una sola acción principal.
-//
-// Antes había cuatro botones del mismo peso (NUEVA CAMPAÑA / CONTINUAR / NUEVO
-// JUEGO / BOSSES / SISTEMAS) más cuatro accesos al pie. Ahora manda una sola
-// acción, decidida por el estado real de la partida, y el resto baja de rango.
+// PORTADA — una sola acción principal, decidida por el estado real de la
+// partida. v4: textos a tamaño de lectura (antes 8-10 px), accesos secundarios
+// con objetivo táctil real y el plano de la ciudad de fondo.
 // ============================================================================
 
 const FRASES = [
@@ -43,64 +41,45 @@ export default function Home() {
     <GameShell variant="app" header={false} nav={false}>
       <div className="flex-1 min-h-0 flex flex-col items-center justify-center text-center py-4">
         {/* ─── Marca que presenta ─── */}
-        <div className="flex items-center gap-2 mb-4 md:mb-6">
-          <EvaMark size={20} />
-          <span className="font-mono-terminal text-[9px] md:text-[10px] uppercase tracking-[.35em] text-doc-aged/50">
-            {PROYECTO.presenta}
-          </span>
+        <div className="flex items-center gap-2 mb-5 px-3 py-1.5 rounded-full" style={{ background: "#0B0F17", border: "1px solid #1F2A3C" }}>
+          <EvaMark size={22} />
+          <span className="rotulo txt-normal">{PROYECTO.presenta}</span>
         </div>
 
         {/* ─── Título ─── */}
         <motion.h1
           initial={{ opacity: 0, scale: 0.97 }}
           animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
-          className="font-display-grave leading-[0.95] text-doc-aged"
-          style={{ fontSize: "clamp(2.75rem, 9vw, 6.5rem)", letterSpacing: "0.08em" }}
+          transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+          className="font-display-grave leading-[0.95] txt-fuerte"
+          style={{ fontSize: "clamp(2.9rem, 11vw, 6.5rem)", letterSpacing: "0.06em", textShadow: "0 4px 30px #000" }}
         >
           {JUEGO.partes.uno}
           <br />
-          <span style={{ color: "var(--zona-competencia)", textShadow: "0 0 40px rgba(75,231,255,.45)" }}>
-            {JUEGO.partes.dos}
-          </span>
-          <span className="font-serif-juridica text-doc-aged">{JUEGO.partes.tres}</span>
+          <span style={{ color: "var(--zona-competencia)" }}>{JUEGO.partes.dos}</span>
+          <span className="font-serif-juridica">{JUEGO.partes.tres}</span>
         </motion.h1>
 
-        <p className="font-serif-juridica italic text-zona-prueba text-sm md:text-base mt-3 mb-6 md:mb-8 max-w-lg px-4">
+        <p className="text-[16px] md:text-[18px] font-medium mt-3 mb-7 max-w-lg px-4" style={{ color: "#E3C27E" }}>
           {JUEGO.subtitulo}. Hostil. Vivo. Inevitable.
         </p>
 
         {/* ─── ACCIÓN PRINCIPAL ÚNICA ─── */}
         <div className="w-full max-w-sm px-4">
           {!hydrated ? (
-            // Estado de carga breve y estable: nunca se enseña "empezar de cero"
-            // a quien tiene partida guardada.
-            <div
-              className="h-[62px] border border-doc-aged/10 flex items-center justify-center font-mono-terminal text-[10px] uppercase tracking-widest text-doc-aged/30"
-              aria-live="polite"
-            >
+            <div className="h-[64px] rounded-xl flex items-center justify-center rotulo" style={{ border: "1px solid #1F2A3C" }} aria-live="polite">
               Abriendo expediente…
             </div>
           ) : hayPartida ? (
-            <AccionPrincipal
-              href="/juego"
-              label="Continuar partida"
-              sub={`${personaje.nombre} · Nivel ${nivel}`}
-              glow="var(--zona-cautelares)"
-            />
+            <AccionPrincipal href="/juego" label="Continuar partida" sub={`${personaje.nombre} · Nivel ${nivel}`} color="#58F5B0" />
           ) : (
-            <AccionPrincipal
-              href="/creacion"
-              label="Comenzar"
-              sub="Partida rápida en menos de un minuto"
-              glow="var(--zona-competencia)"
-            />
+            <AccionPrincipal href="/creacion" label="Comenzar" sub="Partida rápida en menos de un minuto" color="#4BE7FF" />
           )}
         </div>
 
-        {/* ─── Secundarias, con menos peso ─── */}
+        {/* ─── Secundarias, con menos peso pero tocables ─── */}
         {hydrated && (
-          <div className="flex flex-wrap items-center justify-center gap-x-5 gap-y-2 mt-5 px-4">
+          <nav className="flex flex-wrap items-center justify-center gap-2 mt-4 px-4" aria-label="Accesos">
             {(hayPartida
               ? [
                   { href: "/creacion", label: "Nueva partida" },
@@ -112,67 +91,39 @@ export default function Home() {
                   { href: "/codex", label: "Codex" },
                 ]
             ).map((o) => (
-              <Link
-                key={o.href}
-                href={o.href}
-                onClick={() => sfx.click?.()}
-                className="font-mono-terminal text-[10px] uppercase tracking-widest text-doc-aged/45 hover:text-zona-competencia transition-colors underline-offset-4 hover:underline"
-              >
+              <Link key={o.href} href={o.href} onClick={() => sfx.click?.()} className="btn-secundario" style={{ minHeight: 44, fontSize: 15, padding: ".4rem 1rem" }}>
                 {o.label}
               </Link>
             ))}
-          </div>
+          </nav>
         )}
 
         {/* ─── Frase rotativa ─── */}
-        <div className="mt-6 md:mt-8 max-w-md px-4 min-h-[42px]">
-          <div className="font-mono-terminal text-[9px] uppercase tracking-widest text-zona-recursos/70">
-            {FRASES[fraseIdx].art}
-          </div>
-          <div className="font-serif-juridica italic text-doc-aged/60 text-sm mt-0.5">
-            «{FRASES[fraseIdx].texto}»
-          </div>
+        <div className="mt-7 max-w-md px-4 min-h-[58px]" aria-live="off">
+          <div className="rotulo" style={{ color: "#B39BFF" }}>{FRASES[fraseIdx].art}</div>
+          <div className="cita text-[19px] mt-1">«{FRASES[fraseIdx].texto}»</div>
         </div>
       </div>
 
       {/* ─── Crédito ─── */}
-      <footer className="shrink-0 pb-3 text-center">
-        <div className="font-mono-terminal text-[9px] uppercase tracking-[.3em] text-doc-aged/40">
-          {AUTOR.credito}
-        </div>
-        <div className="font-mono-terminal text-[8px] text-doc-aged/25 mt-1">{AUTOR.origen}</div>
+      <footer className="shrink-0 pb-3 pt-2 text-center">
+        <div className="t-meta font-semibold txt-normal">{AUTOR.credito}</div>
+        <div className="t-micro txt-suave mt-0.5 px-4">{AUTOR.origen}</div>
       </footer>
     </GameShell>
   );
 }
 
-function AccionPrincipal({
-  href,
-  label,
-  sub,
-  glow,
-}: {
-  href: string;
-  label: string;
-  sub: string;
-  glow: string;
-}) {
+function AccionPrincipal({ href, label, sub, color }: { href: string; label: string; sub: string; color: string }) {
   return (
     <Link
       href={href}
       onClick={() => sfx.confirm?.()}
-      onMouseEnter={() => sfx.hover?.()}
-      className="group block w-full px-6 py-4 border text-center transition-all duration-300 hover:brightness-125"
-      style={{
-        borderColor: glow,
-        background: `${glow}14`,
-        boxShadow: `0 0 32px ${glow}30, inset 0 1px 0 ${glow}20`,
-      }}
+      className="btn-primario w-full flex-col"
+      style={{ "--acento": color, minHeight: 66, boxShadow: `0 0 40px -8px ${color}` } as CSSProperties}
     >
-      <div className="font-display-grave tracking-[.2em] text-base" style={{ color: glow }}>
-        {label.toUpperCase()}
-      </div>
-      <div className="font-mono-terminal text-[9px] text-doc-aged/50 mt-1">{sub}</div>
+      <span className="text-[19px] font-extrabold tracking-wide">{label.toUpperCase()}</span>
+      <span className="text-[14px] font-semibold opacity-80">{sub}</span>
     </Link>
   );
 }

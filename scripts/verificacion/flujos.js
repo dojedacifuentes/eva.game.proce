@@ -1,4 +1,4 @@
-const { chromium } = require('playwright');
+const { lanzar } = require('./navegador');
 const SAVE = require('./fixtures/save-prueba.json');
 const B = 'http://127.0.0.1:3100';
 const CLAVE = 'derecho-procesal-rpg-save';
@@ -22,7 +22,7 @@ async function nuevaSesion(browser, vp, conPartida) {
 }
 
 (async () => {
-  const browser = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium-1194/chrome-linux/chrome', args: ['--no-proxy-server','--no-sandbox'] });
+  const browser = await lanzar();
   const ESC = { width: 1366, height: 768 };
   const MOV = { width: 390, height: 844 };
 
@@ -38,14 +38,12 @@ async function nuevaSesion(browser, vp, conPartida) {
     await cta.click();
     await page.waitForURL('**/creacion', { timeout: 8000 });
     await page.locator('#campo-nombre').fill('Prueba Rápida');
+    check('se explica que la partida rápida usa la configuración recomendada',
+      (await page.locator('text=/no la eliges tú/').count()) > 0);
+    // v4: la partida rápida empieza el juego en un solo toque.
     await page.locator('button:has-text("PARTIDA RÁPIDA")').click();
-    await page.waitForTimeout(500);
-    check('la partida rápida lleva directo a confirmar',
-      (await page.locator('text=Configuración recomendada').count()) > 0);
-    check('se explica que es la configuración recomendada',
-      (await page.locator('text=/no la elegiste tú/').count()) > 0);
-    await page.locator('button:has-text("Comenzar")').last().click();
     await page.waitForURL('**/juego', { timeout: 8000 });
+    check('la partida rápida lleva directo al mapa', page.url().endsWith('/juego'));
     const seg = ((Date.now() - t0) / 1000).toFixed(1);
     const g = await page.evaluate((k) => JSON.parse(localStorage.getItem(k)).state.personaje.nombre, CLAVE);
     check(`la partida queda guardada (${seg}s desde la portada)`, g === 'Prueba Rápida', `nombre=${g}`);
@@ -104,9 +102,8 @@ async function nuevaSesion(browser, vp, conPartida) {
     await page.goto(B + '/creacion', { waitUntil: 'commit' });
     await page.waitForTimeout(700);
     await page.locator('#campo-nombre').fill('Intruso');
+    // v4: con partida en curso, la partida rápida pide confirmación directamente.
     await page.locator('button:has-text("PARTIDA RÁPIDA")').click();
-    await page.waitForTimeout(400);
-    await page.locator('button:has-text("Reemplazar y comenzar")').click();
     await page.waitForTimeout(500);
     check('reemplazar abre un diálogo de confirmación',
       (await page.locator('[role="dialog"]').count()) > 0);
@@ -154,10 +151,10 @@ async function nuevaSesion(browser, vp, conPartida) {
     const { ctx, page } = await nuevaSesion(browser, ESC, true);
     await page.goto(B + '/juego', { waitUntil: 'commit' });
     await page.waitForTimeout(1000);
-    await page.locator('a:has-text("Atender")').first().click();
+    await page.locator('a:visible:has-text("Atender")').first().click();
     await page.waitForTimeout(1200);
     check('se entra a una misión', /\/mision\//.test(page.url()), page.url());
-    await page.locator('a:has-text("Hub")').first().click();
+    await page.locator('a:visible:has-text("Mapa")').first().click();
     await page.waitForTimeout(1000);
     check('se vuelve al hub desde la misión', page.url().endsWith('/juego'), page.url());
 
@@ -181,17 +178,31 @@ async function nuevaSesion(browser, vp, conPartida) {
       const nav = document.querySelector('.shell-nav');
       const destinos = nav ? nav.querySelectorAll('a').length : 0;
       const r = nav ? nav.getBoundingClientRect() : null;
+      // v4: la acción de EVA vive en una barra propia sobre la navegación.
+      const accion = document.querySelector('.hub-accion a[href]');
+      const qa = accion ? accion.getBoundingClientRect() : null;
       return {
         scrollH: d.scrollWidth - d.clientWidth,
+        scrollV: d.scrollHeight - d.clientHeight,
         destinos,
         navVisible: !!r && r.bottom <= d.clientHeight + 1 && r.top < d.clientHeight,
-        primeraAccion: (document.querySelector('.shell-main a[href^="/mision"], .shell-main a[href^="/boss"], .shell-main a[href^="/creacion"]') || {}).innerText || '',
+        accionVisible: !!qa && qa.top >= 0 && !!r && qa.bottom <= r.top + 1,
+        accionTexto: accion ? accion.innerText : '',
+        nodos: document.querySelectorAll('.flujo-nodo').length,
       };
     });
     check('sin desbordamiento horizontal', m.scrollH === 0, `scrollH=${m.scrollH}`);
+    check('el documento no se desplaza', m.scrollV <= 1, `scrollV=${m.scrollV}`);
     check('navegación con 5 destinos como máximo', m.destinos > 0 && m.destinos <= 5, `destinos=${m.destinos}`);
     check('la barra inferior queda visible en pantalla', m.navVisible);
-    check('la acción principal aparece arriba del todo', m.primeraAccion.length > 0, `"${m.primeraAccion}"`);
+    check('la acción principal está a la vista sobre la barra', m.accionVisible, `"${m.accionTexto}"`);
+    check('el mapa de flujo dibuja los 27 nodos de la campaña', m.nodos === 27, `nodos=${m.nodos}`);
+
+    // Tocar un nodo abre su detalle con un botón para jugar.
+    await page.locator('.flujo-nodo').first().click();
+    await page.waitForTimeout(400);
+    const hoja = await page.locator('.hoja a:has-text("misión")').count();
+    check('tocar un nodo abre su detalle con acción', hoja > 0);
     await ctx.close();
   }
 

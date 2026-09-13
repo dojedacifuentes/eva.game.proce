@@ -1,4 +1,4 @@
-const { chromium } = require('playwright');
+const { lanzar } = require('./navegador');
 const SAVE = require('./fixtures/save-prueba.json');
 const TAREAS = [
   ['modal-npc-escritorio', {width:1366,height:768}, '/mundo/cautelares', 'button:has-text("Hablar")'],
@@ -6,7 +6,7 @@ const TAREAS = [
   ['zona-cautelares',      {width:1366,height:768}, '/mundo/cautelares', null],
 ];
 (async () => {
-  const b = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium-1194/chrome-linux/chrome', args: ['--no-proxy-server','--no-sandbox'] });
+  const b = await lanzar();
   for (const [nombre, vp, ruta, sel] of TAREAS) {
     const ctx = await b.newContext({ viewport: vp, reducedMotion: 'reduce' });
     const page = await ctx.newPage();

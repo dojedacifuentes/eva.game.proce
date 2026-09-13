@@ -48,14 +48,9 @@ export default function EvaPanel({
 
       <Link
         href={paso.href}
-        onClick={() => sfx.click?.()}
-        onMouseEnter={() => sfx.hover?.()}
-        className="mt-auto block text-center font-display-grave t-titulo py-3 border-2 rounded transition-all hover:brightness-125"
-        style={{
-          borderColor: "var(--eva-accent)",
-          color: "var(--eva-accent)",
-          background: "rgba(122,212,230,0.1)",
-        }}
+        onClick={() => sfx.confirm?.()}
+        className="btn-primario w-full mt-auto"
+        style={{ "--acento": "var(--eva-accent)" } as React.CSSProperties}
       >
         {paso.cta}
       </Link>
