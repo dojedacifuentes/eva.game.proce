@@ -76,7 +76,7 @@ prueba.
 | **Avance en móvil** (`avanzar.js`: 20 pantallas × 390×844 y 360×800) | **0 bloqueos**. Ahora exige además 0 px de scroll de documento y barra de acción dentro de la ventana |
 | **Scroll y desborde** (`medir.js`: 7 rutas × 1366×768, 1440×900, 1024×768, 390×844, 360×800) | **0 px de scroll de documento en los 5 tamaños** (antes el móvil sí se desplazaba) · 0 px de desborde horizontal |
 | **Modales** (`overlays.js`, los 8 con su gesto real) | **0 hallazgos** |
-| **Contraste** (`contraste2.js`, 10 rutas, píxel pintado) | **415 textos** · 0 bajo 12 px · 0 bajo WCAG AA |
+| **Contraste** (`contraste2.js`, 10 rutas, píxel pintado) | **416 textos** · 0 bajo 12 px · 0 bajo WCAG AA |
 | **Accesibilidad** (`a11y.js`, 11 rutas) | **0 hallazgos** |
 | **Recorridos** (`flujos.js`) | **31 / 31** |
 | **Jugar interactuando** (`jugar.js`, 9 actividades en móvil) | **0 bloqueos** |
@@ -85,12 +85,26 @@ Un hallazgo corregido durante la medición: con la base sólida de `.btn`, el
 botón «Aceptar evento» (`btn-recurso`) quedaba en 4,4:1. Los botones de
 identidad usan ahora la variante de texto legible.
 
+Esta tabla se volvió a medir entera **después de fusionar la v4 con la v5**, con
+el servidor reiniciado sobre el build nuevo. Importa decirlo porque en el primer
+intento un `next-server` viejo seguía ocupando el puerto y servía el build
+anterior: es la trampa que el propio handoff documenta, y habría dado por buenas
+unas cifras que no correspondían al código medido.
+
 ---
 
 ## 3 · Qué queda abierto
 
 - Módulos heredados de Entrenar (Juicio ejecutivo, Arcade, Timeline, etc.):
   heredan armazón, tipografía y superficies, pero no se rediseñaron por dentro.
+- **Resto del plan de sensación de juego**, propuesto y no empezado: música
+  adaptativa por capas (tensión que entra con poca vida o poco reloj), control de
+  volumen real en vez de un ciclo de tres estados, textura de superficie,
+  retratos procedurales al frente, parallax en el mapa, iconografía jurídica en
+  SVG en lugar de emoji, atajos de teclado en las actividades, racha y tiempo de
+  sesión, y repaso espaciado de los fallos. La espera saltable ya está puesta en
+  `SpeedrunVoF` y `ArcadeClasificador`; falta llevarla al resto de actividades
+  con tiempos fijos.
 - Mapa de Reinos del Derecho en el teléfono sin revisar con perfil de jurista.
 - Civilis a 390 px: dos o tres etiquetas aún se tocan en una esquina del mapa.
 - Decisiones de Diego: [`REVISION_JURIDICA_PENDIENTE.md`](REVISION_JURIDICA_PENDIENTE.md)
@@ -103,8 +117,13 @@ identidad usan ahora la variante de texto legible.
 1. **Contenido jurídico contra fuente oficial.** No se modificó ni se validó.
 2. **Dispositivos físicos, Safari iOS y Firefox.** Tamaños emulados en Chrome.
 3. **Jugadores reales.** Nadie ajeno al proyecto ha jugado esta versión.
-4. **Audio.** No se tocó; sigue sin escucharse en este entorno.
-5. **Combate completo contra cada jefe.** Se verificó la entrada, la primera
+4. **Audio.** La v5 lo reescribió a fondo —seis escenas de ambiente y una paleta
+   de efectos separada por intención— y **no se ha oído ni una sola nota**: este
+   entorno no tiene salida de audio. Se comprobó que arranca, cambia de escena y
+   se detiene sin errores; el juicio de oído está pendiente y es de Diego.
+5. **Vibración.** Tampoco se ha sentido: no hay dispositivo. Y en iPhone no va a
+   notarse nunca, porque Safari de iOS no implementa `navigator.vibrate`.
+6. **Combate completo contra cada jefe.** Se verificó la entrada, la primera
    fase y el avance; no las cinco fases de los siete jefes.
 
 ---
