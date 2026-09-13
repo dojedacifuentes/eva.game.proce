@@ -1,4 +1,4 @@
-const { chromium } = require('playwright');
+const { lanzar } = require('./navegador');
 const SAVE = require('./fixtures/save-prueba.json');
 
 // Mide el contraste REAL: captura la pantalla, la vuelve a meter en la página
@@ -7,7 +7,7 @@ const SAVE = require('./fixtures/save-prueba.json');
 // de verdad ve el usuario. Deducirlo del CSS daba falsos positivos en los dos
 // sentidos.
 (async () => {
-  const b = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium-1194/chrome-linux/chrome', args: ['--no-proxy-server','--no-sandbox'] });
+  const b = await lanzar();
   const ctx = await b.newContext({ viewport: { width: 1366, height: 768 }, deviceScaleFactor: 1, reducedMotion: 'reduce' });
   const page = await ctx.newPage();
   await page.goto('http://127.0.0.1:3100/', { waitUntil: 'commit' });

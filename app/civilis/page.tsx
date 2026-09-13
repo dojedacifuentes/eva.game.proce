@@ -61,8 +61,8 @@ export default function CivilisHub() {
   return (
     <div className="px-3 md:px-6 py-4 max-w-6xl mx-auto pb-16">
       {/* header */}
-      <header className="flex items-center justify-between gap-3 flex-wrap mb-3">
-        <Link href="/juego" className="civ-btn text-xs px-3 py-1.5" onClick={() => sfx.click?.()}>◂ Ciudad Judicial</Link>
+      {/* La cabecera del armazón ya lleva el botón de volver: aquí sólo los recursos. */}
+      <header className="flex items-center justify-end gap-3 flex-wrap mb-3">
         <div className="flex items-center justify-end gap-2 font-mono-terminal text-[11px] flex-wrap">
           <span className="civ-card px-2 py-1">⭐ {mounted ? xp : 0} XP</span>
           <span className="civ-card px-2 py-1">🪙 {mounted ? oro : 0}</span>
@@ -79,7 +79,7 @@ export default function CivilisHub() {
       </div>
 
       {/* ── MAPA MUNDO ── */}
-      <div className="civ-panel relative w-full overflow-hidden" style={{ aspectRatio: "16 / 10", minHeight: 320, maxHeight: 560 }}>
+      <div className="civ-panel mapa-expansion relative w-full overflow-hidden">
         {/* terreno + senderos */}
         <svg viewBox="0 0 100 100" preserveAspectRatio="none" className="absolute inset-0 w-full h-full" style={{ pointerEvents: "none" }}>
           <defs>
@@ -139,7 +139,7 @@ export default function CivilisHub() {
                   <span className="absolute -bottom-1 -right-1 text-[8px]">🚧</span>
                 )}
               </div>
-              <div className="mt-1 px-1.5 py-0.5 rounded text-center" style={{ background: "rgba(8,9,13,0.78)", border: "1px solid color-mix(in srgb, var(--civ-primary) 40%, transparent)", maxWidth: 92 }}>
+              <div className="etiqueta-region mt-1 px-1.5 py-0.5 rounded text-center" style={{ background: "#0B0D13", border: "1px solid color-mix(in srgb, var(--civ-primary) 40%, #1a1a1a)", maxWidth: 92 }}>
                 <div className="civ-heading t-meta leading-tight" style={{ color: "color-mix(in srgb, var(--civ-primary) 52%, #F4EEDD)" }}>{r.nombre}</div>
               </div>
             </button>

@@ -1,29 +1,28 @@
-# Checkpoint — 12 de septiembre de 2026
+# Checkpoint — 12 de septiembre de 2026 (v4 · móvil y mapa de flujo)
 
 Estado del repositorio en este punto, con **lo que se midió y con qué número**.
 Lo que no se pudo medir está dicho como tal, no dado por aprobado.
 
-- Rama de trabajo: `claude/tender-mayer-j60b5g` · Producción: `main`
+- Rama de trabajo: `claude/movil-mapa-flujo` · Producción: `main`
 - Producción: [evagameproce.vercel.app](https://evagameproce.vercel.app)
+- Qué cambió y por qué: [`ENTREGA-MOVIL-FLUJO.md`](ENTREGA-MOVIL-FLUJO.md)
 - Cómo seguir: [`HANDOFF.md`](HANDOFF.md)
 
 ---
 
 ## 1 · Qué entró
 
-Desde `3f98d9e` (la copia recién desplegada en Vercel) hasta hoy:
-**117 archivos, +8 414 / −3 338**.
-
 | Commit | Qué trae |
 |---|---|
-| `d9f44cb` | **Armazón de una sola pantalla.** `GameShell` con tres variantes sobre `100dvh`; todas las rutas quedan dentro de él, directamente o por el layout de su expansión. Asistente de creación + partida rápida, protección del guardado, EVA determinista, marca centralizada en `lib/brand.ts`. 65 archivos. |
-| `f0a0a71` | **Legibilidad y mundo.** Escala tipográfica con suelo de píxeles, mapa de ciudad con arquitectura jurídica, cada actividad cabe entera, ambiente sonoro generado. 48 archivos. |
-| `ec5378b` | **Modales.** Sistema único `Modal` opaco y accesible, diálogo de NPC rehecho como escena jugable, NPC unificados en una sola fuente. 25 archivos. |
-| `07ecc86` | **Móvil.** Desbloquea el avance en la entrada de jefe, sube la escala tipográfica, opaca los paneles restantes. 4 archivos. |
-| `188e10c` | Documentación (README, checkpoint, handoff), arnés de verificación versionado en `scripts/verificacion/`, ajuste de densidad que cierra el último desborde y actualización de dependencias a 0 vulnerabilidades. |
-| *(este)* | **Fluidez, sonido y tacto.** Ver §2. |
+| `d9f44cb` | Armazón de una sola pantalla, asistente de creación, EVA determinista, marca centralizada. |
+| `f0a0a71` | Escala tipográfica con suelo de píxeles, mapa de ciudad, ambiente sonoro. |
+| `ec5378b` | Sistema único `Modal`, diálogo de NPC jugable, NPC unificados. |
+| `07ecc86` | Desbloqueo del avance en la entrada de jefe. |
+| `188e10c` | Documentación y arnés de verificación versionado. |
+| `337e188` | **v4.** Armazón fijo en todos los tamaños, mapa de flujo cenital, fondo estático, superficies opacas, Inter, jefes con interrogatorio de 5 fases, Entrenar y Perfil con pestañas, arnés en Windows. 41 archivos, +3 463 / −4 123. |
+| *(este)* | **v5 · Sensación de juego.** Fluidez entre pantallas, ambiente por escena, háptica y aviso de nivel. Ver §1·bis. |
 
-## 1·bis · Primera tanda de mejoras de sensación
+## 1·bis · Primera tanda de mejoras de sensación (v5)
 
 Seis cambios elegidos por una razón común: cinco de los seis **conectan sistemas
 que ya estaban escritos en el repositorio y nunca se llamaban**.
@@ -43,116 +42,70 @@ actualizador de estado**. Al agotarse el tiempo la respuesta seguía sin
 registrarse, el intervalo no se detenía y se volvía a fallar cada 100 ms:
 sumaba fallos y saltaba varias preguntas de golpe. Corregido.
 
-**Medido después de estos cambios**, sobre el build de producción: lint y
-typecheck limpios, **44/44** pruebas (7 nuevas), build **46/46**, **0** pantallas
-donde no se pueda avanzar en móvil, **8/8** modales sin hallazgos, **0 px** de
-scroll de documento en escritorio salvo `/codex`, **0 px** de desborde
-horizontal y las seis actividades comprobadas caben enteras a 1366×768 y
-1440×900.
-
 El riesgo principal de esta tanda era `app/template.tsx`: envuelve la pantalla
 entera, y un `transform` ahí habría roto todos los `position: fixed`. Por eso
 anima **sólo opacidad**, y por eso se volvió a medir el armazón completo en vez
 de dar por hecho que un `<div>` de más no cambia nada.
 
+Esta tanda se integró **sobre** la v4, que llegó a `main` mientras estaba en
+curso. Las cifras de §2 son las del resultado combinado, medidas después de
+resolver la fusión; no las de ninguna de las dos ramas por separado.
+
 ---
 
 ## 2 · Medición de hoy
 
-Ejecutado sobre el **build de producción** servido en `127.0.0.1:3100`, con
-Chromium real, perfil limpio y partida de prueba.
+Build de producción servido en `127.0.0.1:3100`, **Chrome del sistema en
+Windows** (vía `scripts/verificacion/navegador.js`), perfil limpio y partida de
+prueba.
 
-### Comprobaciones de código
+### Código
 
 | Comprobación | Resultado |
 |---|---|
-| `npm run lint` | Sin errores **ni advertencias** |
+| `npm run lint` | Sin errores ni advertencias |
 | `npm run typecheck` | Limpio |
 | `npm test` | **44 / 44** en 5 archivos |
-| `npm run build` | Correcto · **46 / 46** páginas estáticas · 50 rutas |
+| `npm run build` | **46 / 46** páginas estáticas |
 | `npm audit` | **0 vulnerabilidades** |
 
-### Comprobaciones en navegador
+### Navegador
 
 | Medición | Resultado |
 |---|---|
-| **Avance en móvil** (18 pantallas × 390×844 y 360×800) | **0 pantallas donde no se pueda avanzar** |
-| **Modales** (los 8, abiertos con su gesto real) | **0 hallazgos**: fondo opaco, texto sobre el mínimo, contraste AA, sin duplicados, sin recorte, `role="dialog"`, Escape cierra |
-| **Una sola pantalla** (7 rutas × 1366×768, 1440×900, 1024×768) | **0 px de scroll de documento** en las tres resoluciones. Única excepción: `/codex`, deliberada (variante `reader`, lectura larga) |
-| **Desborde horizontal** (esas 7 rutas × 5 resoluciones, móvil incluido) | **0 px** en todas |
-| **Contraste y tamaño de texto** (10 rutas, medido sobre el píxel pintado) | **394 textos** · **0 bajo el mínimo de 12 px** · **0 bajo WCAG AA** |
-| **Accesibilidad** (11 rutas: nombres accesibles y etiquetas) | **0 hallazgos** |
-| **Recorridos de juego** (6 flujos completos, interactuando) | **28 comprobaciones correctas · 0 fallidas** |
+| **Avance en móvil** (`avanzar.js`: 20 pantallas × 390×844 y 360×800) | **0 bloqueos**. Ahora exige además 0 px de scroll de documento y barra de acción dentro de la ventana |
+| **Scroll y desborde** (`medir.js`: 7 rutas × 1366×768, 1440×900, 1024×768, 390×844, 360×800) | **0 px de scroll de documento en los 5 tamaños** (antes el móvil sí se desplazaba) · 0 px de desborde horizontal |
+| **Modales** (`overlays.js`, los 8 con su gesto real) | **0 hallazgos** |
+| **Contraste** (`contraste2.js`, 10 rutas, píxel pintado) | **415 textos** · 0 bajo 12 px · 0 bajo WCAG AA |
+| **Accesibilidad** (`a11y.js`, 11 rutas) | **0 hallazgos** |
+| **Recorridos** (`flujos.js`) | **31 / 31** |
+| **Jugar interactuando** (`jugar.js`, 9 actividades en móvil) | **0 bloqueos** |
 
-Los seis recorridos son: crear partida rápida, personalizar y volver entre pasos,
-protección de la partida existente, persistencia sin destello de «sin personaje»,
-misión + códex + las tres expansiones, y móvil a 390×844 (sin desborde,
-navegación de 5 destinos como máximo, barra inferior visible, acción principal
-arriba).
-
-**Un número que conviene leer bien:** el recorrido automatizado llega de la
-portada a partida guardada en **0,9 s**. Eso es tiempo de máquina, no de persona.
-El objetivo de «crear personaje en unos 30 s» sigue siendo una **meta de diseño
-sin validar con usuarios**.
-
-### Encaje interno, con matiz
-
-`interno.js` mide si la región desplazable de cada pantalla necesita
-desplazamiento. A 1366×768 y 1440×900:
-
-| Pantalla | Resultado |
-|---|---|
-| `/juego`, `/mision/m1_3`, `/examen`, `/creacion`, `/civilis/vof`, `/procesal/plazos` | **Caben enteras**: ninguna actividad obliga a desplazarse para llegar a su acción |
-| `/oral`, `/inventario`, `/expansion` | Usan su **región desplazable interna** (347, 514 y 800 px a 1366×768) |
-
-Las tres últimas son **listas**, no actividades: la parrilla de jefes, el
-expediente y el catálogo de expansiones. El encargo permitía explícitamente el
-desplazamiento interno accesible para paneles largos; lo que prohibía era el
-scroll de documento y resolver el encaje recortando. Ninguna de las tres recorta
-contenido ni deja su acción fuera de alcance — y las tres pasan la prueba de
-avance en móvil.
+Un hallazgo corregido durante la medición: con la base sólida de `.btn`, el
+botón «Aceptar evento» (`btn-recurso`) quedaba en 4,4:1. Los botones de
+identidad usan ahora la variante de texto legible.
 
 ---
 
 ## 3 · Qué queda abierto
 
-### Interfaz, ya especificada en el repositorio
-
-- **Combate** (`CampaignBossBattle`, `InterrogacionOral`) según
-  `direccion-creativa/05_UX_DIRECTION.md` §2. No empezado.
-- **Inventario** (`InventarioPanel`) según §4 del mismo documento. No empezado.
-
-### Decisiones de Diego
-
-- [`REVISION_JURIDICA_PENDIENTE.md`](REVISION_JURIDICA_PENDIENTE.md):
-  contradicciones internas de contenido sin resolver. La principal, la ultra
-  petita enseñada como art. 768 N°4 en seis lugares y como 768 N°2 en
-  `data/casos-investigativos.ts`.
-- [`NPC-TEXTOS-UNIFICADOS.md`](NPC-TEXTOS-UNIFICADOS.md): el rasgo de carácter de
-  5 de 6 personajes cambió al unificar los NPC.
+- Módulos heredados de Entrenar (Juicio ejecutivo, Arcade, Timeline, etc.):
+  heredan armazón, tipografía y superficies, pero no se rediseñaron por dentro.
+- Mapa de Reinos del Derecho en el teléfono sin revisar con perfil de jurista.
+- Civilis a 390 px: dos o tres etiquetas aún se tocan en una esquina del mapa.
+- Decisiones de Diego: [`REVISION_JURIDICA_PENDIENTE.md`](REVISION_JURIDICA_PENDIENTE.md)
+  y [`NPC-TEXTOS-UNIFICADOS.md`](NPC-TEXTOS-UNIFICADOS.md).
 
 ---
 
 ## 4 · Lo que NO se verificó
 
-Dicho explícitamente, porque el encargo lo pedía así.
-
-1. **El contenido jurídico no se contrastó contra fuente oficial.** La política de
-   salida a internet del entorno bloquea `bcn.cl`, `leychile.cl` y el Diario
-   Oficial. **No se modificó ni una palabra** del banco de preguntas ni del códex,
-   y **no se validó ninguna parte** de ellos. Lo único documentado son
-   contradicciones internas, demostrables sin salir del repositorio.
-2. **Sólo se probó en Chromium.** Ni Firefox ni WebKit: no están en el entorno.
-3. **Los tamaños móviles son emulados**, no dispositivos reales. No se probó
-   táctil real, ni Safari iOS, ni la barra de direcciones que aparece y
-   desaparece.
-4. **El ambiente sonoro no se ha escuchado.** Se comprobó que arranca y se detiene
-   sin errores; el entorno no tiene salida de audio. Falta juicio de oído.
-5. **El combate contra jefes no se recorrió entero**: se mide la entrada
-   (`BossEntry`), no una partida completa de preguntas.
-6. **No hay prueba con usuarios.** El objetivo de «crear personaje en ~30 s» es
-   una meta de diseño, no una métrica validada: nadie ajeno al proyecto lo ha
-   cronometrado.
+1. **Contenido jurídico contra fuente oficial.** No se modificó ni se validó.
+2. **Dispositivos físicos, Safari iOS y Firefox.** Tamaños emulados en Chrome.
+3. **Jugadores reales.** Nadie ajeno al proyecto ha jugado esta versión.
+4. **Audio.** No se tocó; sigue sin escucharse en este entorno.
+5. **Combate completo contra cada jefe.** Se verificó la entrada, la primera
+   fase y el avance; no las cinco fases de los siete jefes.
 
 ---
 
@@ -168,6 +121,8 @@ npm run verificar:medidas     # scroll de documento y desborde horizontal
 npm run verificar:contraste   # WCAG AA sobre píxel pintado
 npm run verificar:a11y        # nombres accesibles
 npm run verificar:flujos      # recorridos de juego
+node scripts/verificacion/jugar.js
 ```
 
-Detalle de cada guion: [`../scripts/verificacion/README.md`](../scripts/verificacion/README.md).
+En Windows o macOS no hace falta descargar navegadores: `navegador.js` usa
+Chrome o Edge instalados. Para forzar uno: `PW_CHROMIUM=/ruta/al/ejecutable`.

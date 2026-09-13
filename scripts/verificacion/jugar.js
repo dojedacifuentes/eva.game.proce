@@ -1,4 +1,4 @@
-const { chromium } = require('playwright');
+const { lanzar } = require('./navegador');
 const SAVE = require('./fixtures/save-prueba.json');
 const EXP = require('./fixtures/save-expansiones.json');
 const B = 'http://127.0.0.1:3100';
@@ -21,8 +21,8 @@ async function estado(page) {
     const d = document.documentElement;
     const vh = d.clientHeight;
     const nav = document.querySelector('.shell-nav');
-    const navTop = nav && getComputedStyle(nav).position === 'fixed'
-      ? nav.getBoundingClientRect().top : Infinity;
+    // Fija o fila del grid: nada por debajo de su borde superior es alcanzable.
+    const navTop = nav ? nav.getBoundingClientRect().top : Infinity;
     const limite = Math.min(vh, navTop);
 
     const ctrls = [...document.querySelectorAll('.shell-main a[href], .shell-main button, .modal-scrim button, .modal-scrim a[href]')]
@@ -57,10 +57,7 @@ async function estado(page) {
 }
 
 (async () => {
-  const b = await chromium.launch({
-    executablePath: '/opt/pw-browsers/chromium-1194/chrome-linux/chrome',
-    args: ['--no-proxy-server', '--no-sandbox'],
-  });
+  const b = await lanzar();
   let malos = 0;
   const ctx = await b.newContext({
     viewport: { width: 390, height: 844 }, hasTouch: true, isMobile: true, reducedMotion: 'reduce',

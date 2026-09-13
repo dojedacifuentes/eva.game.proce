@@ -1,4 +1,4 @@
-const { chromium } = require('playwright');
+const { lanzar } = require('./navegador');
 const SAVE = require('./fixtures/save-prueba.json');
 const EXP = require('./fixtures/save-expansiones.json');
 const B = 'http://127.0.0.1:3100';
@@ -18,14 +18,17 @@ const OVERLAYS = [
         .first().click({ timeout: 6000 });
     } },
   { id: 'creacion-reemplazo', ruta: '/creacion', abrir: async (p) => {
+      // v4: con partida en curso, la partida rápida abre directamente la
+      // confirmación de reemplazo.
       await p.locator('#campo-nombre').fill('Intruso');
       await p.locator('button:has-text("PARTIDA RÁPIDA")').click();
-      await p.waitForTimeout(400);
-      await p.locator('button:has-text("Reemplazar y comenzar")').click();
     } },
   // El diálogo de importar sólo aparece tras elegir un archivo: se adjunta uno
   // real al input oculto, que es lo que hace el jugador con el selector.
   { id: 'inventario-importar', ruta: '/inventario', abrir: async (p) => {
+      // v4: el respaldo vive en su pestaña del perfil.
+      await p.locator('button[role="tab"]:has-text("Respaldo")').click();
+      await p.waitForTimeout(300);
       await p.locator('#archivo-partida').setInputFiles({
         name: 'partida.json',
         mimeType: 'application/json',
@@ -54,7 +57,7 @@ const OVERLAYS = [
 const lum = (c) => { const f = c.map(v => { v/=255; return v<=0.03928? v/12.92 : Math.pow((v+0.055)/1.055,2.4); }); return 0.2126*f[0]+0.7152*f[1]+0.0722*f[2]; };
 
 (async () => {
-  const b = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium-1194/chrome-linux/chrome', args: ['--no-proxy-server','--no-sandbox'] });
+  const b = await lanzar();
   let fallos = 0;
   for (const o of OVERLAYS) {
     const ctx = await b.newContext({ viewport: { width: 1366, height: 768 }, reducedMotion: 'reduce' });

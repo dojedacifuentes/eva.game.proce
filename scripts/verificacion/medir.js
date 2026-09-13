@@ -1,4 +1,4 @@
-const { chromium } = require('playwright');
+const { lanzar } = require('./navegador');
 
 // Partida de prueba AISLADA: se inyecta en localStorage del navegador
 // automatizado, nunca toca partidas reales de nadie.
@@ -32,7 +32,7 @@ const RUTAS = process.argv.slice(2);
 const BASE = 'http://127.0.0.1:3100';
 
 (async () => {
-  const browser = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium-1194/chrome-linux/chrome', args: ['--no-proxy-server', '--no-sandbox'] });
+  const browser = await lanzar();
   const filas = [];
   for (const t of TAMANOS) {
     const ctx = await browser.newContext({ viewport: { width: t.width, height: t.height } });
@@ -69,7 +69,9 @@ const BASE = 'http://127.0.0.1:3100';
   console.log('-'.repeat(96));
   for (const f of filas) {
     const alerta = (f.scrollH > 0 ? ' ⟵ DESBORDE-H' : '') +
-      (f.scrollVertical > 0 && !f.tam.startsWith('3') ? ' ⟵ SCROLL-DOC' : '');
+      // v4: el armazón es fijo también en móvil, así que ningún tamaño debe
+      // desplazar el documento.
+      (f.scrollVertical > 0 ? ' ⟵ SCROLL-DOC' : '');
     console.log([f.tam, f.ruta, f.scrollVertical, f.scrollHorizontal, f.alturaDoc, f.alturaVentana,
       f.bloqueado ? 'sí' : 'no', f.nav ? 'sí' : 'no'].map((c) => String(c).padEnd(12)).join('') + alerta);
   }

@@ -1,25 +1,44 @@
 "use client";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
-import AmbienteVivo from "./AmbienteVivo";
 import HUDPersistente from "./HUDPersistente";
 import BootSequence from "./BootSequence";
 import AvisoNivel from "./shell/AvisoNivel";
-import { useGame } from "@/store/useGame";
 import { setEscenaAmbiente, type EscenaAmbiente } from "@/lib/audio";
 
 // ============================================================================
-// GLOBAL CANVAS — fondo animado, realimentación efímera e intro.
+// GLOBAL CANVAS — realimentación efímera e intro.
+//
+// El fondo animado (AmbienteVivo: lluvia, artículos girando y barrido dibujados
+// en un <canvas> a pantalla completa en cada fotograma) se retiró. En un
+// teléfono era el mayor consumo de CPU del juego y restaba contraste a todo lo
+// que tenía encima. El fondo es ahora el plano estático de components/FondoCiudad.
+//
+// Lo que queda vive aquí porque el layout raíz lo monta una sola vez: sirve para
+// todas las rutas sin repetirse en ninguna.
 // ============================================================================
 
 /** Clave en localStorage (no sessionStorage): así la intro no se repite al
  *  abrir una pestaña nueva. */
 const CLAVE_INTRO = "foro-invisible:intro-vista";
 
+/**
+ * Escena sonora según dónde esté el jugador. Es la misma lectura de la ruta que
+ * antes elegía el modo del fondo animado; al retirarse aquél, sobrevive para
+ * afinar el ambiente, que traía cinco escenas escritas y sonaba siempre igual.
+ */
+function escenaDeRuta(pathname: string | null): EscenaAmbiente {
+  if (!pathname) return "estudio";
+  if (pathname.includes("/oral") || pathname.includes("/boss")) return "oral";
+  if (pathname.includes("ejecutivo")) return "ejecutivo";
+  if (pathname.includes("nulidad") || pathname.includes("casacion")) return "nulidad";
+  if (pathname.includes("recurso") || pathname.includes("alzada")) return "recursos";
+  if (pathname.includes("cautelar")) return "cautelares";
+  return "estudio";
+}
+
 export default function GlobalCanvas() {
   const pathname = usePathname();
-  const personaje = useGame((s) => s.personaje);
-  const trauma = personaje.trauma || 0;
   const [introHecha, setIntroHecha] = useState(true); // por defecto, no molestar
   const [hydrated, setHydrated] = useState(false);
 
@@ -43,34 +62,12 @@ export default function GlobalCanvas() {
     }
   }, []);
 
-  const modoZona: "ambiente" | "oral" | "ejecutivo" | "nulidad" = (() => {
-    if (!pathname) return "ambiente";
-    if (pathname.includes("/oral")) return "oral";
-    if (pathname.includes("ejecutivo")) return "ejecutivo";
-    if (pathname.includes("nulidad")) return "nulidad";
-    return "ambiente";
-  })();
-
-  // La misma lectura de la ruta que ya guiaba el fondo animado ahora afina
-  // también el ambiente sonoro. `lib/audio.ts` traía cinco escenas escritas
-  // desde hacía tiempo y sólo sonaba una.
-  const escena: EscenaAmbiente = (() => {
-    if (!pathname) return "estudio";
-    if (pathname.includes("/oral") || pathname.includes("/boss")) return "oral";
-    if (pathname.includes("ejecutivo")) return "ejecutivo";
-    if (pathname.includes("nulidad") || pathname.includes("casacion")) return "nulidad";
-    if (pathname.includes("recurso") || pathname.includes("alzada")) return "recursos";
-    if (pathname.includes("cautelar")) return "cautelares";
-    return "estudio";
-  })();
-
+  const escena = escenaDeRuta(pathname);
   useEffect(() => {
     // No enciende nada: si el ambiente está apagado sólo deja anotada la escena
     // para cuando el jugador lo encienda desde la cabecera.
     setEscenaAmbiente(escena);
   }, [escena]);
-
-  const intensidad = Math.min(100, 40 + trauma);
 
   function finIntro() {
     try { localStorage.setItem(CLAVE_INTRO, "1"); } catch { /* sin persistencia */ }
@@ -81,7 +78,6 @@ export default function GlobalCanvas() {
 
   return (
     <>
-      <AmbienteVivo intensidad={intensidad} corrupcion={trauma} modo={modoZona} />
       <HUDPersistente />
       <AvisoNivel />
       {/* Montaje condicional del padre: ver el gotcha del overlay fantasma. */}

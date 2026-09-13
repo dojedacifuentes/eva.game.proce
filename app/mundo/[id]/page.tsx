@@ -2,7 +2,6 @@
 import { useParams, useRouter } from "next/navigation";
 import { ESCENAS } from "@/data/dialogos";
 import DialogoEscena from "@/components/DialogoEscena";
-import Link from "next/link";
 import type { Mundo } from "@/types/game";
 import { useState } from "react";
 
@@ -71,12 +70,15 @@ export default function MundoPage() {
   const zonaMundo = mundoAZona[mundo];
 
   return (
-    <GameShell variant="focus" eyebrow="Mundo" title="Zona procesal" back={{ href: "/mundo", label: "Zonas" }} scrollLabel="Contenido de la zona">
-      <div className="min-h-screen px-6 py-8 max-w-5xl mx-auto">
-      <header className="flex justify-between items-center mb-6">
-        <Link href="/juego" className="btn">◂ Volver al mapa</Link>
-        <div className="tag">{mundo.toUpperCase().replace(/_/g, " ")}</div>
-      </header>
+    <GameShell
+      variant="focus"
+      eyebrow="Zona procesal"
+      title={(mundo.charAt(0).toUpperCase() + mundo.slice(1)).replace(/_/g, " ")}
+      back={{ href: "/juego", label: "Mapa" }}
+      scrollLabel="Contenido de la zona"
+      scrollKey={escenaIdx}
+    >
+      <div className="min-h-screen px-6 py-4 max-w-5xl mx-auto">
 
       {!todasLasEscenasVistas && lista[escenaIdx] && ESCENAS[lista[escenaIdx]] && (
         <DialogoEscena key={lista[escenaIdx]} escena={ESCENAS[lista[escenaIdx]]} onFin={() => setEscenaIdx((i) => i + 1)} />

@@ -15,12 +15,17 @@ import EvaMark from "./EvaMark";
 const CLAVE_AUDIO = "foro-invisible:audio";
 
 /**
- * Cabecera única del shell.
- *
- * Absorbe lo que antes dibujaba `HUDPersistente` en las cuatro esquinas con
- * `position:fixed` (identidad, nivel, XP, monedas, reloj, audio). Al vivir en el
- * grid deja de superponerse al contenido, que era la causa de parches como el
- * `pt-12 md:pt-0` de los layouts de expansión.
+ * Destino del botón de volver: una ruta, o una acción dentro de la misma
+ * pantalla (volver del combate a la lista de jefes, del módulo al menú).
+ */
+export type Volver =
+  | { href: string; label: string }
+  | { onClick: () => void; label: string };
+
+/**
+ * Cabecera única del shell. Una sola fila de 56 px en el teléfono: volver,
+ * título, ficha del jugador y sonido. Sin textos cortados a media palabra
+ * con espaciado de versalitas.
  */
 export default function ShellHeader({
   eyebrow,
@@ -31,7 +36,7 @@ export default function ShellHeader({
 }: {
   eyebrow?: string;
   title?: string;
-  back?: { href: string; label: string };
+  back?: Volver;
   /** Oculta la ficha de jugador: para portada y creación. */
   compacto?: boolean;
   extra?: React.ReactNode;
@@ -42,10 +47,8 @@ export default function ShellHeader({
   const xp = useGame((s) => s.xp);
   const monedas = useGame((s) => s.monedas);
 
-  // Tres estados en un solo control, en vez de dos botones distintos:
+  // Tres estados en un solo control:
   //   apagado → sólo efectos → efectos + ambiente de estudio
-  // El ambiente de estudio es el colchón hipnótico de lib/audio.ts: pensado
-  // para acompañar mientras se estudia, no para ambientar una escena.
   const [audio, setAudio] = useState<"apagado" | "efectos" | "estudio">("apagado");
   useEffect(() => {
     if (isMuted()) return;
@@ -79,9 +82,9 @@ export default function ShellHeader({
   }
 
   const ESTADO_AUDIO = {
-    apagado: { icono: "🔇", etiqueta: "Sonido apagado. Activar efectos", color: "border-doc-aged/35 text-doc-aged/70" },
-    efectos: { icono: "🔊", etiqueta: "Efectos activos. Activar ambiente de estudio", color: "border-zona-recursos/60 text-zona-recursos" },
-    estudio: { icono: "🌊", etiqueta: "Ambiente de estudio activo. Apagar el sonido", color: "border-zona-cautelares/70 text-zona-cautelares" },
+    apagado: { icono: "🔇", etiqueta: "Sonido apagado. Activar efectos" },
+    efectos: { icono: "🔊", etiqueta: "Efectos activos. Activar ambiente de estudio" },
+    estudio: { icono: "🌊", etiqueta: "Ambiente de estudio activo. Apagar el sonido" },
   }[audio];
 
   // Hasta que el estado persistido esté leído no se afirma nada del jugador.
@@ -89,90 +92,73 @@ export default function ShellHeader({
   const xpEnNivel = xp % 100;
 
   return (
-    <header className="shell-header py-2">
-      <div className="max-w-7xl mx-auto flex items-center gap-2 md:gap-4">
-        {back && (
+    <header className="shell-header">
+      <div className="cabecera">
+        {back && ("href" in back ? (
           <Link
             href={back.href}
             // Descendente: el oído distingue volver de avanzar.
             onClick={() => { sfx.back?.(); haptica.toque(); }}
-            className="shrink-0 flex items-center gap-1.5 px-3 min-h-[44px] border border-zona-competencia/40 text-zona-competencia t-meta font-mono-terminal uppercase tracking-wider hover:bg-zona-competencia/10 hover:border-zona-competencia transition-colors"
+            className="cabecera-boton"
+            aria-label={`Volver: ${back.label}`}
           >
             <span aria-hidden="true">←</span>
-            <span className="hidden sm:inline">{back.label}</span>
-            <span className="sr-only sm:hidden">{back.label}</span>
+            <span className="hidden md:inline">{back.label}</span>
           </Link>
-        )}
+        ) : (
+          <button
+            type="button"
+            onClick={() => { sfx.back?.(); haptica.toque(); back.onClick(); }}
+            className="cabecera-boton"
+            aria-label={`Volver: ${back.label}`}
+          >
+            <span aria-hidden="true">←</span>
+            <span className="hidden md:inline">{back.label}</span>
+          </button>
+        ))}
 
-        {/* Marca: EVA + nombre del juego. Enlaza a la portada. */}
+        {/* Marca: en el teléfono cede su sitio al título si hay botón de volver. */}
         <Link
           href="/"
           onClick={() => { sfx.tap?.(); haptica.toque(); }}
-          className="shrink-0 flex items-center gap-2 group"
+          className={`shrink-0 items-center gap-2 ${back ? "hidden md:flex" : "flex"}`}
           aria-label={`${JUEGO.nombre} — ir a la portada`}
         >
           <EvaMark size={30} />
-          <span className="hidden md:block leading-none">
-            <span className="font-display-grave t-titulo txt-fuerte tracking-widest">
-              {JUEGO.partes.uno}
-            </span>
-            <span className="font-display-grave t-titulo tracking-widest" style={{ color: "var(--zona-competencia)" }}>
-              {JUEGO.partes.dos}
-            </span>
-            <span className="font-serif-juridica t-titulo txt-fuerte">{JUEGO.partes.tres}</span>
+          <span className="hidden xl:block leading-none font-display-grave t-titulo txt-fuerte">
+            {JUEGO.partes.uno}
+            <span style={{ color: "var(--zona-competencia)" }}>{JUEGO.partes.dos}</span>
+            <span className="font-serif-juridica">{JUEGO.partes.tres}</span>
           </span>
         </Link>
 
-        {/* Título de la pantalla */}
-        {(eyebrow || title) && (
-          <div className="min-w-0 flex-1 border-l border-zona-competencia/15 pl-2 md:pl-4">
-            {eyebrow && (
-              <div className="t-etiqueta text-zona-competencia truncate">
-                {eyebrow}
-              </div>
-            )}
-            {title && (
-              <h1 className="font-display-grave t-titulo md:text-[1.45rem] txt-fuerte leading-tight truncate">
-                {title}
-              </h1>
-            )}
+        {(eyebrow || title) ? (
+          <div className="cabecera-titulo">
+            {eyebrow && <div className="cabecera-eyebrow">{eyebrow}</div>}
+            {title && <h1 className="cabecera-h1">{title}</h1>}
           </div>
+        ) : (
+          <div className="flex-1" />
         )}
-
-        {!eyebrow && !title && <div className="flex-1" />}
 
         {extra}
 
-        {/* Ficha de jugador + monedas */}
         {!compacto && hayPartida && (
-          <div className="shrink-0 flex items-center gap-2">
-            <div className="hidden sm:flex flex-col items-end leading-none gap-1">
-              <div className="flex items-center gap-1.5">
-                <span className="font-display-grave t-base txt-fuerte truncate max-w-[130px]">
-                  {personaje.nombre}
-                </span>
-                <span className="t-meta font-mono-terminal text-zona-cautelares">Nv.{nivel}</span>
-              </div>
-              <div
-                className="w-28 h-1.5 bg-bg-steel rounded-full overflow-hidden"
-                role="progressbar"
-                aria-valuenow={xpEnNivel}
-                aria-valuemin={0}
-                aria-valuemax={100}
-                aria-label={`Experiencia hacia el nivel ${nivel + 1}`}
-              >
-                <div
-                  className="h-full rounded-full"
-                  style={{ width: `${xpEnNivel}%`, background: "var(--zona-cautelares)" }}
-                />
-              </div>
-            </div>
-            <div className="flex items-center gap-1.5 px-2.5 py-1.5 border border-zona-prueba/45 rounded">
-              <span aria-hidden="true" className="text-base">🪙</span>
-              <span className="t-base font-mono-terminal text-zona-prueba">{monedas}</span>
-              <span className="sr-only">monedas</span>
-            </div>
-          </div>
+          <Link
+            href="/inventario"
+            onClick={() => sfx.click?.()}
+            className="cabecera-ficha"
+            aria-label={`${personaje.nombre}, nivel ${nivel}, ${monedas} monedas. Abrir perfil`}
+          >
+            <span className="hidden lg:flex flex-col items-end gap-1 leading-none">
+              <span className="truncate max-w-[9rem]">{personaje.nombre}</span>
+              <span className="medidor w-24" style={{ height: 5 }} aria-hidden="true">
+                <span style={{ width: `${xpEnNivel}%`, background: "var(--zona-cautelares)" }} />
+              </span>
+            </span>
+            <span className="nivel">Nv {nivel}</span>
+            <span className="monedas hidden min-[430px]:inline"><span aria-hidden="true">🪙</span> {monedas}</span>
+          </Link>
         )}
 
         <button
@@ -180,7 +166,7 @@ export default function ShellHeader({
           onClick={alternarAudio}
           aria-label={ESTADO_AUDIO.etiqueta}
           title={ESTADO_AUDIO.etiqueta}
-          className={`shrink-0 w-11 h-11 flex items-center justify-center border rounded text-lg transition-colors ${ESTADO_AUDIO.color}`}
+          className="cabecera-boton text-lg"
         >
           <span aria-hidden="true">{ESTADO_AUDIO.icono}</span>
         </button>
