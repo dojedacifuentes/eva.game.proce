@@ -8,6 +8,7 @@ import { CASOS_INVESTIGATIVOS } from "@/data/casos-investigativos";
 import { resumen } from "@/lib/repaso";
 import { diaLocal } from "@/lib/racha";
 import GameShell from "@/components/shell/GameShell";
+import Icono, { type NombreIcono } from "@/components/game/Icono";
 import dynamic from "next/dynamic";
 
 // ============================================================================
@@ -65,40 +66,40 @@ interface ModuloMeta {
   subtitulo: string;
   descripcion: string;
   zona: string;
-  icono: string;
+  icono: NombreIcono;
 }
 
 const MODULOS_CAMPAÑA: ModuloMeta[] = [
-  { id: "ejecutivo_full", titulo: "Campaña Ejecutiva", subtitulo: "10 etapas · árbol decisional", descripcion: "Juicio ejecutivo completo: del título al remate. Verificación art. 434, mandamiento, embargo, excepciones del 464, fallo y tercerías.", zona: "ejecutivo", icono: "💼" },
-  { id: "examen", titulo: "Examen de Grado", subtitulo: "Cédula oral · alternativas", descripcion: "Cédulas con respuesta académica modelo y alternativas difíciles con distractores basados en errores reales.", zona: "nulidad", icono: "📋" },
-  { id: "investigacion", titulo: "Casos Investigativos", subtitulo: "Deducción · pistas ocultas", descripcion: "Descubre pistas y deduce vicios procesales ocultos: emplazamiento fantasma, ultra petita, preclusión encubierta.", zona: "cosajuzgada", icono: "🔍" },
-  { id: "npcs", titulo: "Mentoría Procesal", subtitulo: "10 mentores · 3 etapas", descripcion: "Aprende de la Dra. Noemí, el Juez Silva, el Receptor Castro y más. Cada mentor con arco, actividades y desafío final.", zona: "recursos", icono: "🧑‍⚖️" },
+  { id: "ejecutivo_full", titulo: "Campaña Ejecutiva", subtitulo: "10 etapas · árbol decisional", descripcion: "Juicio ejecutivo completo: del título al remate. Verificación art. 434, mandamiento, embargo, excepciones del 464, fallo y tercerías.", zona: "ejecutivo", icono: "maletin" },
+  { id: "examen", titulo: "Examen de Grado", subtitulo: "Cédula oral · alternativas", descripcion: "Cédulas con respuesta académica modelo y alternativas difíciles con distractores basados en errores reales.", zona: "nulidad", icono: "cedula" },
+  { id: "investigacion", titulo: "Casos Investigativos", subtitulo: "Deducción · pistas ocultas", descripcion: "Descubre pistas y deduce vicios procesales ocultos: emplazamiento fantasma, ultra petita, preclusión encubierta.", zona: "cosajuzgada", icono: "lupa" },
+  { id: "npcs", titulo: "Mentoría Procesal", subtitulo: "10 mentores · 3 etapas", descripcion: "Aprende de la Dra. Noemí, el Juez Silva, el Receptor Castro y más. Cada mentor con arco, actividades y desafío final.", zona: "recursos", icono: "toga" },
 ];
 
 const MODULOS_COMBATE: ModuloMeta[] = [
-  { id: "arcade", titulo: "Arcade Clasificador", subtitulo: "Combo · velocidad · ranking", descripcion: "Resoluciones, recursos, excepciones y competencia a velocidad creciente, con multiplicador de combo.", zona: "ejecutivo", icono: "🎮" },
-  { id: "vof", titulo: "Verdadero o Falso", subtitulo: "Presión temporal · trampas", descripcion: "Más de 70 enunciados tramposos. La respuesta intuitiva suele ser la incorrecta.", zona: "oralidad", icono: "❓" },
-  { id: "duelo", titulo: "Duelo de Medios", subtitulo: "Combate · 3 rondas", descripcion: "Documental, testimonial, confesión, presunción y pericial se enfrentan en tres rondas.", zona: "prueba", icono: "⚔️" },
-  { id: "ataque", titulo: "Repreguntas", subtitulo: "8 preguntas · 30 s", descripcion: "Ocho preguntas de procedimiento con 30 segundos cada una. Velocidad y precisión.", zona: "oralidad", icono: "⚡" },
+  { id: "arcade", titulo: "Arcade Clasificador", subtitulo: "Combo · velocidad · ranking", descripcion: "Resoluciones, recursos, excepciones y competencia a velocidad creciente, con multiplicador de combo.", zona: "ejecutivo", icono: "cronometro" },
+  { id: "vof", titulo: "Verdadero o Falso", subtitulo: "Presión temporal · trampas", descripcion: "Más de 70 enunciados tramposos. La respuesta intuitiva suele ser la incorrecta.", zona: "oralidad", icono: "bifurcacion" },
+  { id: "duelo", titulo: "Duelo de Medios", subtitulo: "Combate · 3 rondas", descripcion: "Documental, testimonial, confesión, presunción y pericial se enfrentan en tres rondas.", zona: "prueba", icono: "balanza" },
+  { id: "ataque", titulo: "Repreguntas", subtitulo: "8 preguntas · 30 s", descripcion: "Ocho preguntas de procedimiento con 30 segundos cada una. Velocidad y precisión.", zona: "oralidad", icono: "rayo" },
 ];
 
 const MODULOS_HERRAMIENTAS: ModuloMeta[] = [
-  { id: "inhibitoria", titulo: "Inhibitoria / Declinatoria", subtitulo: "Arts. 101-112 CPC", descripcion: "Cuestiones de competencia: identifica el medio y el tribunal correcto.", zona: "competencia", icono: "🏛" },
-  { id: "timeline", titulo: "Timeline Procesal", subtitulo: "Ordena los actos", descripcion: "Reconstruye el orden correcto de los actos procesales.", zona: "ejecutivo", icono: "📅" },
-  { id: "comparecencia", titulo: "Comparecencia", subtitulo: "Ley 18.120 · patrocinio", descripcion: "Los requisitos del primer escrito. La secretaría no perdona.", zona: "incidentes", icono: "✍️" },
-  { id: "preclusion", titulo: "Preclusión Real", subtitulo: "Art. 64 CPC · fatal", descripcion: "Plazo en tiempo real: si vence, la preclusión es irreversible.", zona: "ejecutivo", icono: "⏳" },
-  { id: "abandono", titulo: "Abandono", subtitulo: "Art. 152 CPC · 6 meses", descripcion: "Sólo las gestiones útiles interrumpen el plazo.", zona: "incidentes", icono: "🗂" },
-  { id: "sentencia", titulo: "Sala de Sentencia", subtitulo: "Horror judicial", descripcion: "El estrado holográfico observa. Veredicto con efectos.", zona: "cosajuzgada", icono: "⚖️" },
-  { id: "expediente", titulo: "Expediente Vivo", subtitulo: "Salud procesal", descripcion: "El expediente se degrada con cada vicio.", zona: "nulidad", icono: "📁" },
+  { id: "inhibitoria", titulo: "Inhibitoria / Declinatoria", subtitulo: "Arts. 101-112 CPC", descripcion: "Cuestiones de competencia: identifica el medio y el tribunal correcto.", zona: "competencia", icono: "columna" },
+  { id: "timeline", titulo: "Timeline Procesal", subtitulo: "Ordena los actos", descripcion: "Reconstruye el orden correcto de los actos procesales.", zona: "ejecutivo", icono: "linea" },
+  { id: "comparecencia", titulo: "Comparecencia", subtitulo: "Ley 18.120 · patrocinio", descripcion: "Los requisitos del primer escrito. La secretaría no perdona.", zona: "incidentes", icono: "pluma" },
+  { id: "preclusion", titulo: "Preclusión Real", subtitulo: "Art. 64 CPC · fatal", descripcion: "Plazo en tiempo real: si vence, la preclusión es irreversible.", zona: "ejecutivo", icono: "arena" },
+  { id: "abandono", titulo: "Abandono", subtitulo: "Art. 152 CPC · 6 meses", descripcion: "Sólo las gestiones útiles interrumpen el plazo.", zona: "incidentes", icono: "archivador" },
+  { id: "sentencia", titulo: "Sala de Sentencia", subtitulo: "Horror judicial", descripcion: "El estrado holográfico observa. Veredicto con efectos.", zona: "cosajuzgada", icono: "martillo" },
+  { id: "expediente", titulo: "Expediente Vivo", subtitulo: "Salud procesal", descripcion: "El expediente se degrada con cada vicio.", zona: "nulidad", icono: "expediente" },
 ];
 
 const MODULOS_SISTEMA: ModuloMeta[] = [
-  { id: "inventario", titulo: "Reliquias Procesales", subtitulo: "Inventario · pasivos", descripcion: "Compra y equipa artefactos jurídicos con bonificaciones pasivas.", zona: "prueba", icono: "⚗️" },
-  { id: "submundos", titulo: "Submundos Ocultos", subtitulo: "Secretos · desbloqueables", descripcion: "Historias de vicios procesales que nunca se escriben.", zona: "nulidad", icono: "🌑" },
-  { id: "mundos", titulo: "Mundos Visuales", subtitulo: "5 identidades", descripcion: "Cambia la estética de los módulos.", zona: "competencia", icono: "🌍" },
-  { id: "grimorio", titulo: "Grimorio de Skills", subtitulo: "11 habilidades", descripcion: "Desbloquea habilidades procesales especiales.", zona: "recursos", icono: "📖" },
-  { id: "cartas", titulo: "Sistema de Cartas", subtitulo: "20 cartas jurídicas", descripcion: "Excepciones, recursos y medidas como cartas tácticas.", zona: "nulidad", icono: "🃏" },
-  { id: "build", titulo: "Especialización", subtitulo: "6 clases", descripcion: "Litigante, casacional, formalista, estratega, práctico o doctrinario.", zona: "recursos", icono: "🎯" },
+  { id: "inventario", titulo: "Reliquias Procesales", subtitulo: "Inventario · pasivos", descripcion: "Compra y equipa artefactos jurídicos con bonificaciones pasivas.", zona: "prueba", icono: "reliquia" },
+  { id: "submundos", titulo: "Submundos Ocultos", subtitulo: "Secretos · desbloqueables", descripcion: "Historias de vicios procesales que nunca se escriben.", zona: "nulidad", icono: "puerta" },
+  { id: "mundos", titulo: "Mundos Visuales", subtitulo: "5 identidades", descripcion: "Cambia la estética de los módulos.", zona: "competencia", icono: "tema" },
+  { id: "grimorio", titulo: "Grimorio de Skills", subtitulo: "11 habilidades", descripcion: "Desbloquea habilidades procesales especiales.", zona: "recursos", icono: "libro" },
+  { id: "cartas", titulo: "Sistema de Cartas", subtitulo: "20 cartas jurídicas", descripcion: "Excepciones, recursos y medidas como cartas tácticas.", zona: "nulidad", icono: "cartas" },
+  { id: "build", titulo: "Especialización", subtitulo: "6 clases", descripcion: "Litigante, casacional, formalista, estratega, práctico o doctrinario.", zona: "recursos", icono: "escudo" },
 ];
 
 const TODOS = [...MODULOS_CAMPAÑA, ...MODULOS_COMBATE, ...MODULOS_HERRAMIENTAS, ...MODULOS_SISTEMA];
@@ -283,7 +284,7 @@ export default function ExpansionHub() {
               className="fila md:col-span-2"
               style={{ "--acento": "#58F5B0" } as CSSProperties}
             >
-              <span className="fila-icono" aria-hidden="true">🔁</span>
+              <span className="fila-icono" aria-hidden="true"><Icono nombre="repaso" tam={22} /></span>
               <span className="fila-texto">
                 <span className="fila-titulo">
                   Repaso espaciado
@@ -314,7 +315,7 @@ export default function ExpansionHub() {
               className="fila md:col-span-2"
               style={{ "--acento": "#FF85DC" } as CSSProperties}
             >
-              <span className="fila-icono" aria-hidden="true">🎙️</span>
+              <span className="fila-icono" aria-hidden="true"><Icono nombre="estrado" tam={22} /></span>
               <span className="fila-texto">
                 <span className="fila-titulo">Modo Oral — Boss Rush</span>
                 <span className="fila-sub">La comisión examinadora: pregunta, repregunta, trampa y derivación.</span>
@@ -334,7 +335,9 @@ export default function ExpansionHub() {
                 className="fila disabled:cursor-not-allowed"
                 style={{ "--acento": COLOR_ZONA[mod.zona] ?? "#4BE7FF" } as CSSProperties}
               >
-                <span className="fila-icono" aria-hidden="true">{gate ? "🔒" : mod.icono}</span>
+                <span className="fila-icono" aria-hidden="true">
+                  {gate ? <Icono nombre="candado" tam={22} /> : <Icono nombre={mod.icono} tam={22} />}
+                </span>
                 <span className="fila-texto">
                   <span className="fila-titulo">{mod.titulo}</span>
                   <span className="fila-sub">{gate ? gate.hint ?? gate.label : mod.descripcion}</span>

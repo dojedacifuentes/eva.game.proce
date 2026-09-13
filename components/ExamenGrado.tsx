@@ -216,6 +216,7 @@ function ModoCedula({ onVolver }: { onVolver: () => void }) {
 function ModoAlternativas({ onVolver }: { onVolver: () => void }) {
   const pushLog = useGame((s) => s.pushLog);
   const desbloquearLogro = useGame((s) => s.desbloquearLogro);
+  const registrarRepaso = useGame((s) => s.registrarRepaso);
   const [idx, setIdx] = useState(() => Math.floor(Math.random() * ALTERNATIVAS_DIFICIL.length));
   const [seleccion, setSeleccion] = useState<number | null>(null); // Ahora es índice, no letra
   const [correctas, setCorrectas] = useState(0);
@@ -242,6 +243,8 @@ function ModoAlternativas({ onVolver }: { onVolver: () => void }) {
     if (respondida) return;
     setSeleccion(index);
     const ok = index === shuffled.correctIndex;
+    // Lo fallado entra al mazo de repaso espaciado, como en la cédula y el V/F.
+    registrarRepaso(`alternativa:${pregunta.id}`, ok);
     if (ok) {
       sfx.oralCorrecta();
       setCorrectas((c) => c + 1);

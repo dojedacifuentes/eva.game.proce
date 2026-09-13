@@ -8,6 +8,7 @@ import { haptica } from "@/lib/haptica";
 import { rachaVigente } from "@/lib/racha";
 import { JUEGO } from "@/lib/brand";
 import EvaMark from "./EvaMark";
+import Icono from "@/components/game/Icono";
 import PanelAudio, { type ModoAudio } from "./PanelAudio";
 
 /** Preferencia de audio del jugador, recordada entre sesiones. */
@@ -69,9 +70,9 @@ export default function ShellHeader({
   }
 
   const ESTADO_AUDIO = {
-    apagado: { icono: "🔇", etiqueta: "Sonido apagado. Abrir ajustes de sonido" },
-    efectos: { icono: "🔊", etiqueta: "Efectos activos. Abrir ajustes de sonido" },
-    estudio: { icono: "🌊", etiqueta: "Ambiente de estudio activo. Abrir ajustes de sonido" },
+    apagado: { icono: "silencio" as const, etiqueta: "Sonido apagado. Abrir ajustes de sonido" },
+    efectos: { icono: "altavoz" as const, etiqueta: "Efectos activos. Abrir ajustes de sonido" },
+    estudio: { icono: "onda" as const, etiqueta: "Ambiente de estudio activo. Abrir ajustes de sonido" },
   }[audio];
 
   // Hasta que el estado persistido esté leído no se afirma nada del jugador.
@@ -146,7 +147,7 @@ export default function ShellHeader({
               </span>
             </span>
             <span className="nivel">Nv {nivel}</span>
-            <span className="monedas hidden min-[430px]:inline"><span aria-hidden="true">🪙</span> {monedas}</span>
+            <span className="monedas hidden min-[430px]:inline"><Icono nombre="moneda" tam={15} /> {monedas}</span>
           </Link>
         )}
 
@@ -157,7 +158,7 @@ export default function ShellHeader({
             className="cabecera-racha"
             title={`${racha} ${racha === 1 ? "día seguido" : "días seguidos"} estudiando · mejor marca: ${mejorRacha}`}
           >
-            <span aria-hidden="true">🔥</span>
+            <Icono nombre="racha" tam={17} />
             <span>{racha}</span>
             <span className="sr-only">
               {racha === 1 ? "día seguido" : "días seguidos"} estudiando. Mejor marca: {mejorRacha}.
@@ -173,7 +174,7 @@ export default function ShellHeader({
           title={ESTADO_AUDIO.etiqueta}
           className="cabecera-boton text-lg"
         >
-          <span aria-hidden="true">{ESTADO_AUDIO.icono}</span>
+          <Icono nombre={ESTADO_AUDIO.icono} tam={20} />
         </button>
       </div>
 

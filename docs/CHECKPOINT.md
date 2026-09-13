@@ -1,4 +1,4 @@
-# Checkpoint — 13 de septiembre de 2026 (v5.2 · sensación de juego y repaso)
+# Checkpoint — 13 de septiembre de 2026 (v5.3 · sensación, repaso e iconografía)
 
 Estado del repositorio en este punto, con **lo que se midió y con qué número**.
 Lo que no se pudo medir está dicho como tal, no dado por aprobado.
@@ -22,7 +22,8 @@ Lo que no se pudo medir está dicho como tal, no dado por aprobado.
 | `337e188` | **v4.** Armazón fijo en todos los tamaños, mapa de flujo cenital, fondo estático, superficies opacas, Inter, jefes con interrogatorio de 5 fases, Entrenar y Perfil con pestañas, arnés en Windows. 41 archivos, +3 463 / −4 123. |
 | `35f5ea2` `495a0d2` `0bedf5b` | **v5 · Sensación de juego.** Fluidez entre pantallas, ambiente por escena, háptica y aviso de nivel. Ver §1·bis. |
 | `d2772f3` | **v5.1.** Racha de estudio, atajos de teclado y control de volumen real. Ver §1·ter. |
-| *(este)* | **v5.2 · Repaso espaciado.** Ver §1·quater. |
+| `ee002a6` | **v5.2 · Repaso espaciado.** Ver §1·quater. |
+| *(este)* | **v5.3 · Iconografía jurídica.** Ver §1·quinquies. |
 
 ## 1·bis · Primera tanda de mejoras de sensación (v5)
 
@@ -99,7 +100,7 @@ hoy.
 diseño. **No** están calibrados con datos de este juego, ni son un protocolo
 validado, ni hay medición de que mejoren el resultado de nadie en el examen.
 
-**Medido después de esta tanda**: lint y typecheck limpios, **97/97** pruebas,
+**Medido después de la tanda del repaso**: lint y typecheck limpios, **97/97** pruebas,
 build **47/47**, **9/9** modales, **0** pantallas sin poder avanzar en móvil,
 **0 px** de scroll de documento y de desborde en 9 rutas × 5 tamaños, **455
 textos** sin ninguno bajo 12 px ni bajo AA, **0** hallazgos de accesibilidad y
@@ -111,6 +112,40 @@ reloj del mazo, ve que `/repaso` la sirve, y —leyendo del propio juego cuál e
 la correcta— la acierta a propósito para comprobar que el siguiente repaso se va
 a exactamente tres días. Esa última comprobación se añadió porque la anterior
 admitía las dos ramas y, por sí sola, no demostraba nada.
+
+## 1·quinquies · Cuarta tanda: iconografía jurídica
+
+Los emoji eran lo que más delataba que esto es una página web. Los dibuja el
+sistema operativo, así que el juego se veía distinto en cada teléfono; llegan
+con su propio color, que pelea con la paleta; y ninguno era de derecho procesal
+—un maletín y una diana podrían ser de cualquier aplicación—.
+
+`components/game/Icono.tsx` trae **32 iconos de trazo** con rejilla de 24,
+grosor 1,6 y `currentColor`, así que cada fila toma el color de su zona sin
+dibujar una versión por color. Sustituyen a los emoji en la navegación, la
+cabecera y las 22 filas de Entrenar.
+
+**Tres hubo que rehacerlos, y sólo se supo al mirarlos.** A 22 px el mazo de
+juez salía como una chincheta, el prisma de «mundos visuales» como una señal de
+peligro y el duelo de medios como un aspa sin significado. Se renderizó la
+rejilla completa a 56 y a 22 px en una página temporal, se miraron, y se
+redibujaron: mazo apoyado en su taco, círculo mitad relleno y balanza. La página
+temporal se retiró antes de publicar para no dejar una ruta de depuración en
+producción. Queda escrito en el handoff.
+
+**Medido después de esta tanda**: lint y typecheck limpios, **97/97** pruebas,
+build **47/47**, **9/9** modales, **10/10** de teclado y racha, **18/18** de
+repaso, **0** pantallas sin poder avanzar en móvil, **0 px** de scroll de
+documento y de desborde en 9 rutas × 5 tamaños, **454 textos** sin ninguno bajo
+12 px ni bajo AA, **0** hallazgos de accesibilidad y **31/31** recorridos.
+
+También se cerró un cabo del repaso: las alternativas de grado
+(`ExamenGrado`) ya anotan sus fallos en el mazo, como la cédula y el V/F.
+
+Y apareció **una prueba floja propia**: `teclado.js` daba por completada una
+misión pulsando siempre la tecla 1, pero la misión sólo se cobra acertando y las
+alternativas se barajan, así que pasaba o fallaba según la suerte. Ahora prueba
+las opciones hasta acertar de verdad. Tres pasadas seguidas en verde.
 
 ---
 

@@ -113,11 +113,24 @@ const leerSave = (page) => page.evaluate(() => {
   const hayOpciones = await page.locator('.shell-main .opcion').count();
   comprobar(hayOpciones > 0, 'la misión llega a su desafío', `${hayOpciones} alternativas`);
 
-  await page.keyboard.press('1');
-  await page.waitForTimeout(700);
+  // Las alternativas se barajan, así que hay que ACERTAR de verdad: la misión
+  // sólo se cobra con la decisión correcta —al fallar, la barra ofrece
+  // «Revisar expediente» y «Reintentar»—. La primera versión de esta prueba
+  // pulsaba siempre la tecla 1 y pasaba o fallaba según el barajado.
+  let acertada = false;
+  for (let intento = 1; intento <= hayOpciones && !acertada; intento++) {
+    await page.keyboard.press(String(intento));
+    await page.waitForTimeout(700);
+    acertada = /Decisión correcta/i.test(await page.locator('.shell-main').innerText());
+    if (!acertada) {
+      await page.locator('.barra-accion button:has-text("Reintentar")').click({ timeout: 8000 });
+      await page.waitForTimeout(700);
+    }
+  }
+  comprobar(acertada, 'se acierta el desafío de la misión');
 
-  // Fase «resultado» → cerrar la misión.
-  await page.locator('.barra-accion button, .shell-main .btn-primario').first().click({ timeout: 8000 });
+  // Fase «resultado» correcta → cobrar la recompensa cierra la misión.
+  await page.locator('.barra-accion .btn-primario').first().click({ timeout: 8000 });
   await page.waitForTimeout(1200);
 
   const trasEstudiar = await leerSave(page);

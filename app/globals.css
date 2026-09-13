@@ -1836,6 +1836,10 @@ body { font-size: var(--t-base); line-height: 1.5; }
   font-size: 23px;
   background: color-mix(in srgb, var(--acento) 14%, #111723);
   border: 1px solid color-mix(in srgb, var(--acento) 38%, #1F2839);
+  /* Los iconos son de trazo y heredan el color: así cada fila lleva el color de
+     su zona sin que haya que dibujar una versión por zona. Mezclado con el
+     hueso para que ningún acento oscuro se pierda sobre su propio fondo. */
+  color: color-mix(in srgb, var(--acento) 72%, #F4EEDD);
 }
 .fila-texto { min-width: 0; flex: 1; }
 .fila-titulo { display: block; font-size: 16px; font-weight: 650; color: #F4EEDD; line-height: 1.25; }

@@ -22,7 +22,7 @@ Para la verificación en navegador real:
 ```bash
 npm run build
 npx next start -p 3100     # dejar corriendo
-npm run verificar          # avance en móvil + los 8 overlays
+npm run verificar          # avance en móvil, los 9 modales, teclado y repaso
 ```
 
 Node **24.x**. Sin variables de entorno, sin claves, sin backend.
@@ -55,6 +55,7 @@ Node **24.x**. Sin variables de entorno, sin claves, sin backend.
 | Cuándo vuelve una pregunta fallada | `lib/repaso.ts` (intervalos y reglas, con pruebas) |
 | Qué preguntas puede servir el repaso | `lib/bancoRepaso.ts` — unifica `data/cedula.ts`, `data/preguntas-vof.ts` y las alternativas de `data/examen-extendido.ts` |
 | La pantalla de repaso | `app/repaso/page.tsx` |
+| Los iconos de la interfaz | `components/game/Icono.tsx` — trazo, rejilla de 24, grosor 1.6, `currentColor` |
 | El mapa de campaña (nodos, cables, distritos, detalle) | `components/MapaFlujo.tsx` |
 | El fondo de toda la aplicación | `components/FondoCiudad.tsx` (SVG estático, componente de servidor) |
 
@@ -121,6 +122,14 @@ Cada una de estas costó un fallo real. Están aquí para que no se repitan.
   arriba del todo; el cuerpo sólo corre al pulsar una tecla, cuando las funciones
   que nombra ya existen. `InterrogacionOral` lleva rotulada la convención:
   «TODOS LOS HOOKS PRIMERO».
+- **Un icono hay que verlo al tamaño en que se usa.** Tres de los primeros
+  treinta y uno eran ilegibles a 22 px y sólo se notó al mirarlos: el mazo salía
+  como una chincheta, el prisma como una señal de peligro y el duelo como un
+  aspa sin significado. Antes de dar por buena una tanda de iconos, renderízalos
+  todos juntos a 56 y a 22 px y míralos. Una página temporal con la rejilla
+  completa se escribe en treinta líneas; la que se usó está en el historial
+  (`app/hoja-iconos/page.tsx`, retirada antes de publicar para no dejar una ruta
+  de depuración en producción).
 - **Nunca llames a una función con efectos desde dentro de un actualizador de
   estado.** `setTiempo(s => { if (s <= 0) fallar(); … })` parecía inocente y no lo
   era: al agotarse el reloj, la respuesta seguía sin registrarse, el intervalo no

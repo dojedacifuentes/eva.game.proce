@@ -3,6 +3,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { sfx } from "@/lib/audio";
 import { haptica } from "@/lib/haptica";
+import Icono, { type NombreIcono } from "@/components/game/Icono";
 
 /**
  * Navegación principal — cinco destinos, todos con pantalla real detrás.
@@ -11,12 +12,12 @@ import { haptica } from "@/lib/haptica";
  * dice lo que el jugador encuentra al tocarlo.
  */
 export const DESTINOS = [
-  { href: "/juego", icon: "🗺", label: "Mapa", desc: "Mapa de la campaña" },
-  { href: "/expansion", icon: "🎯", label: "Entrenar", desc: "Módulos de práctica" },
-  { href: "/oral", icon: "⚔", label: "Oral", desc: "Interrogatorios y jefes" },
-  { href: "/mundos", icon: "🌐", label: "Mundos", desc: "Mundos y expansiones" },
-  { href: "/inventario", icon: "🎒", label: "Perfil", desc: "Expediente y progreso" },
-] as const;
+  { href: "/juego", icono: "mapa", label: "Mapa", desc: "Mapa de la campaña" },
+  { href: "/expansion", icono: "diana", label: "Entrenar", desc: "Módulos de práctica" },
+  { href: "/oral", icono: "estrado", label: "Oral", desc: "Interrogatorios y jefes" },
+  { href: "/mundos", icono: "mundos", label: "Mundos", desc: "Mundos y expansiones" },
+  { href: "/inventario", icono: "expediente", label: "Perfil", desc: "Expediente y progreso" },
+] as const satisfies readonly { href: string; icono: NombreIcono; label: string; desc: string }[];
 
 function esActivo(pathname: string | null, href: string): boolean {
   if (!pathname) return false;
@@ -42,7 +43,7 @@ export default function ShellNav() {
                 aria-current={activo ? "page" : undefined}
                 className="nav-enlace"
               >
-                <span aria-hidden="true" className="icono">{d.icon}</span>
+                <Icono nombre={d.icono} tam={22} className="icono" />
                 <span>{d.label}</span>
                 {/* El nombre accesible no se queda en el emoji. */}
                 <span className="sr-only">: {d.desc}</span>

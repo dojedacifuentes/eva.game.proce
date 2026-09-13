@@ -49,7 +49,7 @@ Node **24.x** y npm. En PowerShell, si la política de scripts bloquea `npm`, us
 ```bash
 npm run lint       # eslint — sin errores NI advertencias
 npm run typecheck  # tsc --noEmit
-npm test           # vitest: 44 pruebas
+npm test           # vitest: 97 pruebas
 npm run build      # compilación de producción
 npm start          # servidor de producción
 ```
@@ -64,7 +64,7 @@ perfil limpio y una partida de prueba — **nunca toca una partida personal**.
 npm run build
 npx next start -p 3100            # dejar corriendo en otra terminal
 
-npm run verificar                 # avance en móvil + los 8 overlays
+npm run verificar                 # avance en móvil, los 9 modales, teclado y repaso
 npm run verificar:medidas         # scroll de documento y desborde horizontal
 npm run verificar:contraste       # WCAG AA sobre el píxel realmente pintado
 npm run verificar:a11y            # nombres accesibles y etiquetas
@@ -163,6 +163,14 @@ motivó. Si faltan datos, EVA no inventa diagnósticos.
 El nombre, los créditos, los colores y las rutas de assets de marca viven en un
 único archivo: **`lib/brand.ts`**. Para cambiar cualquiera de esas cosas en toda
 la interfaz se edita ahí y en ningún sitio más.
+
+### Iconografía
+
+`components/game/Icono.tsx`: 32 iconos de trazo con rejilla de 24, grosor 1,6 y
+`currentColor`, en la navegación, la cabecera y las filas de Entrenar. Heredan el
+color de su fila, así que cada zona lleva el suyo sin dibujar una versión por
+color. Sustituyen a los emoji, que los dibujaba el sistema operativo —distinto en
+cada teléfono—, traían su propio color y no eran de derecho procesal.
 
 ### Fluidez
 
