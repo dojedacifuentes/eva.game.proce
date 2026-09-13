@@ -14,12 +14,13 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",
-    "verificar": "node scripts/verificacion/avanzar.js && node scripts/verificacion/overlays.js && node scripts/verificacion/teclado.js",
+    "verificar": "node scripts/verificacion/avanzar.js && node scripts/verificacion/overlays.js && node scripts/verificacion/teclado.js && node scripts/verificacion/repaso.js",
     "verificar:teclado": "node scripts/verificacion/teclado.js",
-    "verificar:medidas": "node scripts/verificacion/medir.js /juego /creacion /mundos /codex /inventario /expansion /oral",
-    "verificar:contraste": "node scripts/verificacion/contraste2.js /juego /creacion /mundos /codex /inventario /expansion /oral /civilis /reinos /procesal",
-    "verificar:a11y": "node scripts/verificacion/a11y.js / /juego /creacion /mundos /codex /inventario /expansion /oral /reinos /civilis /procesal",
-    "verificar:flujos": "node scripts/verificacion/flujos.js"
+    "verificar:medidas": "node scripts/verificacion/medir.js /juego /creacion /mundos /codex /inventario /expansion /oral /examen /repaso",
+    "verificar:contraste": "node scripts/verificacion/contraste2.js /juego /creacion /mundos /codex /inventario /expansion /oral /examen /repaso /civilis /reinos /procesal",
+    "verificar:a11y": "node scripts/verificacion/a11y.js / /juego /creacion /mundos /codex /inventario /expansion /oral /examen /repaso /reinos /civilis /procesal",
+    "verificar:flujos": "node scripts/verificacion/flujos.js",
+    "verificar:repaso": "node scripts/verificacion/repaso.js"
   },
   "dependencies": {
     "clsx": "2.1.1",

@@ -1,10 +1,12 @@
 "use client";
 import Link from "next/link";
-import { useCallback, useEffect, useState, type CSSProperties } from "react";
+import { useCallback, useEffect, useMemo, useState, type CSSProperties } from "react";
 import { sfx } from "@/lib/audio";
 import { useGame } from "@/store/useGame";
 import { isModuloUnlocked, getModuloGate } from "@/lib/unlock-gates";
 import { CASOS_INVESTIGATIVOS } from "@/data/casos-investigativos";
+import { resumen } from "@/lib/repaso";
+import { diaLocal } from "@/lib/racha";
 import GameShell from "@/components/shell/GameShell";
 import dynamic from "next/dynamic";
 
@@ -123,7 +125,10 @@ export default function ExpansionHub() {
   const [pestaña, setPestaña] = useState<PestañaId>("campaña");
   const [casoSeleccionado, setCasoSeleccionado] = useState<string | null>(null);
   const { nivel, logros } = useGame();
+  const mazo = useGame((s) => s.repaso);
   const logrosIds = logros.map((l) => l.id);
+  // Sólo cuenta: mirar el mazo nunca lo modifica.
+  const repaso = useMemo(() => resumen(mazo, diaLocal()), [mazo]);
 
   // El módulo abierto vive en la URL: el «atrás» del teléfono vuelve al menú.
   useEffect(() => {
@@ -269,6 +274,39 @@ export default function ExpansionHub() {
         </div>
 
         <div id="panel-modulos" role="tabpanel" aria-labelledby={`tab-${activa.id}`} className="pt-3 grid md:grid-cols-2 gap-2">
+          {/* El repaso encabeza Campaña porque es lo que conviene hacer primero
+              al sentarse: lo que ya fallaste, justo cuando toca volver a verlo. */}
+          {activa.id === "campaña" && (
+            <Link
+              href="/repaso"
+              onClick={() => sfx.click?.()}
+              className="fila md:col-span-2"
+              style={{ "--acento": "#58F5B0" } as CSSProperties}
+            >
+              <span className="fila-icono" aria-hidden="true">🔁</span>
+              <span className="fila-texto">
+                <span className="fila-titulo">
+                  Repaso espaciado
+                  {repaso.pendientes > 0 && (
+                    <span className="chip ml-2" style={{ borderColor: "#58F5B0", color: "#58F5B0" }}>
+                      {repaso.pendientes} para hoy
+                    </span>
+                  )}
+                </span>
+                <span className="fila-sub">
+                  {repaso.pendientes > 0
+                    ? "Vuelven las preguntas que fallaste, justo cuando estás a punto de olvidarlas."
+                    : repaso.enMazo > 0
+                      ? "Hoy no vence ninguna. El mazo sigue ahí."
+                      : "Aquí volverán las preguntas que falles en la cédula y en el verdadero/falso."}
+                </span>
+                <span className="fila-meta">
+                  {repaso.enMazo} en el mazo · {repaso.aprendidas} aprendidas
+                </span>
+              </span>
+              <span className="fila-chevron" aria-hidden="true">›</span>
+            </Link>
+          )}
           {activa.id === "arena" && (
             <Link
               href="/oral"

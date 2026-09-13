@@ -28,6 +28,7 @@ ajusta `executablePath` en cada guion.
 | `contraste2.js` | Contraste WCAG AA **sobre el píxel realmente pintado** (captura → canvas → muestreo) | Deducirlo del CSS daba falsos positivos en los dos sentidos |
 | `a11y.js` | Controles sin nombre accesible y campos sin etiqueta | 296 de 297 botones no tenían nombre |
 | `teclado.js` | Que las teclas respondan alternativas, que se apaguen con la respuesta a la vista, que no roben teclas a un campo de texto, y que la racha cuente días de estudio y no visitas | Ninguna de esas cosas se ve en una captura: hay que pulsar |
+| `repaso.js` | El repaso espaciado de punta a punta: fallar una pregunta de verdad, que nazca la ficha, que `/repaso` la sirva el día que vence y que acertarla aleje el siguiente repaso a tres días exactos | Las pruebas unitarias cubren el motor y el banco por separado; la cadena completa, ninguna |
 | `capturar.js`, `capmodal.js` | Capturas de pantalla | Revisión visual |
 
 ## Uso

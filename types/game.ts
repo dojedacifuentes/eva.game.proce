@@ -4,6 +4,8 @@
 // de Tribunales (COT), Código de Procedimiento Civil (CPC).
 // ============================================================================
 
+import type { FichaRepaso } from "@/lib/repaso";
+
 export type Atributos = {
   conocimiento_procesal: number;     // dominio del CPC, COT, doctrina
   persuasion_forense: number;        // alegatos, audiencias
@@ -334,4 +336,7 @@ export type SaveState = {
   mejorRacha: number;
   ultimoDiaJugado: string;     // AAAA-MM-DD en hora local
   actividadesHoy: number;
+
+  /** Mazo de repaso espaciado, indexado por id de pregunta. Ver lib/repaso.ts. */
+  repaso: Record<string, FichaRepaso>;
 };

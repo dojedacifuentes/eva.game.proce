@@ -1,9 +1,9 @@
-# Checkpoint — 12 de septiembre de 2026 (v4 · móvil y mapa de flujo)
+# Checkpoint — 13 de septiembre de 2026 (v5.2 · sensación de juego y repaso)
 
 Estado del repositorio en este punto, con **lo que se midió y con qué número**.
 Lo que no se pudo medir está dicho como tal, no dado por aprobado.
 
-- Rama de trabajo: `claude/movil-mapa-flujo` · Producción: `main`
+- Rama de trabajo: `claude/tender-mayer-j60b5g` · Producción: `main`
 - Producción: [evagameproce.vercel.app](https://evagameproce.vercel.app)
 - Qué cambió y por qué: [`ENTREGA-MOVIL-FLUJO.md`](ENTREGA-MOVIL-FLUJO.md)
 - Cómo seguir: [`HANDOFF.md`](HANDOFF.md)
@@ -20,7 +20,9 @@ Lo que no se pudo medir está dicho como tal, no dado por aprobado.
 | `07ecc86` | Desbloqueo del avance en la entrada de jefe. |
 | `188e10c` | Documentación y arnés de verificación versionado. |
 | `337e188` | **v4.** Armazón fijo en todos los tamaños, mapa de flujo cenital, fondo estático, superficies opacas, Inter, jefes con interrogatorio de 5 fases, Entrenar y Perfil con pestañas, arnés en Windows. 41 archivos, +3 463 / −4 123. |
-| *(este)* | **v5 · Sensación de juego.** Fluidez entre pantallas, ambiente por escena, háptica y aviso de nivel. Ver §1·bis. |
+| `35f5ea2` `495a0d2` `0bedf5b` | **v5 · Sensación de juego.** Fluidez entre pantallas, ambiente por escena, háptica y aviso de nivel. Ver §1·bis. |
+| `d2772f3` | **v5.1.** Racha de estudio, atajos de teclado y control de volumen real. Ver §1·ter. |
+| *(este)* | **v5.2 · Repaso espaciado.** Ver §1·quater. |
 
 ## 1·bis · Primera tanda de mejoras de sensación (v5)
 
@@ -77,6 +79,39 @@ nunca llegaba a escribirse—; ahora juega una misión entera y comprueba que la
 racha se abre en 1 con la fecha local de hoy, y que limitarse a navegar no la
 toca.
 
+## 1·quater · Tercera tanda: repaso espaciado
+
+Lo que **fallas** entra en un mazo y vuelve cuando toca. De todo lo propuesto es
+lo que más debería notarse en el examen, porque no añade contenido: cambia
+*cuándo* ves el que ya hay.
+
+| Pieza | Qué hace |
+|---|---|
+| `lib/repaso.ts` | Intervalos de 1, 3, 7, 16 y 35 días. Fallar devuelve la ficha al principio; cinco aciertos seguidos la sacan del mazo. 24 pruebas |
+| `lib/bancoRepaso.ts` | Unifica los tres bancos —cédula, verdadero/falso y alternativas de grado, 105 preguntas— bajo una sola forma. Los identificadores se derivan del **texto**, no de la posición: reordenar un banco no mezcla historiales. 6 pruebas, una de ellas comprueba que en las alternativas de grado la letra marcada como correcta existe de verdad entre las opciones |
+| `app/repaso/page.tsx` | Sirve tandas de hasta 12, con las teclas, la espera saltable y la háptica de las tandas anteriores |
+| `data/cedula.ts` | Las preguntas de `/examen` salen de dentro de la página a `data/`, para que el repaso pueda volver a servirlas. El contenido no se tocó |
+
+La fila de repaso encabeza la pestaña Campaña de Entrenar y dice cuántas vencen
+hoy.
+
+**Sobre los intervalos**: son una progresión razonable elegida por criterio de
+diseño. **No** están calibrados con datos de este juego, ni son un protocolo
+validado, ni hay medición de que mejoren el resultado de nadie en el examen.
+
+**Medido después de esta tanda**: lint y typecheck limpios, **97/97** pruebas,
+build **47/47**, **9/9** modales, **0** pantallas sin poder avanzar en móvil,
+**0 px** de scroll de documento y de desborde en 9 rutas × 5 tamaños, **455
+textos** sin ninguno bajo 12 px ni bajo AA, **0** hallazgos de accesibilidad y
+**31/31** recorridos.
+
+El repaso tiene su propio guion de punta a punta, `repaso.js`: **18/18**. Falla
+una pregunta de verdad en la cédula, comprueba que nace la ficha, adelanta el
+reloj del mazo, ve que `/repaso` la sirve, y —leyendo del propio juego cuál era
+la correcta— la acierta a propósito para comprobar que el siguiente repaso se va
+a exactamente tres días. Esa última comprobación se añadió porque la anterior
+admitía las dos ramas y, por sí sola, no demostraba nada.
+
 ---
 
 ## 2 · Medición de hoy
@@ -124,13 +159,14 @@ unas cifras que no correspondían al código medido.
 - Módulos heredados de Entrenar (Juicio ejecutivo, Arcade, Timeline, etc.):
   heredan armazón, tipografía y superficies, pero no se rediseñaron por dentro.
 - **Resto del plan de sensación de juego**, propuesto y no empezado: música
-  adaptativa por capas (tensión que entra con poca vida o poco reloj), control de
-  volumen real en vez de un ciclo de tres estados, textura de superficie,
-  retratos procedurales al frente, parallax en el mapa, iconografía jurídica en
-  SVG en lugar de emoji, atajos de teclado en las actividades, racha y tiempo de
-  sesión, y repaso espaciado de los fallos. La espera saltable ya está puesta en
-  `SpeedrunVoF` y `ArcadeClasificador`; falta llevarla al resto de actividades
-  con tiempos fijos.
+  adaptativa por capas (tensión que entra con poca vida o poco reloj), textura de
+  superficie, retratos procedurales al frente, parallax en el mapa e iconografía
+  jurídica en SVG en lugar de emoji.
+- El repaso espaciado se alimenta hoy de la cédula y del verdadero/falso. Las
+  alternativas de grado ya son repasables desde `bancoRepaso`, pero el módulo
+  que las juega todavía no anota sus fallos.
+- La espera saltable y los atajos de teclado están en las actividades
+  principales; faltan los módulos heredados de Entrenar.
 - Mapa de Reinos del Derecho en el teléfono sin revisar con perfil de jurista.
 - Civilis a 390 px: dos o tres etiquetas aún se tocan en una esquina del mapa.
 - Decisiones de Diego: [`REVISION_JURIDICA_PENDIENTE.md`](REVISION_JURIDICA_PENDIENTE.md)

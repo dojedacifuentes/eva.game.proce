@@ -6,6 +6,7 @@ import { sfx } from "@/lib/audio";
 import { fx } from "@/lib/fx";
 import { haptica } from "@/lib/haptica";
 import { casosAleatoriosVoF, type PreguntaVoF } from "@/data/preguntas-vof";
+import { idVoF } from "@/lib/bancoRepaso";
 import { useCallbackRef } from "@/lib/useCallbackRef";
 import { useAvanceAutomatico } from "@/lib/useAvanceAutomatico";
 import PistaAvance from "./shell/PistaAvance";
@@ -87,6 +88,8 @@ export default function SpeedrunVoF() {
     if (respuesta !== null || !actual) return;
     setRespuesta(r);
     const ok = r === actual.respuesta;
+    // Lo fallado entra al mazo de repaso; lo acertado sólo cuenta si ya estaba.
+    game.registrarRepaso(idVoF(actual.enunciado), ok);
     if (ok) {
       sfx.combo(combo);
       fx.reward();

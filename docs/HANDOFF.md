@@ -52,6 +52,9 @@ Node **24.x**. Sin variables de entorno, sin claves, sin backend.
 | Las teclas que responden una alternativa | `lib/useAtajosAlternativas.ts` (con pruebas) |
 | El aviso de subida de nivel | `components/shell/AvisoNivel.tsx` + `lib/progreso.ts` (con pruebas) |
 | La racha de días de estudio | `lib/racha.ts` (con pruebas) + los campos del guardado que actualiza `avanzarRacha()` en `store/useGame.ts` |
+| Cuándo vuelve una pregunta fallada | `lib/repaso.ts` (intervalos y reglas, con pruebas) |
+| Qué preguntas puede servir el repaso | `lib/bancoRepaso.ts` — unifica `data/cedula.ts`, `data/preguntas-vof.ts` y las alternativas de `data/examen-extendido.ts` |
+| La pantalla de repaso | `app/repaso/page.tsx` |
 | El mapa de campaña (nodos, cables, distritos, detalle) | `components/MapaFlujo.tsx` |
 | El fondo de toda la aplicación | `components/FondoCiudad.tsx` (SVG estático, componente de servidor) |
 

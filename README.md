@@ -187,6 +187,21 @@ contador sólo avanza desde `gainXp` y `completarMision`. Usa el día en hora
 de noche. Mirar la racha no la reescribe. 15 pruebas cubren el cambio de mes, de
 año, el 29 de febrero y el reloj movido hacia atrás.
 
+### Repaso espaciado
+
+`lib/repaso.ts` + la ruta `/repaso`. Lo que **fallas** en la cédula y en el
+verdadero/falso entra en un mazo y vuelve a 1, 3, 7, 16 y 35 días; acertarlo lo
+aleja, volver a fallarlo lo devuelve a mañana, y tras cinco aciertos seguidos
+sale del mazo. Es lo único del juego que decide *cuándo* te toca ver cada cosa.
+
+`lib/bancoRepaso.ts` unifica los tres bancos (`data/cedula.ts`,
+`data/preguntas-vof.ts` y las alternativas de `data/examen-extendido.ts`) bajo
+una sola forma, con identificadores derivados del **texto** de la pregunta y no
+de su posición: reordenar un banco no mezcla historiales.
+
+> Los intervalos son una progresión razonable elegida por criterio de diseño.
+> **No** están calibrados con datos de este juego ni son un protocolo validado.
+
 ### Sonido y tacto
 
 `lib/audio.ts` genera todo por **Web Audio API**, sin archivos.

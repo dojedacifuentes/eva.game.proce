@@ -7,7 +7,8 @@ import type {
   ProgresionNpc, EstadoNpc, MundoVisual,
 } from "@/types/game";
 import { getRelicById, MAX_RELICS_EQUIPADAS } from "@/data/relics";
-import { RACHA_INICIAL, registrarActividad, type EstadoRacha } from "@/lib/racha";
+import { RACHA_INICIAL, registrarActividad, diaLocal, type EstadoRacha } from "@/lib/racha";
+import { registrarResultado } from "@/lib/repaso";
 
 type Store = SaveState & {
   /** true en cuanto `persist` terminó de leer localStorage. NO se persiste. */
@@ -18,6 +19,11 @@ type Store = SaveState & {
   hayPartida: () => boolean;
   /** Crea una partida nueva reemplazando la anterior. Punto único de borrado. */
   iniciarPartida: (p: Personaje) => void;
+  /**
+   * Anota el resultado de una pregunta en el mazo de repaso espaciado.
+   * Acertar algo que nunca fallaste no crea ficha: el mazo es de fallos.
+   */
+  registrarRepaso: (id: string, acierto: boolean) => void;
   /** Serializa la partida a JSON para respaldo/traslado entre dominios. */
   exportarPartida: () => string;
   /** Restaura una partida exportada. Devuelve false si el JSON no es válido. */
@@ -106,6 +112,7 @@ export function crearEstadoInicial(): SaveState {
     // `sanearEstado` rellena las claves ausentes, así que un guardado anterior a
     // la racha simplemente empieza de cero sin perder nada.
     ...RACHA_INICIAL,
+    repaso: {},
   };
 }
 
@@ -208,6 +215,15 @@ export const useGame = create<Store>()(
       // llamarlo cuando ya existe un personaje (ver app/creacion).
       iniciarPartida: (p) =>
         set({ ...crearEstadoInicial(), creado: Date.now(), personaje: p, finalizado: false, epilogo: undefined }),
+      registrarRepaso: (id, acierto) =>
+        set((s) => {
+          const mazo = s.repaso && typeof s.repaso === "object" ? s.repaso : {};
+          const ficha = registrarResultado(mazo[id], id, acierto, diaLocal());
+          // `null` significa «no hay nada que anotar»: se acertó algo que nunca
+          // se falló. Devolver el estado tal cual evita un guardado inútil.
+          if (!ficha) return s;
+          return { repaso: { ...mazo, [id]: ficha }, ultimoGuardado: Date.now() };
+        }),
       exportarPartida: () => {
         const s = get();
         const plano: Record<string, unknown> = {};
