@@ -24,6 +24,7 @@ sobre negro.
 |---|---|
 | [`docs/CHECKPOINT.md`](docs/CHECKPOINT.md) | Estado verificado hoy: qué se midió, con qué número, en qué commit |
 | [`docs/HANDOFF.md`](docs/HANDOFF.md) | Cómo seguir: mapa del código, convenciones, trampas conocidas, qué falta |
+| [`docs/ENTREGA-MOVIL-FLUJO.md`](docs/ENTREGA-MOVIL-FLUJO.md) | **v4**: armazón fijo en el teléfono, mapa de flujo cenital, superficies sólidas, jefes con interrogatorio |
 | [`docs/ENTREGA-UX-EVA.md`](docs/ENTREGA-UX-EVA.md) | Entrega del rediseño de una sola pantalla, creación de personaje, EVA y marca |
 | [`docs/REVISION_JURIDICA_PENDIENTE.md`](docs/REVISION_JURIDICA_PENDIENTE.md) | **Pendiente de Diego**: contradicciones internas de contenido jurídico sin resolver |
 | [`docs/NPC-TEXTOS-UNIFICADOS.md`](docs/NPC-TEXTOS-UNIFICADOS.md) | **Pendiente de Diego**: rasgos de personaje que cambiaron al unificar los NPC |
@@ -70,6 +71,9 @@ npm run verificar:a11y            # nombres accesibles y etiquetas
 npm run verificar:flujos          # recorridos completos de juego
 ```
 
+En Windows y macOS usan el Chrome o Edge instalados
+(`scripts/verificacion/navegador.js`): no hace falta descargar navegadores.
+
 Cada guion nació de un fallo que se había colado. Está explicado, uno por uno, en
 [`scripts/verificacion/README.md`](scripts/verificacion/README.md).
 
@@ -80,6 +84,7 @@ Cada guion nació de un fallo que se había colado. Está explicado, uno por uno
 - **Next.js 15.5** (App Router) + **React 19.1**
 - **TypeScript**, con comprobación de tipos en la compilación
 - **TailwindCSS** + CSS propio (`app/globals.css`)
+- **Tipografías vía `next/font`**: Inter (lectura), Cinzel (titulares), Cormorant (voz de personajes), JetBrains Mono (etiquetas y cifras)
 - **Framer Motion**
 - **Zustand + persist** (estado y guardado en `localStorage`, con guarda SSR)
 - **Vitest** para la lógica delicada
@@ -93,22 +98,21 @@ Cada guion nació de un fallo que se había colado. Está explicado, uno por uno
 ### `GameShell` — el armazón de pantalla
 
 Todas las rutas se dibujan dentro de `components/shell/GameShell.tsx`, que
-controla cabecera, contenido y navegación. Tres variantes:
+controla cabecera, contenido y navegación. **En todos los tamaños** (v4) mide
+exactamente la ventana: `grid-template-rows: auto minmax(0,1fr) auto` sobre
+`100dvh`. El documento no se desplaza nunca; se desplaza la región de contenido.
+La navegación inferior es una fila del grid, no una capa fija.
 
 | Variante | Para qué | Comportamiento |
 |---|---|---|
-| `app` | Hub y pantallas de una sola vista | En escritorio el documento **no** se desplaza; el hijo reparte el alto |
-| `focus` | Actividades e interacciones breves | Igual, con el contenido en una región desplazable accesible |
-| `reader` | Codex, biblioteca, textos largos | El documento se desplaza con normalidad |
+| `app` | Hub, portada, creación | El hijo reparte el alto; si no cabe en una ventana muy baja, se desplaza |
+| `focus` | Actividades | Contenido en una región desplazable accesible; `scrollKey` la devuelve arriba al cambiar de fase |
+| `reader` | Codex, textos largos | Igual que `focus` |
 
-El reparto es `grid-template-rows: auto minmax(0,1fr) auto` sobre `100dvh`, con
-`min-height: 0` en el hijo. **Nada se resolvió recortando con `overflow: hidden`**:
-cuando un panel no cabe, recibe su propia región desplazable, enfocable y
-etiquetada.
-
-El bloqueo del scroll de documento sólo se activa a partir de **1024×620**. En
-móvil, en ventanas bajas y con el texto ampliado se suelta solo, para que ningún
-control quede fuera de alcance.
+Dentro de una actividad, `.hud-fijo` queda pegado arriba (fase, vidas, pestañas)
+y `.barra-accion` pegada abajo: **la acción que hace avanzar está siempre a la
+vista**. Antes, en el teléfono, el botón «Comenzar» de la creación caía bajo la
+barra inferior. **Nada se resolvió recortando con `overflow: hidden`.**
 
 ### `Modal` — un único sistema de diálogos
 
@@ -124,12 +128,28 @@ hook `lib/useModalAccesible.ts`.
 ### Capa de legibilidad
 
 En `app/globals.css`, sección `LEGIBILIDAD`: escala tipográfica con nombre
-(`--t-micro` … `--t-display`), tokens de superficie opaca (`--sup-1`, `--sup-2`,
-`--sup-alta`), clases de énfasis (`.txt-fuerte` … `.txt-tenue`) y un **suelo de
-píxeles** que impide que ningún texto baje del mínimo legible.
+(`--t-micro` 13 px … `--t-display`), tokens de superficie **opacos del todo**
+(`--sup-1`, `--sup-2`, `--sup-alta`), clases de énfasis (`.txt-fuerte` …
+`.txt-tenue`) y un **suelo de píxeles**. La sección `v4` añade las piezas
+comunes: `.fila`, `.opcion`, `.segmentado`, `.medidor`, `.chip`, `.btn-primario`.
+
+El texto de lectura va en Inter; Cinzel y Cormorant pasan a sans cuando se usan
+en tamaños pequeños, y los espaciados de versalita se contienen.
 
 La comprobación de contraste **no se deduce del CSS**: se captura la pantalla, se
 muestrea el píxel realmente pintado y se calcula el ratio WCAG contra él.
+
+### Mapa de flujo y fondo
+
+`components/MapaFlujo.tsx` dibuja la campaña como un **flujo de nodos** sobre un
+plano visto desde arriba: cada misión y cada jefe es un nodo con puertos, los
+cables muestran lo recorrido (verde), lo actual (animado) y lo pendiente, y cada
+acto es un distrito de manzanas. El trazado se calcula con el ancho real: 1 acto
+por fila en el teléfono, 2 en tableta, 3 en escritorio. Tocar un nodo abre su
+detalle con «Jugar»; hay vista de lista alternativa.
+
+`components/FondoCiudad.tsx` es el fondo de toda la aplicación: plano cenital
+estático en SVG, renderizado en el servidor, sin JavaScript en el cliente.
 
 ### EVA
 
@@ -237,8 +257,8 @@ eva.game.proce/
 ├─ components/
 │  ├─ shell/                   # GameShell, Modal, cabecera, navegación, EVA
 │  ├─ game/                    # Retratos procedurales
-│  ├─ MapCity.tsx              # Mapa urbano de arquitectura jurídica
-│  ├─ GameWorldMap.tsx         # Mapa de nodos de campaña
+│  ├─ MapaFlujo.tsx            # Mapa de campaña: flujo de nodos cenital
+│  ├─ FondoCiudad.tsx          # Fondo estático: plano de la ciudad + flujo
 │  └─ …Panel.tsx               # Un panel por mecánica procesal
 ├─ lib/
 │  ├─ reglas.ts                # Motor normativo procesal
@@ -256,14 +276,15 @@ eva.game.proce/
 
 ## Flujos que conviene revisar a mano
 
-1. **Empezar de cero:** portada → «Comenzar» → nombre → «Partida rápida» → «Comenzar».
+1. **Empezar de cero:** portada → «Comenzar» → nombre → «Partida rápida» (entra directo al mapa).
 2. **Personalizar:** en creación, «Siguiente» por los cuatro pasos y volver atrás;
    los datos se conservan y los atributos se recalculan sin acumular bonificaciones.
 3. **Protección del guardado:** con una partida en curso, abrir `/creacion` y
    cancelar; nada se borra. Reemplazar exige confirmación explícita.
-4. **Una sola pantalla:** `/juego` a 1366×768 no debe tener barra de desplazamiento.
-5. **Móvil:** `/juego` a 390×844; sin desbordamiento horizontal, barra inferior
-   visible, y el control de avance siempre dentro de la ventana.
+4. **Una sola pantalla:** ninguna ruta desplaza el documento, ni a 1366×768 ni a
+   390×844; a 1366×768 la campaña entera cabe en el mapa.
+5. **Móvil:** `/juego` a 390×844; mapa centrado en «AQUÍ» y barra «Próximo paso»
+   visible sobre la navegación; en una misión, la acción siempre abajo.
 6. **Respaldo:** Perfil → «Exportar partida» / «Importar partida».
 
 Para probar sin tocar tu partida real, usa una ventana privada del navegador o
