@@ -48,7 +48,7 @@ Node **24.x** y npm. En PowerShell, si la política de scripts bloquea `npm`, us
 ```bash
 npm run lint       # eslint — sin errores NI advertencias
 npm run typecheck  # tsc --noEmit
-npm test           # vitest: 37 pruebas
+npm test           # vitest: 44 pruebas
 npm run build      # compilación de producción
 npm start          # servidor de producción
 ```
@@ -144,12 +144,32 @@ El nombre, los créditos, los colores y las rutas de assets de marca viven en un
 único archivo: **`lib/brand.ts`**. Para cambiar cualquiera de esas cosas en toda
 la interfaz se edita ahí y en ningún sitio más.
 
-### Sonido
+### Fluidez
 
-`lib/audio.ts` genera todo por **Web Audio API**, sin archivos: efectos de
-interfaz y un ambiente continuo de estudio (pares de osciladores desafinados que
-producen batido lento, capa de ruido rosa con filtro barrido y campanas de caída
-larga). Se activa y se apaga desde la interfaz; arranca en silencio.
+- **`app/template.tsx`** da una entrada común a cada pantalla. Anima **sólo la
+  opacidad**: un `transform` aquí sacaría de la pantalla todo lo que es
+  `position: fixed` (ver [`docs/HANDOFF.md`](docs/HANDOFF.md) §4).
+- **`app/loading.tsx`** dibuja la silueta del armazón mientras llega una ruta, en
+  vez de dejar la pantalla anterior congelada.
+- **`lib/useAvanceAutomatico.ts`** convierte la espera entre preguntas en un
+  máximo adelantable: cualquier toque, Enter o flecha derecha sigue al momento, y
+  una barra muestra cuánto falta. Antes eran 1,5 s fijos por pregunta.
+
+### Sonido y tacto
+
+`lib/audio.ts` genera todo por **Web Audio API**, sin archivos.
+
+- **Efectos con intención separada**: navegar (`tap`), volver (`back`), abrir y
+  cerrar una ventana, elegir, confirmar, acertar, fallar. No todo suena igual.
+- **Seis escenas de ambiente** —estudio, oral, ejecutivo, nulidad, recursos,
+  cautelares—: la misma cama sonora afinada en otro registro según dónde esté el
+  jugador. Cambia sola al navegar, con un cruce de disolución.
+- **`lib/haptica.ts`** añade vibración corta en acierto, error e hito. Respeta
+  `prefers-reduced-motion`. Safari de iOS no implementa `navigator.vibrate`, así
+  que en iPhone no vibra nada: nunca es el único canal de información.
+
+Todo arranca en silencio y se controla desde la cabecera (apagado → efectos →
+ambiente de estudio).
 
 ---
 

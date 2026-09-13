@@ -9,6 +9,7 @@ import { getMissionPlaybook, type MissionOption } from "@/data/mission-playbooks
 import { getWorldDefinition } from "@/data/worlds";
 import { useGame } from "@/store/useGame";
 import { sfx } from "@/lib/audio";
+import { haptica } from "@/lib/haptica";
 import GameShell from "@/components/shell/GameShell";
 
 type Phase = "briefing" | "dossier" | "challenge" | "result";
@@ -59,8 +60,10 @@ export default function MissionRunner({ missionId }: { missionId: string }) {
     setAttempts((n) => n + 1);
     if (option.correct) {
       sfx.confirm?.();
+      haptica.acierto();
     } else {
       sfx.inadmisible?.();
+      haptica.error();
       setRisk((r) => Math.min(100, r + 22));
       game.ajustarTrauma(2);
       game.ajustarReputacion(-1);

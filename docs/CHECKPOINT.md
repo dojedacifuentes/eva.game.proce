@@ -20,7 +20,40 @@ Desde `3f98d9e` (la copia recién desplegada en Vercel) hasta hoy:
 | `f0a0a71` | **Legibilidad y mundo.** Escala tipográfica con suelo de píxeles, mapa de ciudad con arquitectura jurídica, cada actividad cabe entera, ambiente sonoro generado. 48 archivos. |
 | `ec5378b` | **Modales.** Sistema único `Modal` opaco y accesible, diálogo de NPC rehecho como escena jugable, NPC unificados en una sola fuente. 25 archivos. |
 | `07ecc86` | **Móvil.** Desbloquea el avance en la entrada de jefe, sube la escala tipográfica, opaca los paneles restantes. 4 archivos. |
-| *(este)* | Documentación (README, checkpoint, handoff), arnés de verificación versionado en `scripts/verificacion/`, ajuste de densidad que cierra el último desborde y actualización de dependencias a 0 vulnerabilidades. |
+| `188e10c` | Documentación (README, checkpoint, handoff), arnés de verificación versionado en `scripts/verificacion/`, ajuste de densidad que cierra el último desborde y actualización de dependencias a 0 vulnerabilidades. |
+| *(este)* | **Fluidez, sonido y tacto.** Ver §2. |
+
+## 1·bis · Primera tanda de mejoras de sensación
+
+Seis cambios elegidos por una razón común: cinco de los seis **conectan sistemas
+que ya estaban escritos en el repositorio y nunca se llamaban**.
+
+| Qué | Antes | Ahora |
+|---|---|---|
+| **Subir de nivel** | Invisible en el juego base: `store/useGame.ts` recalculaba `nivel` dentro del `set()` y nadie reaccionaba. La barra de XP se llenaba y volvía a cero en silencio. La expansión Reinos sí avisaba; el núcleo no | `components/shell/AvisoNivel.tsx`, montado una vez en el layout: aviso, arpegio, vibración y destello. La decisión de cuándo celebrar vive en `lib/progreso.ts`, con 7 pruebas |
+| **Cambio de pantalla** | Ninguna de las 50 rutas tenía `loading.tsx` ni `template.tsx`: corte seco, y las rutas dinámicas se quedaban con la pantalla anterior congelada | `app/template.tsx` (entrada común) y `app/loading.tsx` (silueta del armazón) |
+| **Espera entre preguntas** | 1,5 s fijos e insalvables. En una tanda de veinte, medio minuto mirando | `lib/useAvanceAutomatico.ts`: máximo adelantable con cualquier toque, Enter o flecha, con barra de progreso. 900 ms al acertar, 1,6-1,7 s al fallar (hay explicación que leer) |
+| **Ambiente sonoro** | `lib/audio.ts` traía cinco modos escritos; sólo sonaba uno | Seis escenas —estudio, oral, ejecutivo, nulidad, recursos, cautelares— que cambian solas al navegar, con cruce de disolución |
+| **Paleta de efectos** | 337 de 517 llamadas eran `click` o `hover`: navegar, elegir, abrir un modal y confirmar sonaban igual | `tap`, `back`, `abrir`, `cerrar`, `error` y `subidaNivel`, repartidos por la cabecera, la navegación, el sistema de modales y las actividades principales |
+| **Vibración** | Cero `navigator.vibrate` en todo el repositorio | `lib/haptica.ts` en acierto, error e hito. Respeta `prefers-reduced-motion` |
+
+Además, un fallo real que apareció al tocar ese código: en `SpeedrunVoF` y
+`ArcadeClasificador` el reloj llamaba a `fallar()` **desde dentro del
+actualizador de estado**. Al agotarse el tiempo la respuesta seguía sin
+registrarse, el intervalo no se detenía y se volvía a fallar cada 100 ms:
+sumaba fallos y saltaba varias preguntas de golpe. Corregido.
+
+**Medido después de estos cambios**, sobre el build de producción: lint y
+typecheck limpios, **44/44** pruebas (7 nuevas), build **46/46**, **0** pantallas
+donde no se pueda avanzar en móvil, **8/8** modales sin hallazgos, **0 px** de
+scroll de documento en escritorio salvo `/codex`, **0 px** de desborde
+horizontal y las seis actividades comprobadas caben enteras a 1366×768 y
+1440×900.
+
+El riesgo principal de esta tanda era `app/template.tsx`: envuelve la pantalla
+entera, y un `transform` ahí habría roto todos los `position: fixed`. Por eso
+anima **sólo opacidad**, y por eso se volvió a medir el armazón completo en vez
+de dar por hecho que un `<div>` de más no cambia nada.
 
 ---
 
@@ -35,7 +68,7 @@ Chromium real, perfil limpio y partida de prueba.
 |---|---|
 | `npm run lint` | Sin errores **ni advertencias** |
 | `npm run typecheck` | Limpio |
-| `npm test` | **37 / 37** en 4 archivos |
+| `npm test` | **44 / 44** en 5 archivos |
 | `npm run build` | Correcto · **46 / 46** páginas estáticas · 50 rutas |
 | `npm audit` | **0 vulnerabilidades** |
 

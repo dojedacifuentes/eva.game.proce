@@ -7,6 +7,7 @@ import {
   isMuted, setMuted, stopAmbient, sfx,
   startAmbienteHipnotico, stopAmbienteHipnotico,
 } from "@/lib/audio";
+import { haptica } from "@/lib/haptica";
 import { JUEGO } from "@/lib/brand";
 import EvaMark from "./EvaMark";
 
@@ -93,7 +94,8 @@ export default function ShellHeader({
         {back && (
           <Link
             href={back.href}
-            onClick={() => sfx.click?.()}
+            // Descendente: el oído distingue volver de avanzar.
+            onClick={() => { sfx.back?.(); haptica.toque(); }}
             className="shrink-0 flex items-center gap-1.5 px-3 min-h-[44px] border border-zona-competencia/40 text-zona-competencia t-meta font-mono-terminal uppercase tracking-wider hover:bg-zona-competencia/10 hover:border-zona-competencia transition-colors"
           >
             <span aria-hidden="true">←</span>
@@ -105,7 +107,7 @@ export default function ShellHeader({
         {/* Marca: EVA + nombre del juego. Enlaza a la portada. */}
         <Link
           href="/"
-          onClick={() => sfx.click?.()}
+          onClick={() => { sfx.tap?.(); haptica.toque(); }}
           className="shrink-0 flex items-center gap-2 group"
           aria-label={`${JUEGO.nombre} — ir a la portada`}
         >

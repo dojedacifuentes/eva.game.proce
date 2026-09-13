@@ -967,6 +967,9 @@ input, textarea { caret-color: var(--zona-competencia); }
   /* Escalera de apilado. La atmósfera CRT vive en 50-51; los modales tienen que
      quedar POR ENCIMA o se ven a través de la viñeta negra. */
   --z-modal: 120;
+  /* Los avisos van por encima incluso de un modal: si subes de nivel con una
+     ficha abierta, el ascenso se ve. No interceptan el puntero. */
+  --z-aviso: 130;
   --shell-gutter: 0.75rem;
   --shell-nav-h: 66px;
 }
@@ -1322,6 +1325,131 @@ body { font-size: var(--t-base); line-height: 1.5; }
   display: flex;
   gap: 0.6rem;
   flex-wrap: wrap;
+}
+
+/* ── ENTRADA DE PANTALLA ───────────────────────────────────────────────────
+   La usa app/template.tsx en cada navegación.
+
+   SÓLO opacidad. Nada de `transform`, `filter` ni `will-change` aquí: este
+   elemento es antepasado de toda la pantalla, y cualquiera de esos tres lo
+   convertiría en el bloque contenedor de los `position: fixed` de dentro
+   (navegación, modales, avisos). Sin `forwards`, para que al terminar no quede
+   contexto de apilado que atrape a los modales bajo las capas CRT. */
+@keyframes entradaPantalla {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+.entrada-pantalla {
+  animation: entradaPantalla 0.22s ease-out;
+}
+
+/* ── PISTA DE AVANCE ───────────────────────────────────────────────────────
+   La espera entre preguntas pasa a ser visible y saltable. */
+.pista-avance {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin-top: 0.6rem;
+  color: rgba(232, 223, 197, 0.86);
+}
+.pista-avance-pista {
+  flex: 1;
+  height: 4px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.10);
+  overflow: hidden;
+}
+.pista-avance-barra {
+  height: 100%;
+  width: 100%;
+  transform-origin: left center;
+  background: linear-gradient(90deg, #4BE7FF, #58F5B0);
+  animation-name: pistaAvanceVaciar;
+  animation-timing-function: linear;
+  animation-fill-mode: forwards;
+}
+@keyframes pistaAvanceVaciar {
+  from { transform: scaleX(1); }
+  to   { transform: scaleX(0); }
+}
+
+/* ── ESQUELETO DE CARGA ────────────────────────────────────────────────────
+   Lo usa app/loading.tsx. Opaco, como el resto de superficies. El brillo que
+   recorre la barra dice «esto viene en camino» sin llegar a parpadear. */
+@keyframes huesoBrillo {
+  0%   { background-position: 120% 0; }
+  100% { background-position: -20% 0; }
+}
+.hueso {
+  border-radius: 6px;
+  background-color: var(--sup-2);
+  background-image: linear-gradient(
+    100deg,
+    transparent 20%,
+    rgba(122, 212, 230, 0.10) 42%,
+    rgba(122, 212, 230, 0.16) 50%,
+    rgba(122, 212, 230, 0.10) 58%,
+    transparent 80%
+  );
+  background-size: 220% 100%;
+  background-repeat: no-repeat;
+  border: 1px solid var(--linea);
+  animation: huesoBrillo 1.5s linear infinite;
+}
+
+/* ── AVISO DE NIVEL ────────────────────────────────────────────────────────
+   Celebración de ascenso. Va por encima del modal pero es transparente al
+   puntero: nunca se come un toque. */
+.aviso-nivel {
+  position: fixed;
+  top: calc(env(safe-area-inset-top, 0px) + 0.75rem);
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: var(--z-aviso);
+  pointer-events: none;
+  width: min(22rem, calc(100vw - 2rem));
+}
+
+.aviso-nivel-caja {
+  text-align: center;
+  padding: 0.85rem 1.1rem;
+  border: 1.5px solid #58F5B0;
+  border-radius: 10px;
+  /* Superficie opaca del sistema: la celebración no puede ser una de esas
+     tarjetas translúcidas que hubo que corregir. */
+  background: linear-gradient(180deg, var(--sup-alta), var(--sup-2) 75%);
+  box-shadow:
+    0 18px 50px -14px rgba(0, 0, 0, 0.9),
+    0 0 34px -10px rgba(88, 245, 176, 0.8);
+  animation: avisoNivelEntra 0.35s ease-out;
+}
+
+.aviso-nivel-rotulo {
+  font-size: var(--t-meta);
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: #58F5B0;
+}
+
+/* El número es lo que lleva `.level-up`: si ese `animation` cayera sobre la
+   caja, sustituiría al de entrada (misma propiedad, regla posterior gana). */
+.aviso-nivel-cifra {
+  font-size: var(--t-titulo);
+  line-height: 1.15;
+  margin-top: 0.15rem;
+  color: #F4EEDD;
+  text-shadow: 0 0 18px rgba(88, 245, 176, 0.55);
+}
+
+.aviso-nivel-pie {
+  font-size: var(--t-meta);
+  margin-top: 0.2rem;
+  color: rgba(232, 223, 197, 0.86);
+}
+
+@keyframes avisoNivelEntra {
+  from { opacity: 0; transform: translateY(-10px); }
+  to   { opacity: 1; transform: translateY(0); }
 }
 
 /* Tarjeta de un overlay con arte propio: conserva su aspecto pero nunca

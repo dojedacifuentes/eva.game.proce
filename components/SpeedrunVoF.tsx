@@ -4,8 +4,19 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useGame } from "@/store/useGame";
 import { sfx } from "@/lib/audio";
 import { fx } from "@/lib/fx";
+import { haptica } from "@/lib/haptica";
 import { casosAleatoriosVoF, type PreguntaVoF } from "@/data/preguntas-vof";
 import { useCallbackRef } from "@/lib/useCallbackRef";
+import { useAvanceAutomatico } from "@/lib/useAvanceAutomatico";
+import PistaAvance from "./shell/PistaAvance";
+
+/**
+ * Esperas entre preguntas. Son un máximo, no una imposición: cualquier toque o
+ * Enter adelanta. Al fallar se espera más porque hay explicación que leer.
+ */
+const ESPERA_ACIERTO = 900;
+const ESPERA_FALLO = 1700;
+const ESPERA_TIEMPO_AGOTADO = 800;
 
 // ============================================================================
 // SPEEDRUN VERDADERO/FALSO — modo arcade con presión temporal extrema
@@ -28,6 +39,7 @@ export default function SpeedrunVoF() {
   const [maxCombo, setMaxCombo] = useState(0);
   const [tiempo, setTiempo] = useState(TIEMPO_BASE);
   const [terminado, setTerminado] = useState(false);
+  const avance = useAvanceAutomatico();
   const [dificultad, setDificultad] = useState<1 | 2 | 3>(2);
   const [glitchPantalla, setGlitchPantalla] = useState(false);
   const tiempoMaxRef = useRef(TIEMPO_BASE);
@@ -36,19 +48,28 @@ export default function SpeedrunVoF() {
 
   // Ver la nota de useCallbackRef: identidad estable, cuerpo siempre al día.
   const fallarEstable = useCallbackRef(() => fallar());
+
+  // El reloj sólo descuenta. Antes llamaba a `fallar()` desde dentro del
+  // actualizador de estado y, como al agotarse el tiempo la respuesta seguía en
+  // null, el intervalo no se detenía: se volvía a fallar cada 100 ms, sumando
+  // fallos y saltando preguntas de golpe. Ahora el efecto para en cuanto hay un
+  // avance pendiente.
   useEffect(() => {
-    if (!activo || terminado || respuesta !== null || !actual) return;
-    const t = setInterval(() => {
-      setTiempo((s) => {
-        if (s <= 0.1) { fallarEstable(); return 0; }
-        return s - 0.1;
-      });
-    }, 100);
+    if (!activo || terminado || respuesta !== null || !actual || avance.pendiente) return;
+    const t = setInterval(() => setTiempo((s) => Math.max(0, s - 0.1)), 100);
     return () => clearInterval(t);
-  }, [activo, terminado, respuesta, actual, fallarEstable]);
+  }, [activo, terminado, respuesta, actual, avance.pendiente]);
+
+  // Tiempo agotado: una sola vez por pregunta.
+  useEffect(() => {
+    if (!activo || terminado || respuesta !== null || !actual || avance.pendiente) return;
+    if (tiempo > 0) return;
+    fallarEstable();
+  }, [tiempo, activo, terminado, respuesta, actual, avance.pendiente, fallarEstable]);
 
   function iniciar() {
     sfx.confirm();
+    avance.cancelar();
     setPreguntas(casosAleatoriosVoF(N_PREGUNTAS, dificultad));
     setIdx(0);
     setAciertos(0);
@@ -69,25 +90,28 @@ export default function SpeedrunVoF() {
     if (ok) {
       sfx.combo(combo);
       fx.reward();
+      haptica.acierto();
       setAciertos((a) => a + 1);
       setCombo((c) => { const n = c + 1; setMaxCombo((m) => Math.max(m, n)); return n; });
     } else {
       sfx.glitch();
       fx.shake();
+      haptica.error();
       setFallos((f) => f + 1);
       setCombo(0);
       setGlitchPantalla(true);
       setTimeout(() => setGlitchPantalla(false), 600);
     }
-    setTimeout(siguiente, 1500);
+    avance.programar(siguiente, ok ? ESPERA_ACIERTO : ESPERA_FALLO);
   }
 
   function fallar() {
     setRespuesta(null);
     sfx.plazoCritico();
+    haptica.error();
     setFallos((f) => f + 1);
     setCombo(0);
-    setTimeout(siguiente, 800);
+    avance.programar(siguiente, ESPERA_TIEMPO_AGOTADO);
   }
 
   function siguiente() {
@@ -288,6 +312,8 @@ export default function SpeedrunVoF() {
               {actual.explicacion}
             </motion.div>
           )}
+
+          {avance.pendiente && <PistaAvance duracion={avance.duracion} />}
         </motion.div>
       </AnimatePresence>
     </div>

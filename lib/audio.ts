@@ -212,6 +212,49 @@ export const sfx = {
     setTimeout(() => tone(1320, 0.14, "triangle", 0.1, 0.005, 0.18), 90);
     setTimeout(() => tone(1760, 0.3, "sine", 0.08, 0.01, 0.35), 180);
   },
+
+  // ── Paleta de navegación ──────────────────────────────────────────────
+  // Antes todo sonaba a `click`: abrir un modal, elegir una alternativa,
+  // navegar y confirmar compartían el mismo golpe. Estos cuatro separan la
+  // intención, que es lo que el oído usa para orientarse.
+
+  /** Ir a otra pantalla. Seco y bajo: acompaña, no celebra. */
+  tap: () => {
+    tone(620, 0.03, "square", 0.045, 0.001, 0.03);
+    tone(930, 0.025, "sine", 0.025, 0.001, 0.035);
+  },
+
+  /** Volver atrás. El mismo gesto que `tap`, pero descendente. */
+  back: () => {
+    tone(720, 0.03, "square", 0.04, 0.001, 0.03);
+    setTimeout(() => tone(480, 0.05, "sine", 0.035, 0.001, 0.05), 35);
+  },
+
+  /** Abrir una ventana o ficha: aire que entra. */
+  abrir: () => {
+    sweep(320, 760, 0.16, "sine", 0.055);
+  },
+
+  /** Cerrarla: el mismo aire, al revés y más corto. */
+  cerrar: () => {
+    sweep(700, 300, 0.13, "sine", 0.05);
+  },
+
+  /** Error recuperable: no es una nulidad, es un «eso no». */
+  error: () => {
+    tone(300, 0.09, "square", 0.075, 0.002, 0.09);
+    setTimeout(() => tone(225, 0.13, "square", 0.06, 0.002, 0.13), 80);
+  },
+
+  /** Subida de nivel: el arpegio de `powerUp` con una cola de campana. */
+  subidaNivel: () => {
+    [523, 659, 784, 1047, 1319].forEach((f, i) =>
+      setTimeout(() => tone(f, 0.12, "triangle", 0.11, 0.005, 0.14), i * 70));
+    setTimeout(() => {
+      tone(1047, 0.9, "sine", 0.07, 0.02, 1.1);
+      tone(1568, 0.9, "sine", 0.04, 0.02, 1.1);
+    }, 380);
+  },
 };
 
 // ─────────────────────────── AMBIENTES (drones) ───────────────────────────
@@ -443,10 +486,84 @@ function campana(c: AudioContext, destino: AudioNode, frecuencia: number, volume
 const NOTAS_CAMPANA = [220, 261.63, 329.63, 440];
 
 /**
+ * Escenas del ambiente. Una sola cama sonora, afinada distinto según dónde esté
+ * el jugador: misma respiración y mismo motor, otro registro y otra tensión.
+ *
+ * Todas son consonantes —esto acompaña a alguien que estudia, no es una banda
+ * sonora que reclame atención—; lo que cambia es la altura, la velocidad del
+ * batido (cuanto más rápido, más inquieto) y cada cuánto entra una campana.
+ */
+export type EscenaAmbiente =
+  | "estudio" | "oral" | "ejecutivo" | "nulidad" | "recursos" | "cautelares";
+
+type AfinacionEscena = {
+  /** Fundamental, quinta y octava, con su batido en Hz. */
+  capas: [hz: number, batido: number, volumen: number][];
+  ruido: number;
+  campanas: number[];
+  /** Milisegundos entre campanas. Más corto = más presente. */
+  esperaCampana: number;
+};
+
+const ESCENAS: Record<EscenaAmbiente, AfinacionEscena> = {
+  // La menor. La cama original: la más neutra, para leer y repasar.
+  estudio: {
+    capas: [[55, 0.25, 0.052], [82.41, 0.33, 0.034], [110, 0.18, 0.022]],
+    ruido: 0.030, campanas: NOTAS_CAMPANA, esperaCampana: 17000,
+  },
+  // Re menor, un tono más arriba y más despierta: hay alguien preguntando.
+  oral: {
+    capas: [[73.42, 0.34, 0.046], [110, 0.42, 0.030], [146.83, 0.24, 0.020]],
+    ruido: 0.022, campanas: [293.66, 349.23, 440, 587.33], esperaCampana: 13000,
+  },
+  // Sol menor grave: el apremio pesa. Más ruido, batido lento, campana rara.
+  ejecutivo: {
+    capas: [[49, 0.16, 0.056], [73.42, 0.22, 0.036], [98, 0.12, 0.024]],
+    ruido: 0.038, campanas: [196, 233.08, 293.66, 392], esperaCampana: 21000,
+  },
+  // Si menor con batidos rápidos: el suelo procesal no termina de asentarse.
+  nulidad: {
+    capas: [[61.74, 0.46, 0.050], [92.50, 0.56, 0.032], [123.47, 0.38, 0.022]],
+    ruido: 0.034, campanas: [246.94, 293.66, 369.99, 493.88], esperaCampana: 11000,
+  },
+  // Do mayor, abierta y alta: se sube de instancia.
+  recursos: {
+    capas: [[65.41, 0.20, 0.048], [98, 0.28, 0.032], [130.81, 0.15, 0.022]],
+    ruido: 0.026, campanas: [261.63, 311.13, 392, 523.25], esperaCampana: 19000,
+  },
+  // Mi menor contenida: se actúa antes de tiempo, en voz baja.
+  cautelares: {
+    capas: [[41.20, 0.22, 0.050], [61.74, 0.30, 0.034], [82.41, 0.16, 0.022]],
+    ruido: 0.032, campanas: [246.94, 293.66, 329.63, 493.88], esperaCampana: 23000,
+  },
+};
+
+let escenaActual: EscenaAmbiente = "estudio";
+
+/** Qué escena está afinada ahora mismo. */
+export function escenaAmbienteActual(): EscenaAmbiente {
+  return escenaActual;
+}
+
+/**
+ * Cambia la escena. Si el ambiente está sonando, lo recompone: el anterior se
+ * va en 1,6 s y el nuevo entra en 6-8 s, así que el cruce se oye como una
+ * disolución, no como un corte. Si no está sonando, sólo recuerda la escena
+ * para cuando el jugador lo encienda.
+ */
+export function setEscenaAmbiente(escena: EscenaAmbiente) {
+  if (escena === escenaActual) return;
+  escenaActual = escena;
+  if (nodosHipnoticos.length > 0) startAmbienteHipnotico(escena);
+}
+
+/**
  * Arranca el ambiente hipnótico. Sustituye a cualquier otro ambiente en curso.
  * Respeta el silencio global: si el audio está apagado, no suena nada.
  */
-export function startAmbienteHipnotico() {
+export function startAmbienteHipnotico(escena: EscenaAmbiente = escenaActual) {
+  escenaActual = escena;
+  const afinacion = ESCENAS[escena] ?? ESCENAS.estudio;
   stopAmbienteHipnotico();
   stopAmbient();
   if (muted) return;
@@ -472,19 +589,19 @@ export function startAmbienteHipnotico() {
   });
 
   // Fundamental, quinta y octava, cada una con su batido propio.
-  nodosHipnoticos.push(parBatiente(c, bus, 55,    0.25, 0.052)); // La1
-  nodosHipnoticos.push(parBatiente(c, bus, 82.41, 0.33, 0.034)); // Mi2, quinta
-  nodosHipnoticos.push(parBatiente(c, bus, 110,   0.18, 0.022)); // La2, octava
-  nodosHipnoticos.push(capaDeRuido(c, bus, 0.030));
+  for (const [hz, batido, volumen] of afinacion.capas) {
+    nodosHipnoticos.push(parBatiente(c, bus, hz, batido, volumen));
+  }
+  nodosHipnoticos.push(capaDeRuido(c, bus, afinacion.ruido));
 
-  // Campanas cada 17-27 s, en orden rotatorio: previsible sin ser monótono.
+  // Campanas en orden rotatorio: previsible sin llegar a monótono.
   let indice = 0;
   const programar = () => {
-    const espera = 17000 + (indice % 5) * 2500;
+    const espera = afinacion.esperaCampana + (indice % 5) * 2500;
     temporizadorCampana = setTimeout(() => {
       if (muted || nodosHipnoticos.length === 0) return;
       const cc = ctx();
-      if (cc) campana(cc, bus, NOTAS_CAMPANA[indice % NOTAS_CAMPANA.length], 0.05);
+      if (cc) campana(cc, bus, afinacion.campanas[indice % afinacion.campanas.length], 0.05);
       indice++;
       programar();
     }, espera);

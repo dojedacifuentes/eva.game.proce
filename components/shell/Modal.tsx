@@ -1,5 +1,6 @@
 "use client";
 import { useCallback, useEffect, useRef } from "react";
+import { sfx } from "@/lib/audio";
 
 const ENFOCABLES =
   'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
@@ -83,9 +84,13 @@ export default function Modal({
     const primero = caja.current?.querySelector<HTMLElement>(ENFOCABLES);
     primero?.focus();
     document.addEventListener("keydown", alTeclado);
+    // Abrir y cerrar tienen su propio par de sonidos: un barrido que sube y el
+    // mismo al revés. Antes ambos gestos sonaban igual que pulsar un botón.
+    sfx.abrir?.();
     return () => {
       document.removeEventListener("keydown", alTeclado);
       previo.current?.focus?.();
+      sfx.cerrar?.();
     };
   }, [alTeclado]);
 

@@ -4,7 +4,15 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useGame } from "@/store/useGame";
 import { shuffleOptions } from "@/lib/shuffleOptions";
 import { fx } from "@/lib/fx";
+import { sfx } from "@/lib/audio";
+import { haptica } from "@/lib/haptica";
 import { useCallbackRef } from "@/lib/useCallbackRef";
+import { useAvanceAutomatico } from "@/lib/useAvanceAutomatico";
+import PistaAvance from "./shell/PistaAvance";
+
+/** Esperas entre preguntas: máximos adelantables, no tiempos impuestos. */
+const ESPERA_ACIERTO = 900;
+const ESPERA_FALLO = 1600;
 
 // ============================================================================
 // CLASIFICADOR ARCADE — minijuego rápido con combo/multiplicador/streak
@@ -257,11 +265,13 @@ export default function ArcadeClasificador() {
   const [respuestaIdx, setRespuestaIdx] = useState<number | null>(null);
   const [tiempo, setTiempo] = useState(TIEMPO_BASE);
   const [finalizado, setFinalizado] = useState(false);
+  const avance = useAvanceAutomatico();
   const tiempoMaximoRef = useRef(TIEMPO_BASE);
 
   const cuestionActual = activo && !finalizado ? BANCO[orden[cuestionIdx]] : null;
 
   function iniciar() {
+    avance.cancelar();
     const o = [...Array(BANCO.length).keys()].sort(() => Math.random() - 0.5);
     setOrden(o);
     setCuestionIdx(0);
@@ -281,25 +291,28 @@ export default function ArcadeClasificador() {
   // intervalo se reinicie, y sin quedarse con un combo caducado.
   const fallarEstable = useCallbackRef(() => fallar());
   useEffect(() => {
-    if (!activo || finalizado || respuestaIdx !== null || !cuestionActual) return;
-    const t = setInterval(() => {
-      setTiempo((s) => {
-        if (s <= 0.1) {
-          // tiempo agotado = fallo
-          fallarEstable();
-          return 0;
-        }
-        return s - 0.1;
-      });
-    }, 100);
+    if (!activo || finalizado || respuestaIdx !== null || !cuestionActual || avance.pendiente) return;
+    const t = setInterval(() => setTiempo((s) => Math.max(0, s - 0.1)), 100);
     return () => clearInterval(t);
-  }, [activo, finalizado, respuestaIdx, cuestionActual, fallarEstable]);
+  }, [activo, finalizado, respuestaIdx, cuestionActual, avance.pendiente]);
+
+  // Tiempo agotado: una sola vez por pregunta. Antes se llamaba a `fallar()`
+  // desde dentro del actualizador de estado y, como al agotarse el tiempo la
+  // respuesta seguía sin registrarse, el intervalo seguía vivo y volvía a
+  // fallar cada 100 ms, saltando preguntas.
+  useEffect(() => {
+    if (!activo || finalizado || respuestaIdx !== null || !cuestionActual || avance.pendiente) return;
+    if (tiempo > 0) return;
+    fallarEstable();
+  }, [tiempo, activo, finalizado, respuestaIdx, cuestionActual, avance.pendiente, fallarEstable]);
 
   function fallar() {
     setRespuestaIdx(-1);
     setCombo(0);
     setStreak(0);
-    setTimeout(siguiente, 1500);
+    sfx.error?.();
+    haptica.error();
+    avance.programar(siguiente, ESPERA_FALLO);
   }
 
   function responder(idx: number) {
@@ -308,6 +321,8 @@ export default function ArcadeClasificador() {
     setRespuestaIdx(idx);
     if (op.correcta) {
       fx.reward();
+      sfx.combo?.(combo);
+      haptica.acierto();
       const multiplicador = 1 + Math.floor(combo / 3); // x1, x2 a las 3, x3 a las 6, ...
       const bonusTiempo = Math.round(tiempo * 10); // bonus por velocidad
       const puntos = 100 * multiplicador + bonusTiempo;
@@ -321,10 +336,12 @@ export default function ArcadeClasificador() {
       game.ajustarAtributo("conocimiento_procesal", 0);
     } else {
       fx.shake();
+      sfx.error?.();
+      haptica.error();
       setCombo(0);
       setStreak(0);
     }
-    setTimeout(siguiente, 1200);
+    avance.programar(siguiente, op.correcta ? ESPERA_ACIERTO : ESPERA_FALLO);
   }
 
   function siguiente() {
@@ -482,6 +499,7 @@ export default function ArcadeClasificador() {
             {respuestaIdx === -1 && (
               <div className="text-zona-nulidad text-xs font-mono-terminal italic mt-2">⏰ Tiempo agotado. Preclusión.</div>
             )}
+            {avance.pendiente && <PistaAvance duracion={avance.duracion} />}
           </div>
         </motion.div>
       </AnimatePresence>

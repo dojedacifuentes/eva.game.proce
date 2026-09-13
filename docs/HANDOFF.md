@@ -37,11 +37,16 @@ Node **24.x**. Sin variables de entorno, sin claves, sin backend.
 | El armazón de pantalla (cabecera, alto, navegación) | `components/shell/GameShell.tsx` + sección `GAME SHELL` de `app/globals.css` |
 | Cualquier diálogo o ventana modal | `components/shell/Modal.tsx`; si conserva arte propio, `lib/useModalAccesible.ts` |
 | Tamaños de texto, contraste, opacidad de tarjetas | Sección `LEGIBILIDAD` de `app/globals.css` (tokens `--t-*`, `--sup-*`) |
+| La transición al cambiar de pantalla | `app/template.tsx` + `.entrada-pantalla` (¡lee el aviso de §4!) |
+| Lo que se ve mientras carga una ruta | `app/loading.tsx` + `.hueso` |
 | Lo que recomienda EVA | `lib/eva.ts` (motor determinista, con pruebas) |
 | Qué borra o conserva una partida | `store/useGame.ts` (ver §4) |
 | Reglas procesales del juego | `lib/reglas.ts` |
 | Personajes, diálogos de zona y misiones | `data/npcs-v2.ts` (fuente única) |
 | Sonido | `lib/audio.ts` (todo generado, sin archivos) |
+| Vibración en móvil | `lib/haptica.ts` |
+| La espera entre preguntas de una actividad | `lib/useAvanceAutomatico.ts` + `components/shell/PistaAvance.tsx` |
+| El aviso de subida de nivel | `components/shell/AvisoNivel.tsx` + `lib/progreso.ts` (con pruebas) |
 | El mapa de la ciudad / el mapa de campaña | `components/MapCity.tsx` / `components/GameWorldMap.tsx` |
 
 La dirección creativa que se estaba siguiendo está escrita en el propio
@@ -98,6 +103,12 @@ Cada una de estas costó un fallo real. Están aquí para que no se repitan.
   `key` deja **copias fantasma montadas**. Con `reactStrictMode` se nota como
   contenido duplicado y desplazado. Si el padre ya monta condicionalmente, no
   hace falta `AnimatePresence`.
+- **Nunca llames a una función con efectos desde dentro de un actualizador de
+  estado.** `setTiempo(s => { if (s <= 0) fallar(); … })` parecía inocente y no lo
+  era: al agotarse el reloj, la respuesta seguía sin registrarse, el intervalo no
+  se detenía y `fallar()` se repetía cada 100 ms, sumando fallos y saltando
+  preguntas. Estaba en `SpeedrunVoF` y en `ArcadeClasificador`; ahora el
+  actualizador sólo descuenta y un efecto aparte decide.
 
 **CSS**
 
@@ -105,6 +116,10 @@ Cada una de estas costó un fallo real. Están aquí para que no se repitan.
   todo `position: fixed` descendiente. Una animación de `filter` sobre `<body>`
   mandó la navegación al píxel 2018. Por eso el pulso de fondo vive en su propia
   capa `.ui-breathe` con `opacity`.
+  **La misma regla gobierna `app/template.tsx`**: envuelve la pantalla entera, así
+  que su animación de entrada es **sólo de opacidad**, sin `forwards`. Añadirle un
+  `transform` —una entrada deslizante, por ejemplo— sacaría de la pantalla la
+  barra de navegación, los modales y el aviso de nivel.
 - Un `z-index` en un envoltorio **encierra** a sus descendientes en un contexto de
   apilado. `<div className="relative z-10">` en `app/layout.tsx` dejaba todos los
   modales por debajo de las capas CRT (scanlines `z-50`, ruido y viñeta `z-51`).
@@ -162,8 +177,10 @@ interactúe no está midiendo el juego.
 - El combate contra jefes se comprueba en la entrada (`BossEntry`), no en una
   partida completa de preguntas.
 - El ambiente sonoro **no se ha escuchado**: se escribió y se comprobó que arranca
-  y se detiene, pero el entorno no tiene salida de audio. Escúchalo antes de darlo
-  por bueno.
+  y se detiene, pero el entorno no tiene salida de audio. Esto vale para las seis
+  escenas y para toda la paleta de efectos. Escúchalo antes de darlo por bueno.
+- **La vibración no se ha sentido**: no hay dispositivo. Y en iPhone no va a
+  funcionar nunca, porque Safari de iOS no implementa `navigator.vibrate`.
 
 ---
 

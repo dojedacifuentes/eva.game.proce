@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useState, useEffect } from "react";
 import { type Boss } from "@/data/campaign";
 import { sfx } from "@/lib/audio";
+import { haptica } from "@/lib/haptica";
 
 // ============================================================================
 // BOSS ENTRY — Entrada cinemática de boss
@@ -21,6 +22,7 @@ export default function BossEntry({ boss, onStart, onCancel }: BossEntryProps) {
 
   useEffect(() => {
     sfx.bossEntrada?.();
+    haptica.hito();
     const t1 = setTimeout(() => setPhase("reveal"), 600);
     const t2 = setTimeout(() => setPhase("name"), 1400);
     const t3 = setTimeout(() => {

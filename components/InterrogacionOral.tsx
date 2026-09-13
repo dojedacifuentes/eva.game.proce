@@ -9,6 +9,7 @@ import type { Boss, BossId } from "@/types/expansion";
 import { AvatarBoss } from "@/components/AvataresJuridicos";
 import { sfx } from "@/lib/audio";
 import { fx } from "@/lib/fx";
+import { haptica } from "@/lib/haptica";
 import { shuffleOptions } from "@/lib/shuffleOptions";
 
 // ============================================================================
@@ -126,6 +127,7 @@ export default function InterrogacionOral({ bossId, onFin }: { bossId: BossId; o
     if (originalOp.correcta) {
       sfx.oralCorrecta();
       fx.reward();
+      haptica.acierto();
       const nuevoSaludBoss = Math.max(0, saludBoss - dmg);
       setSaludBoss(nuevoSaludBoss);
       spawnFloat(`-${dmg}`, "var(--zona-cautelares)", "boss");
@@ -139,6 +141,7 @@ export default function InterrogacionOral({ bossId, onFin }: { bossId: BossId; o
         fx.success();
         fx.xpGain(xp);
         fx.coinGain(monedas);
+        haptica.hito();
         setTerminado("victoria");
         game.gainXp(xp);
         game.gainMonedas(monedas);
@@ -156,6 +159,7 @@ export default function InterrogacionOral({ bossId, onFin }: { bossId: BossId; o
     } else {
       sfx.warning();
       fx.shake();
+      haptica.error();
       const nuevoSaludJugador = Math.max(0, saludJugador - dmg);
       setSaludJugador(nuevoSaludJugador);
       spawnFloat(`-${dmg}`, "var(--zona-nulidad)", "player");

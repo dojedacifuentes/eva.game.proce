@@ -4,7 +4,9 @@ import { useEffect, useState } from "react";
 import AmbienteVivo from "./AmbienteVivo";
 import HUDPersistente from "./HUDPersistente";
 import BootSequence from "./BootSequence";
+import AvisoNivel from "./shell/AvisoNivel";
 import { useGame } from "@/store/useGame";
+import { setEscenaAmbiente, type EscenaAmbiente } from "@/lib/audio";
 
 // ============================================================================
 // GLOBAL CANVAS — fondo animado, realimentación efímera e intro.
@@ -49,6 +51,25 @@ export default function GlobalCanvas() {
     return "ambiente";
   })();
 
+  // La misma lectura de la ruta que ya guiaba el fondo animado ahora afina
+  // también el ambiente sonoro. `lib/audio.ts` traía cinco escenas escritas
+  // desde hacía tiempo y sólo sonaba una.
+  const escena: EscenaAmbiente = (() => {
+    if (!pathname) return "estudio";
+    if (pathname.includes("/oral") || pathname.includes("/boss")) return "oral";
+    if (pathname.includes("ejecutivo")) return "ejecutivo";
+    if (pathname.includes("nulidad") || pathname.includes("casacion")) return "nulidad";
+    if (pathname.includes("recurso") || pathname.includes("alzada")) return "recursos";
+    if (pathname.includes("cautelar")) return "cautelares";
+    return "estudio";
+  })();
+
+  useEffect(() => {
+    // No enciende nada: si el ambiente está apagado sólo deja anotada la escena
+    // para cuando el jugador lo encienda desde la cabecera.
+    setEscenaAmbiente(escena);
+  }, [escena]);
+
   const intensidad = Math.min(100, 40 + trauma);
 
   function finIntro() {
@@ -62,6 +83,7 @@ export default function GlobalCanvas() {
     <>
       <AmbienteVivo intensidad={intensidad} corrupcion={trauma} modo={modoZona} />
       <HUDPersistente />
+      <AvisoNivel />
       {/* Montaje condicional del padre: ver el gotcha del overlay fantasma. */}
       {!introHecha && <BootSequence onFin={finIntro} />}
     </>

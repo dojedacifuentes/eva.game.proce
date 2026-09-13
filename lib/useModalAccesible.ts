@@ -1,5 +1,6 @@
 "use client";
 import { useCallback, useEffect, useRef } from "react";
+import { sfx } from "./audio";
 
 const ENFOCABLES =
   'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
@@ -64,9 +65,13 @@ export function useModalAccesible<T extends HTMLElement = HTMLDivElement>(
     previo.current = document.activeElement as HTMLElement | null;
     caja.current?.querySelector<HTMLElement>(ENFOCABLES)?.focus();
     document.addEventListener("keydown", alTeclado);
+    // El mismo par de sonidos que Modal.tsx: abrir y cerrar suenan igual en
+    // todo el juego, conserve o no el overlay su arte propio.
+    sfx.abrir?.();
     return () => {
       document.removeEventListener("keydown", alTeclado);
       previo.current?.focus?.();
+      sfx.cerrar?.();
     };
   }, [alTeclado, activo]);
 

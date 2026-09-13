@@ -2,6 +2,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { sfx } from "@/lib/audio";
+import { haptica } from "@/lib/haptica";
 
 /**
  * Navegación principal — CINCO destinos como máximo, todos con pantalla real
@@ -39,7 +40,9 @@ export default function ShellNav() {
             <li key={d.href} className="flex-1 flex">
               <Link
                 href={d.href}
-                onClick={() => sfx.click?.()}
+                // `tap`, no `click`: navegar acompaña, no celebra. El golpe
+                // fuerte se reserva para las acciones con consecuencia.
+                onClick={() => { sfx.tap?.(); haptica.toque(); }}
                 onMouseEnter={() => sfx.hover?.()}
                 aria-current={activo ? "page" : undefined}
                 className="flex-1 flex flex-col items-center justify-center gap-1 px-1 py-2 rounded-md active:scale-95 transition-all"
