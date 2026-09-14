@@ -8,3 +8,6 @@ out
 next-env.d.ts
 tsconfig.tsbuildinfo
 scripts/verificacion/capturas/
+
+# Clips: el .webm es el crudo de Playwright; el .mp4 es el que se usa
+scripts/video/clips/*.webm

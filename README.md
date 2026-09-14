@@ -28,9 +28,11 @@ sobre negro.
 | [`docs/ENTREGA-UX-EVA.md`](docs/ENTREGA-UX-EVA.md) | Entrega del rediseño de una sola pantalla, creación de personaje, EVA y marca |
 | [`docs/REVISION_JURIDICA_PENDIENTE.md`](docs/REVISION_JURIDICA_PENDIENTE.md) | **Pendiente de Diego**: contradicciones internas de contenido jurídico sin resolver |
 | [`docs/NPC-TEXTOS-UNIFICADOS.md`](docs/NPC-TEXTOS-UNIFICADOS.md) | **Pendiente de Diego**: rasgos de personaje que cambiaron al unificar los NPC |
+| [`docs/VIDEO.md`](docs/VIDEO.md) | Guion y dirección de arte del video de lanzamiento |
 | [`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md) | Despliegue en Vercel |
 | [`docs/direccion-creativa/`](docs/direccion-creativa/) | Biblia visual, dirección de arte y de UX, diseño de mundos y jefes |
 | [`scripts/verificacion/README.md`](scripts/verificacion/README.md) | El arnés de verificación en navegador real |
+| [`scripts/video/README.md`](scripts/video/README.md) | Capturas y clips del juego para el video |
 
 ---
 
