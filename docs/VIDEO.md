@@ -45,11 +45,15 @@ escena: es la única forma de controlar las pausas.
 | 3 | 0:05 – 0:09 | Leer no es aprender. | `06-examen.png` |
 | 4 | 0:09 – 0:13 | Convierte el sufrimiento en juego. | `02-hub.png` |
 | 5 | 0:13 – 0:16 | EVAGAMEPROCE | `01-portada.png` |
-| 6 | 0:16 – 0:21 | Tu cerebro orgánico, a prueba. | `10-oral.png` · `clips/mision.mp4` |
-| 7 | 0:21 – 0:26 | ¿Cuánto sabes realmente? | `04-mision.png` · `clips/examen.mp4` |
+| 6 | 0:16 – 0:21 | Tu cerebro orgánico, a prueba. | `10-oral.png` · `clips/oral.mp4` |
+| 7 | 0:21 – 0:26 | ¿Cuánto sabes realmente? | `04-mision.png` · `clips/mision.mp4` |
 | 8 | 0:26 – 0:30 | O cuánto creías saber. | `07-examen-fb.png` · `clips/examen.mp4` |
 | 9 | 0:30 – 0:36 | Juega gratis. | Avatar, plano medio |
 | 10 | 0:36 – 0:40 | Link en la bio. Eva fuera. | Avatar, plano cerrado |
+
+En cada escena la captura fija y el clip son **la misma pantalla**: el clip es
+la versión en movimiento del plano, no otro plano. Si montas con la captura o
+con el clip, el video es el mismo.
 
 **VOZ, completa y en orden:**
 

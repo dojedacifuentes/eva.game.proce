@@ -26,15 +26,17 @@ node scripts/video/clips.js       # 6 clips con interacción real
 |---|---|
 | `capturas/vertical/` | 18 PNG de 1080 × 1920 (9:16) — reels, TikTok, HeyGen |
 | `capturas/ancho/` | las mismas 18 pantallas en 1920 × 1080 (16:9) |
-| `clips/` | 6 clips de 1080 × 1920, en `.mp4` (H.264) y `.webm` |
+| `clips/` | 7 clips de 1080 × 1920, en `.mp4` (H.264) y `.webm` |
 | `deck/` | el deck del video y las piezas que lo componen |
 
 Las 18 pantallas: portada, hub, mundos, misión, examen con su acierto **y su
 error**, repaso, códex, oral, creación de personaje, expediente, las tres
 expansiones, plazos, cartas y verdadero/falso.
 
-Los 6 clips: cédula respondida y explicada, desafío de misión, recorrido de
-mundos, mapa de campaña, códex y minijuego de plazos.
+Los 7 clips: cédula respondida y explicada, desafío de misión, la comisión
+examinadora del oral, recorrido de mundos, mapa de campaña, códex y minijuego
+de plazos. Cada uno se corresponde con una de las capturas: son la misma
+pantalla, quieta y en movimiento.
 
 ## Sobre el `.mp4`
 

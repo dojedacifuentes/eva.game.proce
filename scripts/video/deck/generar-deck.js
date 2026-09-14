@@ -112,7 +112,7 @@ const ESCENAS = [
     rotulo: 'Tu cerebro\norgánico,\na prueba.',
     voz: 'Un juego diseñado para poner a prueba tu cerebro orgánico…',
     imagen: CAP('10-oral.png'),
-    clip: 'clips/mision.mp4',
+    clip: 'clips/oral.mp4',
     montaje:
       'La interrogación oral: tres examinadores atacando en cadena. Aquí entra ' +
       'movimiento de verdad — usar el clip, no la captura fija. Los puntos ' +
@@ -123,7 +123,7 @@ const ESCENAS = [
     rotulo: '¿Cuánto sabes\nrealmente?',
     voz: 'Y descubrir cuánto sabes realmente.',
     imagen: CAP('04-mision.png'),
-    clip: 'clips/examen.mp4',
+    clip: 'clips/mision.mp4',
     montaje:
       'Pregunta con las alternativas todavía neutras. El espectador elige en su ' +
       'cabeza. Dejarla en pantalla lo suficiente para que alcance a leerla: ' +

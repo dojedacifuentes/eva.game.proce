@@ -29,6 +29,16 @@ const AVANCE = /siguiente|continuar|avanzar|seguir|terminar|finalizar/i;
 
 const pausa = (page, ms) => page.waitForTimeout(ms);
 
+/** Clic tolerante: espera a que exista, lo trae a la vista y lo fuerza. */
+async function pulsar(page, locator) {
+  if (!(await locator.count())) return false;
+  try {
+    await locator.scrollIntoViewIfNeeded({ timeout: 2500 });
+    await locator.click({ timeout: 4000, force: true });
+    return true;
+  } catch { return false; }
+}
+
 /** Pulsa una alternativa y deja ver el color de la respuesta. */
 async function responder(page, indice = 0) {
   const opciones = page.locator('.shell-main .opcion, .shell-main button').filter({ hasNotText: AVANCE });
@@ -88,6 +98,19 @@ const TOMAS = [
     await barrer(page, 9);
     await pausa(page, 900);
   }],
+  ['oral', '/oral', 'La comisión examinadora: entrada de jefe e interrogatorio', async (page) => {
+    await pausa(page, 1800);
+    // Tres planos en una toma: el roster, la entrada del jefe y el interrogatorio.
+    await pulsar(page, page.locator('.shell-main button').first());
+    await pausa(page, 2600);
+    // «⚔ Combatir» entra con una cinemática. Pulsarlo mientras se mueve falla
+    // en silencio y la toma se queda en la ficha del jefe: por eso se espera a
+    // que esté quieto y se fuerza el clic.
+    await pulsar(page, page.locator('button').filter({ hasText: /combatir/i }).first());
+    await pausa(page, 3000);
+    await responder(page, 0);
+    await pausa(page, 1800);
+  }],
   ['plazos', '/procesal/plazos', 'Minijuego de plazos', async (page) => {
     await pausa(page, 1600);
     await responder(page, 0);
@@ -118,11 +141,22 @@ function ffmpeg() {
 }
 
 (async () => {
+  // Sin argumentos, las siete. Con argumentos, sólo esas: regrabar una toma
+  // que salió mal no debería costar las otras seis.
+  const pedidas = process.argv.slice(2);
+  const tomas = pedidas.length
+    ? TOMAS.filter(([nombre]) => pedidas.includes(nombre))
+    : TOMAS;
+  if (!tomas.length) {
+    console.log(`Ninguna toma se llama así. Hay: ${TOMAS.map((t) => t[0]).join(', ')}`);
+    process.exit(1);
+  }
+
   fs.mkdirSync(SALIDA, { recursive: true });
   const navegador = await lanzar();
   const hechos = [];
 
-  for (const [nombre, ruta, para, guion] of TOMAS) {
+  for (const [nombre, ruta, para, guion] of tomas) {
     const tmp = path.join(SALIDA, `.tmp-${nombre}`);
     fs.mkdirSync(tmp, { recursive: true });
     const ctx = await navegador.newContext({

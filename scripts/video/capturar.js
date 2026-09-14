@@ -40,7 +40,7 @@ const PLANOS = [
   ['05-mision-fb',    '/mision/m1_3',         'responder', 'Acierto o error, con su color'],
   ['06-examen',       '/examen',              null,        'Modo examen tipo cédula'],
   ['07-examen-fb',    '/examen',              'responder', 'Explicación normativa'],
-  ['08-repaso',       '/repaso',              null,        'Repaso espaciado'],
+  ['08-repaso',       '/repaso',              'repaso',    'Repaso espaciado con mazo real'],
   ['09-codex',        '/codex',               null,        'Códex con buscador'],
   ['10-oral',         '/oral',                null,        'Interrogación oral'],
   ['11-creacion',     '/creacion',            null,        'Creación de personaje'],
@@ -63,6 +63,48 @@ async function sembrar(page) {
     localStorage.setItem('reinos-del-derecho-save', JSON.stringify(e.reinos));
     localStorage.setItem('procesal-save', JSON.stringify(e.procesal));
   }, [SAVE, EXP]);
+}
+
+/**
+ * Deja el mazo de repaso con algo que repasar, jugando de verdad.
+ *
+ * El mazo arranca vacío, y una partida recién creada enseña «Tu mazo está
+ * vacío»: verdad, pero no cuenta nada. Así que se contesta una tanda de cédula
+ * contestando a lo largo de las cuatro alternativas —algunas caen mal, que es
+ * justo lo que llena el mazo— y después se adelanta un día el reloj de las
+ * fichas. Es el estado de quien vuelve al día siguiente, no una partida
+ * inventada: los identificadores los produjo el código del juego.
+ */
+async function prepararRepaso(page) {
+  await page.goto(BASE + '/examen', { waitUntil: 'commit' });
+  await page.waitForTimeout(1600);
+
+  for (let i = 0; i < 10; i++) {
+    const opciones = page.locator('.shell-main .opcion, .shell-main button').filter({ hasNotText: AVANCE });
+    const n = await opciones.count();
+    if (!n) break;
+    try { await opciones.nth(Math.min(i % 4, n - 1)).click({ timeout: 2500 }); } catch { break; }
+    await page.waitForTimeout(550);
+    const siguiente = page.locator('.shell-main button').filter({ hasText: AVANCE }).first();
+    if (!(await siguiente.count())) break;
+    try { await siguiente.click({ timeout: 2500 }); } catch { break; }
+    await page.waitForTimeout(550);
+  }
+
+  // Adelantar el reloj del mazo. `toca()` compara cadenas AAAA-MM-DD, así que
+  // basta con dejar `proximo` en ayer para que toque hoy.
+  const fichas = await page.evaluate(() => {
+    const crudo = localStorage.getItem('derecho-procesal-rpg-save');
+    if (!crudo) return 0;
+    const guardado = JSON.parse(crudo);
+    const mazo = guardado?.state?.repaso;
+    if (!mazo || typeof mazo !== 'object') return 0;
+    const ayer = new Date(Date.now() - 86400000).toISOString().slice(0, 10);
+    for (const id of Object.keys(mazo)) mazo[id].proximo = ayer;
+    localStorage.setItem('derecho-procesal-rpg-save', JSON.stringify(guardado));
+    return Object.keys(mazo).length;
+  });
+  if (!fichas) console.log('  · el mazo quedó vacío: se acertó todo');
 }
 
 async function responder(page) {
@@ -104,6 +146,11 @@ async function responder(page) {
         await page.goto(BASE + ruta, { waitUntil: 'commit' });
         await page.waitForTimeout(1800);
         if (accion === 'responder') await responder(page);
+        if (accion === 'repaso') {
+          await prepararRepaso(page);
+          await page.goto(BASE + ruta, { waitUntil: 'commit' });
+          await page.waitForTimeout(1800);
+        }
         // Congelar lo que siguiera animándose: si no, sale un fotograma a medias.
         await page.addStyleTag({ content: '*,*::before,*::after{animation:none!important;transition:none!important}' });
         await page.waitForTimeout(300);
