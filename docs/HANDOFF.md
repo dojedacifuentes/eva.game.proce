@@ -58,6 +58,10 @@ Node **24.x**. Sin variables de entorno, sin claves, sin backend.
 | Los iconos de la interfaz | `components/game/Icono.tsx` — trazo, rejilla de 24, grosor 1.6, `currentColor` |
 | El mapa de campaña (nodos, cables, distritos, detalle) | `components/MapaFlujo.tsx` |
 | El fondo de toda la aplicación | `components/FondoCiudad.tsx` (SVG estático, componente de servidor) |
+| El símbolo de EVA (□X) | `components/shell/EvaMark.tsx`, que pinta `lib/marca-eva.ts`. Ese archivo **se genera** desde la landing de EVA (`node scripts/brand-assets.mjs --kit ../eva.game.proce-main`, en eva.proyecto01) junto con `app/icon.svg` y `app/apple-icon.png`: no se edita a mano |
+| La vuelta a EVA ARCADE (`/links` de la landing) | `components/shell/VolverArcade.tsx` + `ARCADE` en `lib/brand.ts` + sección `EVA ARCADE` al final de `app/globals.css`. En la portada, arriba; en la cabecera, desde 768 px |
+| La vista previa al compartir el enlace | `app/opengraph-image.tsx` (EVA ARCADE, el juego y su categoría) |
+| La estadística de visitas | `<Analytics />` en `app/layout.tsx` (Vercel Web Analytics: cuenta sólo si está activado en el proyecto) |
 
 La dirección creativa que se estaba siguiendo está escrita en el propio
 repositorio: [`direccion-creativa/05_UX_DIRECTION.md`](direccion-creativa/05_UX_DIRECTION.md)
@@ -100,6 +104,23 @@ build pase.
    avales universitarios, cifras de usuarios y promesas de aprobación del examen.
 10. **El contenido jurídico no se corrige de memoria.** Se contrasta contra fuente
     oficial (BCN / LeyChile) o no se toca. Ver §7.
+
+---
+
+## 3 bis · El juego dentro de EVA ARCADE (26-09-2026)
+
+FORO [in]VISIBLE es uno de los juegos de **EVA ARCADE**, la colección de
+juegos de EVA cuya puerta es https://evaproyecto01.vercel.app/links. Desde ahí
+se llega y a ahí se vuelve: botón «← □X EVA ARCADE» en la portada y «□X EVA
+ARCADE» en la cabecera desde tableta (en el teléfono la fila de 56 px ya va
+llena: se sale por la portada). El monograma provisional en rombo de EVA pasó a
+ser su símbolo oficial □X. Icono de pestaña, icono de inicio y vista previa
+para redes, también de la marca.
+
+En pantallas bajas (menos de 720 px de alto, como un iPhone SE) la portada ya
+iba justa: la frase rotativa, decorativa, se oculta (`.portada-frase`) para que
+quepa la fila de la vuelta sin recortar ni desplazar nada. Medido sin solapes
+a 320×568, 375×667, 360×800, 390×844, 1024×768, 1366×768 y 1440×900.
 
 ---
 

@@ -2,8 +2,9 @@
  * CONFIGURACIÓN DE MARCA — punto único de verdad.
  *
  * Todo el nombre, los créditos, los colores y las rutas de assets de marca viven
- * aquí. Para incorporar la imagen oficial de EVA más adelante basta con rellenar
- * `EVA.assetSrc`: ningún componente referencia archivos de marca por su cuenta.
+ * aquí. La marca oficial de EVA (el símbolo □X) llega calculada en
+ * `lib/marca-eva.ts` y se reexporta desde aquí: ningún componente referencia
+ * archivos de marca por su cuenta.
  *
  * Reglas de contenido que este archivo respeta a propósito (no las relajes sin
  * material verificable):
@@ -44,21 +45,21 @@ export const AUTOR = {
 /**
  * EVA — guía de aprendizaje dentro de la experiencia.
  *
- * `assetSrc: null` significa que se está usando el TRATAMIENTO VISUAL PROVISIONAL:
- * el monograma tipográfico abstracto de `components/shell/EvaMark.tsx`. No existe
- * en el repositorio ninguna referencia visual oficial de EVA (`public/` está vacío).
+ * Su marca ya es la oficial: `components/shell/EvaMark.tsx` dibuja el símbolo □X
+ * de EVA con la geometría de `lib/marca-eva.ts`, generada desde la landing de EVA
+ * (eva.proyecto01, `scripts/brand-assets.mjs --kit`). Hasta septiembre de 2026
+ * era un monograma provisional en rombo.
  *
- * PARA REEMPLAZARLO: deja el archivo oficial en `public/` y pon aquí su ruta,
- * por ejemplo `assetSrc: "/eva-oficial.svg"`. `EvaMark` lo detecta y deja de
- * dibujar el monograma provisional. No hay que tocar ningún otro archivo.
+ * `assetSrc` sigue sirviendo para forzar una imagen en su lugar (ruta en
+ * `public/`); con `null`, se dibuja el símbolo.
  */
 export const EVA = {
   nombre: "EVA",
   /** Función, no personalidad: es lo único que está documentado. */
   rol: "Guía de aprendizaje",
   assetSrc: null as string | null,
-  /** Marca el tratamiento como reemplazable allí donde se muestra en créditos. */
-  assetEsProvisional: true,
+  /** El símbolo ya es el oficial de EVA. */
+  assetEsProvisional: false,
   color: "var(--eva-accent)",
 } as const;
 
@@ -68,6 +69,24 @@ export const COLORES = {
   proyecto: "var(--zona-recursos)",
   acento: "var(--zona-competencia)",
 } as const;
+
+/**
+ * EVA ARCADE — la colección de juegos de EVA a la que pertenece éste. Su puerta
+ * es `/links` en la landing de EVA: desde ahí se llega a cada juego y a ella
+ * se vuelve (`components/shell/VolverArcade.tsx`).
+ */
+export const ARCADE = {
+  nombre: "EVA ARCADE",
+  puerta: "https://evaproyecto01.vercel.app/links",
+  volver: "Volver a EVA ARCADE",
+  /** Categoría del juego dentro del Arcade, como en su tarjeta de /links. */
+  categoria: "RPG · Derecho Procesal",
+  /** Su color en el Arcade: el azul claro de su tarjeta en /links. */
+  tinta: "#86c1ff",
+} as const;
+
+/** La geometría y los colores de la marca de EVA (generados; no se editan a mano). */
+export { MARCA as MARCA_EVA } from "./marca-eva";
 
 /** Pie de marca reutilizable: una sola línea, dos datos. */
 export const FIRMA = `${PROYECTO.presenta} · ${AUTOR.credito}` as const;

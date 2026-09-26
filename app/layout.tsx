@@ -1,10 +1,11 @@
 import type { Metadata, Viewport } from "next";
+import { Analytics } from "@vercel/analytics/next";
 import { Cinzel, Cormorant_Garamond, Inter, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 import GlobalCanvas from "@/components/GlobalCanvas";
 import FondoCiudad from "@/components/FondoCiudad";
 import WorldThemeProvider from "@/components/WorldThemeProvider";
-import { JUEGO, PROYECTO, AUTOR } from "@/lib/brand";
+import { JUEGO, PROYECTO, AUTOR, ARCADE } from "@/lib/brand";
 
 // ============================================================================
 // Fuentes vía next/font: se descargan en la compilación y se sirven desde el
@@ -55,6 +56,19 @@ export const metadata: Metadata = {
   description: `${JUEGO.descripcion} ${PROYECTO.presenta}. ${AUTOR.credito}.`,
   applicationName: JUEGO.nombre,
   authors: [{ name: AUTOR.nombre }],
+  // Al compartir el enlace: la imagen es `app/opengraph-image.tsx` (EVA ARCADE).
+  openGraph: {
+    type: "website",
+    locale: "es_CL",
+    siteName: ARCADE.nombre,
+    title: `${JUEGO.nombre} — ${JUEGO.subtitulo}`,
+    description: JUEGO.descripcion,
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: `${JUEGO.nombre} — ${JUEGO.subtitulo}`,
+    description: JUEGO.descripcion,
+  },
 };
 
 // `viewport-fit=cover` es lo que permite que env(safe-area-inset-*) tenga
@@ -88,6 +102,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             (scanlines z-50 y ruido+viñeta z-51), que son hermanas suyas. El
             resultado era que todo modal quedaba bajo una viñeta negra al 60 %. */}
         <div className="relative">{children}</div>
+        {/* Estadística de visitas de Vercel, sin cookies: cuántas y de dónde llegan
+            (por ejemplo, desde /links de EVA ARCADE). Sólo cuenta si Web Analytics
+            está activado en el proyecto de Vercel. */}
+        <Analytics />
       </body>
     </html>
   );
