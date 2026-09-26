@@ -122,6 +122,10 @@ iba justa: la frase rotativa, decorativa, se oculta (`.portada-frase`) para que
 quepa la fila de la vuelta sin recortar ni desplazar nada. Medido sin solapes
 a 320×568, 375×667, 360×800, 390×844, 1024×768, 1366×768 y 1440×900.
 
+Publicado el 26-09-2026 (`main` = `e6d96a5`) y comprobado en
+https://evagameproce.vercel.app/: vuelta a `/links`, iconos, vista previa y
+estadística de Vercel (activada en el proyecto).
+
 ---
 
 ## 4 · Trampas ya pagadas
