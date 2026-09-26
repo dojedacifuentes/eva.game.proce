@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+  <defs>
+    <linearGradient id="eva" gradientUnits="userSpaceOnUse" x1="10.47" x2="21.53" y1="0" y2="0">
+      <stop stop-color="#3d9dff"/>
+      <stop offset=".5" stop-color="#7a70ff"/>
+      <stop offset="1" stop-color="#b863ff"/>
+    </linearGradient>
+  </defs>
+  <rect width="32" height="32" rx="7" fill="#03050d"/>
+  <g fill="url(#eva)">
+    <path fill-rule="evenodd" d="M10.47 3H21.53V14.06H10.47Z M12.67 5.2V11.86H19.33V5.2Z"/>
+    <polygon points="10.69,17.05 13.33,17.05 21.31,29 18.67,29"/>
+    <polygon points="21.31,17.05 18.67,17.05 10.69,29 13.33,29"/>
+  </g>
+</svg>

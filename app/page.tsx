@@ -8,6 +8,7 @@ import { sfx } from "@/lib/audio";
 import { JUEGO, PROYECTO, AUTOR } from "@/lib/brand";
 import GameShell from "@/components/shell/GameShell";
 import EvaMark from "@/components/shell/EvaMark";
+import VolverArcade from "@/components/shell/VolverArcade";
 
 // ============================================================================
 // PORTADA — una sola acción principal, decidida por el estado real de la
@@ -39,6 +40,11 @@ export default function Home() {
 
   return (
     <GameShell variant="app" header={false} nav={false}>
+      {/* ─── Vuelta a EVA ARCADE: por aquí se llegó desde /links ─── */}
+      <div className="shrink-0 w-full flex pt-3 px-3">
+        <VolverArcade />
+      </div>
+
       <div className="flex-1 min-h-0 flex flex-col items-center justify-center text-center py-4">
         {/* ─── Marca que presenta ─── */}
         <div className="flex items-center gap-2 mb-5 px-3 py-1.5 rounded-full" style={{ background: "#0B0F17", border: "1px solid #1F2A3C" }}>
@@ -98,8 +104,9 @@ export default function Home() {
           </nav>
         )}
 
-        {/* ─── Frase rotativa ─── */}
-        <div className="mt-7 max-w-md px-4 min-h-[58px]" aria-live="off">
+        {/* ─── Frase rotativa (decorativa: en pantallas bajas cede su sitio, ver
+            `.portada-frase` en globals.css) ─── */}
+        <div className="portada-frase mt-7 max-w-md px-4 min-h-[58px]" aria-live="off">
           <div className="rotulo" style={{ color: "#B39BFF" }}>{FRASES[fraseIdx].art}</div>
           <div className="cita text-[19px] mt-1">«{FRASES[fraseIdx].texto}»</div>
         </div>

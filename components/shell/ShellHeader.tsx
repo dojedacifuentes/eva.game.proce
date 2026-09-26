@@ -10,6 +10,7 @@ import { JUEGO } from "@/lib/brand";
 import EvaMark from "./EvaMark";
 import Icono from "@/components/game/Icono";
 import PanelAudio, { type ModoAudio } from "./PanelAudio";
+import VolverArcade from "./VolverArcade";
 
 /** Preferencia de audio del jugador, recordada entre sesiones. */
 const CLAVE_AUDIO = "foro-invisible:audio";
@@ -165,6 +166,9 @@ export default function ShellHeader({
             </span>
           </span>
         )}
+
+        {/* Vuelta a EVA ARCADE: desde tableta; en el teléfono, por la portada. */}
+        <VolverArcade compacto />
 
         <button
           type="button"

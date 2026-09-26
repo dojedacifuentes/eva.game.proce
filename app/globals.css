@@ -2210,3 +2210,27 @@ body { font-size: var(--t-base); line-height: 1.5; }
   .flujo-nodo[data-estado="actual"] .flujo-caja::after { animation: none; opacity: .6; transform: none; }
   .flujo-cable-activo { animation: none; }
 }
+
+/* ── EVA ARCADE: la vuelta a la puerta del Arcade ──────────────────────────
+   El símbolo □X de EVA y el nombre del Arcade, como botón de cabecera (misma
+   pieza que `.cabecera-boton`). Lleva a /links de la landing de EVA. En el
+   teléfono sólo está en la portada: la cabecera de 56 px ya va llena. */
+.volver-arcade { gap: .55rem; padding: 0 .85rem; }
+.volver-arcade-nombre {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+}
+.volver-arcade-cabecera { display: none; }
+@media (min-width: 768px) {
+  .volver-arcade-cabecera { display: inline-flex; }
+}
+/* En la portada, la vuelta ocupa una fila arriba. En pantallas bajas (un iPhone
+   SE mide 667 px) la portada ya iba justa, así que la frase rotativa —decorativa
+   y sin `aria-live`— cede su sitio: la portada sigue cabiendo entera, sin
+   recortar ni desplazar nada. */
+@media (max-height: 720px) {
+  .portada-frase { display: none; }
+}
